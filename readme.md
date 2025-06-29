@@ -1,4 +1,5 @@
-# 📘 SitVerse
+# 📘 SitCoders
+
 
 > *The official student forum platform for our college community.*
 
