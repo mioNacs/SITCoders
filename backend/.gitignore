@@ -42,3 +42,6 @@ coverage/
 *.bak
 *.swp
 *.tmp
+
+# Uploads directory (temporary files)
+uploads/
