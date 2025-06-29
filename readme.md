@@ -6,7 +6,7 @@
 ---
 
 ## 🗂️ Overview
-SitVerse is an open-source project to build a modern, web-based discussion forum for college students.  
+SitCoders is an open-source project to build a modern, web-based discussion forum for college students.  
 
 Our mission is to enable students to:
 - Ask questions
