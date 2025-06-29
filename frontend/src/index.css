@@ -1,2 +1,41 @@
+@import url('https://fonts.googleapis.com/css2?family=Jost:ital,wght@0,100..900;1,100..900&family=Saira:ital,wght@0,100..900;1,100..900&display=swap');
 @import "tailwindcss";
+
+
+
+@theme{
+    --font-Jost: 'Jost', sans-serif;
+    --font-Saira: 'Saira', sans-serif;
+}
+
+
+@layer utilities {
+    .no-scrollbar::-webkit-scrollbar {
+        display: none;
+    }
+    
+    .no-scrollbar {
+        -ms-overflow-style: none;  /* IE and Edge */
+        scrollbar-width: none;  /* Firefox */
+    }
+}
+
+@keyframes appear {
+    from {
+        opacity: 0;
+        transform: translateX(-100px) perspective(1000px) rotateX(90deg) rotateY(30deg);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0) perspective(1000px) rotateX(0) rotateY(0);
+    }
+}
+
+.scroll-view{
+    animation: appear ease-in-out;
+    animation-timeline: view();
+    animation-range: entry 0% cover 50%;
+    transform-style: preserve-3d;
+    backface-visibility: hidden;
+}
 
