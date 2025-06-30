@@ -4,7 +4,7 @@ import HeroText from './HeroText'
 
 function HeroSection() {
   return (
-    <div className='flex flex-col md:flex-row bg-white text-black min-h-screen'>
+    <div className='flex flex-col select-none md:flex-row bg-white text-black min-h-screen'>
       <div className='sticky px-4 sm:px-6 md:px-8 lg:mx-20 flex flex-col md:flex-row items-center justify-center w-full'>
         <div className='w-full md:w-1/2 lg:w-1/2 object-cover mt-8 md:mt-0'>
           <img 
