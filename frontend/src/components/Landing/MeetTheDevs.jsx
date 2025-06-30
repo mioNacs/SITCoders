@@ -23,7 +23,7 @@ function MeetTheDevs() {
   ];
 
   return (
-    <div className="font-Jost relative ">
+    <div className="font-Jost relative slide-in">
       {/* Blurry animated background abstracts for aesthetics */}
       <div className="absolute inset-0 overflow-hidden">
         {/* Orange blob */}
@@ -68,15 +68,18 @@ function MeetTheDevs() {
         <h2 className="text-4xl font-medium text-center font-Saira mb-8">Meet the Devs</h2>
         <div className="mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 select-none">
           {/* Developer Card */}
-          {developers.map((dev) => (
+          {developers.map((dev, index) => (
             <div
-              key={dev.name}
-              className="mx-auto px-[20%] bg-white/40 rounded-lg scroll-view backdrop-blur-sm shadow-lg p-6 flex flex-col items-center"
+              key={index}
+              className="mx-auto px-[20%] hover:bg-white/70 bg-white/40 rounded-lg 
+              scroll-view backdrop-blur-sm shadow-lg p-6 flex flex-col items-center
+              transition-all duration-300 ease-in-out transform hover:scale-105
+              grayscale-25 hover:filter-none"
             >
               <img
                 src={dev.image}
                 alt={dev.name}
-                className="w-50 h-50 rounded-full mb-4 object-cover"
+                className="inset-0 w-50 h-50 rounded-full mb-4 object-cover"
               />
               <h3 className="text-2xl font-semibold mb-2">{dev.name}</h3>
               <p className="text-gray-600 mb-4">{dev.role}</p>

@@ -23,11 +23,11 @@
 @keyframes appear {
     from {
         opacity: 0;
-        transform: translateX(-100px) perspective(1000px) rotateX(90deg) rotateY(30deg);
+        transform: translateX(-100px) translateZ(-10px) perspective(1000px) rotateX(90deg) rotateY(30deg);
     }
     to {
         opacity: 1;
-        transform: translateX(0) perspective(1000px) rotateX(0) rotateY(0);
+        transform: translateX(0) translateZ(0) perspective(1000px) rotateX(0) rotateY(0);
     }
 }
 
@@ -39,3 +39,19 @@
     backface-visibility: hidden;
 }
 
+@keyframes slide {
+    from {
+        opacity: 0;
+        transform: translateX(-30%) translateZ(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0) translateZ(0);
+    }
+}
+
+.slide-in {
+    animation: slide ease-in-out ;
+    animation-timeline: view();
+    animation-range: entry 0% cover 40%;
+}
