@@ -36,15 +36,7 @@ const otpSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-otpSchema.methods.generateOtp = function () {
-  const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
-  this.otp = otp;
-  this.otpExpiresAt = Date.now() + 5 * 60 * 1000; // 5 minutes from now
-  this.otpAttempts = 0;
-
-  return otp;
-};
 
 otpSchema.methods.isOtpValid = function (inputOtp) {
   const isValid = this.otp === inputOtp && Date.now() < this.otpExpiresAt;

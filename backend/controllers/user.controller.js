@@ -4,6 +4,7 @@ import Otp from "../models/otp.model.js";
 import { transporter, sendMail } from "../utilities/transporter.js";
 import fs from "fs";
 import { promisify } from "util";
+import generateOtp from "../utilities/generateOtp.js";
 
 const unlinkAsync = promisify(fs.unlink);
 
@@ -107,19 +108,17 @@ const sendEmailViaOtp = async (req, res) => {
       return res.status(500).json({ message: "User creation failed" });
     }
     //now generate OTP
-    const otpInstance = new Otp({
-      userId: newUser._id,
-      purpose: "email-verification",
-    });
-
-    await otpInstance.save();
-    const otp = otpInstance.generateOtp();
+    const otp = generateOtp();
     if (!otp) {
       return res.status(500).json({ message: "OTP generation failed" });
     }
-    otpInstance.otp = otp;
-    otpInstance.otpExpiresAt = Date.now() + 5 * 60 * 1000; // 5 minutes from now
-    await otpInstance.save();
+    const otpInstance =  await Otp.create({
+      userId: newUser._id,
+      purpose: "email-verification",
+      otpExpiresAt: Date.now() + 5 * 60 * 1000, // 5 minutes from now
+      otp: otp,
+      otpAttempts: 0,
+    });
     // Here you would send the OTP to the user's email
     await otpInstance.sendOtpViaEmail(transporter, email, otp);
 
@@ -161,7 +160,7 @@ const verifyOtp = async (req, res) => {
     }
     // OTP is valid, proceed with verification
     await User.updateOne({ _id: user._id }, { isEmailVerified: true });
-    await otpInstance.remove();
+    // await otpInstance.remove();
     await sendMail(
       email,
       "Email Verified",
