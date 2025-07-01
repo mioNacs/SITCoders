@@ -1,14 +1,21 @@
 import { useState } from 'react'
-import { Landing } from './components'
+import { Landing, Home, Footer, Header } from './components'
+import {Outlet} from 'react-router-dom'
+
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   return (
     <>
-    <div>
-      <Landing />
-    </div>
+      {!isLoggedIn && <Outlet/>}
+      {isLoggedIn && (
+        <div>
+          <Header />
+          <Outlet />
+          <Footer/>
+        </div>
+      )}
     </>
   )
 }
