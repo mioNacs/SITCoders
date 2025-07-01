@@ -10,13 +10,13 @@ cloudinary.config({
 });
 
 
-const uploadOnCloudinary = async (file) => {
+const uploadOnCloudinary = async (filePath) => {
   try {
-    if (!file) {
-      throw new Error("No file provided for upload");
+    if (!filePath) {
+      throw new Error("No filepath provided for upload");
     }
 
-    const result = await cloudinary.uploader.upload(file, {
+    const result = await cloudinary.uploader.upload(filePath, {
       folder: 'sitverse/profiles',
       resource_type: 'auto',
     });

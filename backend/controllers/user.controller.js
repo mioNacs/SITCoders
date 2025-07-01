@@ -5,6 +5,7 @@ import { transporter, sendMail } from "../utilities/transporter.js";
 import fs from "fs";
 import { promisify } from "util";
 import generateOtp from "../utilities/generateOtp.js";
+import mongoose from "mongoose";
 
 const unlinkAsync = promisify(fs.unlink);
 
@@ -14,9 +15,10 @@ function isValidRollNo(rollNo) {
 }
 
 const sendEmailViaOtp = async (req, res) => {
+   const session = await mongoose.startSession();
   try {
-    const { username, fullName, email, password, rollNo, gender } = req.body;
-    if (!username || !fullName || !email || !password || !rollNo || !gender) {
+    const { username, fullName, email, password, rollNo, gender, semester } = req.body;
+    if (!username || !fullName || !email || !password || !rollNo || !gender || !semester) {
       return res.status(400).json({ message: "All fields are required" });
     }
 
@@ -46,9 +48,8 @@ const sendEmailViaOtp = async (req, res) => {
     let public_id = "";
 
     const file = req.file;
-
     if (file) {
-      if (file.mimetype !== "image/jpeg" && file.mimetype !== "image/png") {
+      if (!['image/jpeg', 'image/jpg', 'image/png',].includes(file.mimetype)) {
         // Clean up uploaded file if validation fails
         if (file.path) {
           try {
@@ -61,6 +62,7 @@ const sendEmailViaOtp = async (req, res) => {
       }
 
       try {
+        console.log("Uploading file to Cloudinary:", file.path);
         const uploadResult = await uploadOnCloudinary(file.path);
         url = uploadResult.url;
         public_id = uploadResult.public_id;
@@ -95,7 +97,9 @@ const sendEmailViaOtp = async (req, res) => {
       }
     }
 
-    const newUser = await User.create({
+     session.startTransaction();  
+ 
+    const newUser = await User.create([{
       username,
       fullName,
       email,
@@ -106,30 +110,40 @@ const sendEmailViaOtp = async (req, res) => {
         url: url,
         public_id: public_id,
       },
-    });
+      semester: semester,
+    }], { session });
     if (!newUser) {
+      await session.abortTransaction();
       return res.status(500).json({ message: "User creation failed" });
     }
     //now generate OTP
     const otp = generateOtp();
     if (!otp) {
+      await session.abortTransaction();
       return res.status(500).json({ message: "OTP generation failed" });
     }
-    const otpInstance = await Otp.create({
-      userId: newUser._id,
+    const otpInstance = await Otp.create([{
+      userId: newUser[0]._id,
       purpose: "email-verification",
       otpExpiresAt: Date.now() + 5 * 60 * 1000, // 5 minutes from now
       otp: otp,
       otpAttempts: 0,
       resendAfter: Date.now() + 60 * 1000 * 2, // 2 minutes from now
-    });
+    }], { session });
     // Here you would send the OTP to the user's email
+    if(!otpInstance || otpInstance.length === 0){
+      await session.abortTransaction();
+      return res.status(500).json({ message: "OTP creation failed" });
+    }
     try {
-      await otpInstance.sendOtpViaEmail(transporter, email, otp);
+      await otpInstance[0].sendOtpViaEmail(transporter, email, otp);
     } catch (error) {
       console.error("Error sending OTP email:", error);
+      await session.abortTransaction();
       return res.status(500).json({ message: "Failed to send OTP email" });
     }
+
+    await session.commitTransaction();
 
     return res.status(200).json({
       message: `OTP sent to your email ${email}.`,
@@ -138,6 +152,9 @@ const sendEmailViaOtp = async (req, res) => {
   } catch (error) {
     console.error("Error in sendEmailViaOtp:", error);
     return res.status(500).json({ message: "Internal server error" });
+  }
+  finally {
+    session.endSession();
   }
 };
 
@@ -219,6 +236,7 @@ const resendOtp = async (req, res) => {
       otpInstance.otp = newOtp;
       otpInstance.otpExpiresAt = otpExpires;
       otpInstance.resendAfter = nextResendAllowed;
+      otpInstance.otpAttempts = 0; // Reset attempts when new OTP is generated
 
       await otpInstance.save();
 
@@ -235,6 +253,7 @@ const resendOtp = async (req, res) => {
         purpose: "email-verification",
         otpExpiresAt: otpExpires,
         otp: newOtp,
+        otpAttempts: 0,
         resendAfter: nextResendAllowed,
       });
 
@@ -245,11 +264,11 @@ const resendOtp = async (req, res) => {
         return res.status(500).json({ message: "Failed to send OTP email" });
       }
     }
-    
+
     return res.status(200).json({ message: "OTP sent successfully" });
 
   } catch (error) {
-    console.log("error in resendOtp:", error.message);
+    console.error("error in resendOtp:", error.message);
     return res
       .status(500)
       .json({ message: "Internal server error in resendOtp" });

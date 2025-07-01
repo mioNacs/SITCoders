@@ -27,7 +27,7 @@ app.listen(PORT, () => {
 });
 
 app.get('/', (req, res) => {
-  res.send('Welcome to SitVerse Backend');
+  res.status(200).json({ message: 'Welcome to SitVerse API' });
 });
 
 
