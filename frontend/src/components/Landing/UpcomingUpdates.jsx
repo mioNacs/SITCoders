@@ -55,7 +55,7 @@ function UpcomingUpdates() {
           {plannedUpdates.map((update, index) => (
             <div
               key={index}
-              className="relative bg-white/50 m-2 rounded-lg shadow-md slide-in backdrop-blur-sm"
+              className="relative bg-white/50 m-2 transition-all duration-300 ease-in-out transform hover:scale-105 rounded-lg shadow-md slide-in backdrop-blur-sm"
             >
               <div className="backdrop-blur-sm p-4 ">
                 <h2 className="text-2xl font-semibold mb-2">

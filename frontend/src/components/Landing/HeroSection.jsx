@@ -1,6 +1,7 @@
 import React from 'react'
 import landingHero from '../../assets/index'
 import HeroText from './HeroText'
+import {Link, NavLink} from 'react-router-dom'
 
 function HeroSection() {
   return (
@@ -18,14 +19,18 @@ function HeroSection() {
           <HeroText />
           <div className='flex flex-col justify-center sm:flex-row space-y-4 
           sm:space-y-0 sm:space-x-4 md:space-x-6 mt-6'>
-            <button className='bg-orange-400 p-2 md:p-3 hover:drop-shadow-2xl duration-400 text-white font-medium 
+            <Link to={"/login"}>
+            <div className='bg-orange-400 p-2 md:p-3 hover:drop-shadow-2xl duration-400 text-white font-medium 
             px-4 md:px-6 rounded-full text-lg md:text-xl hover:bg-gray-600 cursor-pointer'>
               Log In
-            </button>
-            <button className='bg-orange-400 p-2 md:p-3 hover:drop-shadow-2xl duration-400 text-white font-medium 
+            </div>
+            </Link>
+            <Link to={"/signup"}>
+            <div className='bg-orange-400 p-2 md:p-3 hover:drop-shadow-2xl duration-400 text-white font-medium 
             px-4 md:px-6 rounded-full text-lg md:text-xl hover:bg-gray-600 cursor-pointer'>
               Sign Up
-            </button>
+            </div>
+            </Link>
           </div>
         </div>
       </div>

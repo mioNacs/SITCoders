@@ -76,6 +76,7 @@ function MeetTheDevs() {
               transition-all duration-300 ease-in-out transform hover:scale-105
               grayscale-25 hover:filter-none"
             >
+              <div className="backdrop-blur-sm"></div>
               <img
                 src={dev.image}
                 alt={dev.name}
