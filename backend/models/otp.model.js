@@ -1,10 +1,16 @@
 import mongoose from "mongoose";
+import { type } from "os";
 
 const otpSchema = new mongoose.Schema(
   {
     userId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
+      required: true,
+    },
+    resendAfter: {
+      type: Date,
+      default: Date.now,
       required: true,
     },
     purpose: {
@@ -57,6 +63,16 @@ otpSchema.methods.hasExceededMaxAttempts = function () {
 otpSchema.methods.isOtpExpired = function () {
   return Date.now() > this.otpExpiresAt;
 };
+otpSchema.methods.removeInstance = async function () {
+  try {
+    await this.deleteOne();
+    console.log("OTP instance removed successfully");
+  } catch (err) {
+    console.error("Error removing OTP instance:", err);
+    throw new Error("Failed to remove OTP instance");
+  }
+};
+
 otpSchema.methods.resetOtp = function () {
   this.otp = "";
   this.otpExpiresAt = null;

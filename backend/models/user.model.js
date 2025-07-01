@@ -9,6 +9,7 @@ const userSchema = new mongoose.Schema(
       required: true,
       unique: true,
       trim: true,
+      index:true,
     },
     email: {
       type: String,
@@ -46,11 +47,22 @@ const userSchema = new mongoose.Schema(
       type: String,
       trim: true,
       unique: true,
+      index:true,
     },
     gender: {
       type: String,
       enum: ["male", "female", "other"],
       required: true,
+    },
+    semester: {
+      type: Number,
+      required: true,
+      min: 1,
+      max: 8,
+    },
+    popularity: {
+      type: Number,
+      default: 0,
     },
   },
   { timestamps: true }

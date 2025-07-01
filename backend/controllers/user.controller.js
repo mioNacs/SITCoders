@@ -84,7 +84,10 @@ const sendEmailViaOtp = async (req, res) => {
           try {
             await unlinkAsync(file.path);
           } catch (cleanupError) {
-            console.error("Error cleaning up file after upload failure:", cleanupError);
+            console.error(
+              "Error cleaning up file after upload failure:",
+              cleanupError
+            );
           }
         }
         console.error("Cloudinary upload error:", uploadError);
@@ -112,15 +115,21 @@ const sendEmailViaOtp = async (req, res) => {
     if (!otp) {
       return res.status(500).json({ message: "OTP generation failed" });
     }
-    const otpInstance =  await Otp.create({
+    const otpInstance = await Otp.create({
       userId: newUser._id,
       purpose: "email-verification",
       otpExpiresAt: Date.now() + 5 * 60 * 1000, // 5 minutes from now
       otp: otp,
       otpAttempts: 0,
+      resendAfter: Date.now() + 60 * 1000 * 2, // 2 minutes from now
     });
     // Here you would send the OTP to the user's email
-    await otpInstance.sendOtpViaEmail(transporter, email, otp);
+    try {
+      await otpInstance.sendOtpViaEmail(transporter, email, otp);
+    } catch (error) {
+      console.error("Error sending OTP email:", error);
+      return res.status(500).json({ message: "Failed to send OTP email" });
+    }
 
     return res.status(200).json({
       message: `OTP sent to your email ${email}.`,
@@ -156,21 +165,96 @@ const verifyOtp = async (req, res) => {
     }
     const isValid = otpInstance.isOtpValid(otp);
     if (!isValid) {
+      await otpInstance.save();
       return res.status(400).json({ message: "Invalid or expired OTP" });
     }
     // OTP is valid, proceed with verification
     await User.updateOne({ _id: user._id }, { isEmailVerified: true });
-    // await otpInstance.remove();
+    await otpInstance.removeInstance();
     await sendMail(
       email,
       "Email Verified",
-      "Your email has been successfully verified. and sent it to the admin for verification"
+      "Your email has been verified successfully and sent to the admin for verification"
     );
     return res.status(200).json({ message: "Email verified successfully" });
   } catch (error) {
-    console.error("Error in verifyOtp:", error);
-    return res.status(500).json({ message: "Internal server error" });
+    console.error("Error in verifyOtp:", error.message);
+    return res
+      .status(500)
+      .json({ message: "Internal server error in verifyOtp" });
   }
 };
 
-export { sendEmailViaOtp, verifyOtp };
+const resendOtp = async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      return res.status(400).json({ message: "Email is required" });
+    }
+
+    const user = await User.findOne({ email: email });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const otpInstance = await Otp.findOne({
+      userId: user._id,
+      purpose: "email-verification",
+    });
+
+    const newOtp = generateOtp();
+    const otpExpires = Date.now() + 5 * 60 * 1000;
+    const nextResendAllowed = Date.now() + 2 * 60 * 1000;
+
+    if (otpInstance) {
+      let currentTime = Date.now();
+      if (otpInstance.resendAfter > currentTime) {
+        return res.status(400).json({
+          message: `You can request new OTP after ${new Date(
+            otpInstance.resendAfter
+          ).toLocaleTimeString()}`,
+        });
+      }
+
+      otpInstance.otp = newOtp;
+      otpInstance.otpExpiresAt = otpExpires;
+      otpInstance.resendAfter = nextResendAllowed;
+
+      await otpInstance.save();
+
+      try {
+        await otpInstance.sendOtpViaEmail(transporter, email, newOtp);
+        return res.status(200).json({ message: "OTP resent successfully" });
+      } catch (error) {
+        console.error("Error sending OTP email:", error);
+        return res.status(500).json({ message: "Failed to send OTP email" });
+      }
+    } else {
+      const newOtpInstance = await Otp.create({
+        userId: user._id,
+        purpose: "email-verification",
+        otpExpiresAt: otpExpires,
+        otp: newOtp,
+        resendAfter: nextResendAllowed,
+      });
+
+      try {
+        await newOtpInstance.sendOtpViaEmail(transporter, email, newOtp);
+      } catch (error) {
+        console.error("Error sending OTP email:", error);
+        return res.status(500).json({ message: "Failed to send OTP email" });
+      }
+    }
+    
+    return res.status(200).json({ message: "OTP sent successfully" });
+
+  } catch (error) {
+    console.log("error in resendOtp:", error.message);
+    return res
+      .status(500)
+      .json({ message: "Internal server error in resendOtp" });
+  }
+};
+
+
+export { sendEmailViaOtp, verifyOtp, resendOtp };
