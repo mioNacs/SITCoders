@@ -14,8 +14,14 @@
     "motion": "^12.19.2",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
+<<<<<<< HEAD
     "react-router-dom": "^7.6.3",
     "tailwindcss": "^4.1.11"
+=======
+    "tailwindcss": "^4.1.11",
+    "react-router": "^7.6.3",
+    "react-router-dom": "^7.6.3"
+>>>>>>> fafe287e7d05ccaf3fcc079483e4ba31ab7bba11
   },
   "devDependencies": {
     "@eslint/js": "^9.29.0",
