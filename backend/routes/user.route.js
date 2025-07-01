@@ -1,6 +1,7 @@
 import { Router } from "express";
 import multer from "multer";
 import {
+  loginUser,
   resendOtp,
   sendEmailViaOtp,
   verifyOtp,
@@ -35,5 +36,7 @@ router.post(
 // Route for OTP verification
 router.post("/verify-otp", verifyOtp);
 router.post("/resend-otp", resendOtp);
+router.post("/login", loginUser);
+
 
 export default router;

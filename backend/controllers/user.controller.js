@@ -15,10 +15,19 @@ function isValidRollNo(rollNo) {
 }
 
 const sendEmailViaOtp = async (req, res) => {
-   const session = await mongoose.startSession();
+  const session = await mongoose.startSession();
   try {
-    const { username, fullName, email, password, rollNo, gender, semester } = req.body;
-    if (!username || !fullName || !email || !password || !rollNo || !gender || !semester) {
+    const { username, fullName, email, password, rollNo, gender, semester } =
+      req.body;
+    if (
+      !username ||
+      !fullName ||
+      !email ||
+      !password ||
+      !rollNo ||
+      !gender ||
+      !semester
+    ) {
       return res.status(400).json({ message: "All fields are required" });
     }
 
@@ -49,7 +58,7 @@ const sendEmailViaOtp = async (req, res) => {
 
     const file = req.file;
     if (file) {
-      if (!['image/jpeg', 'image/jpg', 'image/png',].includes(file.mimetype)) {
+      if (!["image/jpeg", "image/jpg", "image/png"].includes(file.mimetype)) {
         // Clean up uploaded file if validation fails
         if (file.path) {
           try {
@@ -97,21 +106,26 @@ const sendEmailViaOtp = async (req, res) => {
       }
     }
 
-     session.startTransaction();  
- 
-    const newUser = await User.create([{
-      username,
-      fullName,
-      email,
-      password,
-      rollNo,
-      gender,
-      profilePicture: {
-        url: url,
-        public_id: public_id,
-      },
-      semester: semester,
-    }], { session });
+    session.startTransaction();
+
+    const newUser = await User.create(
+      [
+        {
+          username,
+          fullName,
+          email,
+          password,
+          rollNo,
+          gender,
+          profilePicture: {
+            url: url,
+            public_id: public_id,
+          },
+          semester: semester,
+        },
+      ],
+      { session }
+    );
     if (!newUser) {
       await session.abortTransaction();
       return res.status(500).json({ message: "User creation failed" });
@@ -122,16 +136,21 @@ const sendEmailViaOtp = async (req, res) => {
       await session.abortTransaction();
       return res.status(500).json({ message: "OTP generation failed" });
     }
-    const otpInstance = await Otp.create([{
-      userId: newUser[0]._id,
-      purpose: "email-verification",
-      otpExpiresAt: Date.now() + 5 * 60 * 1000, // 5 minutes from now
-      otp: otp,
-      otpAttempts: 0,
-      resendAfter: Date.now() + 60 * 1000 * 2, // 2 minutes from now
-    }], { session });
+    const otpInstance = await Otp.create(
+      [
+        {
+          userId: newUser[0]._id,
+          purpose: "email-verification",
+          otpExpiresAt: Date.now() + 5 * 60 * 1000, // 5 minutes from now
+          otp: otp,
+          otpAttempts: 0,
+          resendAfter: Date.now() + 60 * 1000 * 2, // 2 minutes from now
+        },
+      ],
+      { session }
+    );
     // Here you would send the OTP to the user's email
-    if(!otpInstance || otpInstance.length === 0){
+    if (!otpInstance || otpInstance.length === 0) {
       await session.abortTransaction();
       return res.status(500).json({ message: "OTP creation failed" });
     }
@@ -152,8 +171,7 @@ const sendEmailViaOtp = async (req, res) => {
   } catch (error) {
     console.error("Error in sendEmailViaOtp:", error);
     return res.status(500).json({ message: "Internal server error" });
-  }
-  finally {
+  } finally {
     session.endSession();
   }
 };
@@ -266,7 +284,6 @@ const resendOtp = async (req, res) => {
     }
 
     return res.status(200).json({ message: "OTP sent successfully" });
-
   } catch (error) {
     console.error("error in resendOtp:", error.message);
     return res
@@ -275,5 +292,61 @@ const resendOtp = async (req, res) => {
   }
 };
 
+const loginUser = async (req, res) => {
+  try {
+    const { email, username, password } = req.body;
+    if (!email && !username) {
+      return res.status(400).json({ message: "Email or username is required" });
+    }
 
-export { sendEmailViaOtp, verifyOtp, resendOtp };
+    const query = email ? { email } : { username };
+
+    const user = await User.findOne(query);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    if (!user.isEmailVerified) {
+      return res.status(403).json({ message: "Email not verified" });
+    }
+    const isPasswordValid = await user.isPasswordCorrect(password);
+    if (!isPasswordValid) {
+      return res.status(401).json({ message: "Invalid password" });
+    }
+    const accessToken = await user.generateAccessToken();
+    if (!accessToken) {
+      return res
+        .status(500)
+        .json({ message: "Failed to generate access token" });
+    }
+    res.cookie("accessToken", accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      maxAge: 24 * 60 * 60 * 1000, // 1 day
+      sameSite: "none",
+    });
+    res
+      .status(200)
+      .json({
+        message: "Login successful",
+        user: {
+          id: user._id,
+          email: user.email,
+          username: user.username,
+          fullName: user.fullName,
+          profile: user.profilePicture.url,
+          rollNo: user.rollNo,
+          gender: user.gender,
+          semester: user.semester,
+          popularity: user.popularity,
+        },
+      });
+  } catch (error) {
+    console.error("Error in loginUser:", error.message);
+    return res
+      .status(500)
+      .json({ message: "Internal server error in loginUser" });
+  }
+};
+
+export { sendEmailViaOtp, verifyOtp, resendOtp, loginUser };

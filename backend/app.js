@@ -17,7 +17,10 @@ connectDB().then(() => {
   process.exit(1); // Exit the process with failure
 });
 
-app.use(cors());
+app.use(cors({
+  origin: process.env.CLIENT_URL || 'http://localhost:5173',
+  credentials: true, // Allow credentials (cookies, authorization headers, etc.)
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true, limit: '16kb' }));
 app.use(express.static('public'));
@@ -34,3 +37,6 @@ app.get('/', (req, res) => {
 import userRoutes from './routes/user.route.js';
 
 app.use('/api/users', userRoutes);
+
+import adminRoutes from './routes/admin.route.js';
+app.use('/api/admin', adminRoutes);
