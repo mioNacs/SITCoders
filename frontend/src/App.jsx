@@ -18,7 +18,7 @@ function App() {
     // Redirect logic
     if (user && location.pathname === '/' || location.pathname === '/login' || location.pathname === '/signup' || location.pathname === '/verify-otp') {
       navigate('/home');
-    } else if (!user && location.pathname === '/home') {
+    } else if (!user && location.pathname === '/home' || location.pathname === '/queries' || location.pathname === '/projects' || location.pathname === '/contact-admin' || location.pathname === '/user-profile' || location.pathname === '/admin-dashboard') {
       navigate('/');
     }
     setIsLoading(false);
