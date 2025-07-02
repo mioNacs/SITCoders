@@ -1,21 +1,43 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Landing, Home, Footer, Header } from './components'
-import {Outlet} from 'react-router-dom'
-
+import { Outlet, useNavigate, useLocation } from 'react-router-dom'
+import ScrollToTop from './components/ScrollToTop';
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    setIsLoading(true);
+    const user = localStorage.getItem('user');
+    setIsLoggedIn(!!user);
+    setIsLoading(false);
+
+    // Redirect logic
+    if (user && location.pathname === '/' || location.pathname === '/login' || location.pathname === '/signup' || location.pathname === '/verify-otp') {
+      navigate('/home');
+    } else if (!user && location.pathname === '/home') {
+      navigate('/');
+    }
+    setIsLoading(false);
+  }, [navigate, location.pathname]);
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <div className="text-xl">Loading...</div>
+      </div>
+    );
+  }
 
   return (
     <>
-      {!isLoggedIn && <Outlet/>}
-      {isLoggedIn && (
-        <div>
-          <Header />
-          <Outlet />
-          <Footer/>
-        </div>
-      )}
+      <ScrollToTop />
+      {isLoggedIn && <Header />}
+      <Outlet />
+      {isLoggedIn && <Footer />}
     </>
   )
 }
