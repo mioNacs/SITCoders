@@ -1,36 +1,41 @@
-import React from "react";
+import {Link} from "react-router-dom";
 
 function Footer() {
   return (
     <div>
       <footer className="relative border-t font-Jost border-black/20 py-4 px-10">
         <div className="flex flex-col md:flex-row justify-between items-center border-y border-black/20 p-4 md:p-8 md:mx-10 my-4 space-x-4">
-            <div className="mb-4 md:mb-0">
-                <span className="text-3xl md:text-4xl text-gray-600 font-Saira font-bold">SIT</span>
-                <span className="text-3xl md:text-4xl text-orange-400 font-Saira font-bold">Coders</span>
-            </div>
-            <div>
-              From{" "}
-              <a 
+          <Link to={"/"} className="mb-4 md:mb-0">
+            <span className="text-3xl md:text-4xl text-gray-600 font-Saira font-bold">
+              SIT
+            </span>
+            <span className="text-3xl md:text-4xl text-orange-400 font-Saira font-bold">
+              Coders
+            </span>
+          </Link>
+          <div>
+            From{" "}
+            <a
               className="hover:text-orange-400 transition-colors duration-150"
               href="https://www.sityog.edu.in/"
               target="_blank"
-              >
-                Sityog Institute of Technology (SIT)
-              </a>, Aurangabad
-            </div>
-            <div className="flex flex-col sm:flex-row justify-between w-full md:w-1/2 lg:w-1/3 py-4 gap-8 sm:gap-4">
-              <ul className="text-left space-y-2 md:space-y-4">
-                <li className="font-medium"> FOLLOW US </li>
-                <li className="text-sm"> Github </li>
-                <li className="text-sm"> Discord </li>
-              </ul>
-              <ul className="text-left space-y-2 md:space-y-4 mt-4 sm:mt-0">
-                <li className="font-medium"> LEGAL </li>
-                <li className="text-sm"> Privacy Policy </li>
-                <li className="text-sm"> Terms & Conditions </li>
-              </ul>
-            </div>
+            >
+              Sityog Institute of Technology (SIT)
+            </a>
+            , Aurangabad
+          </div>
+          <div className="flex flex-col sm:flex-row justify-between w-full md:w-1/2 lg:w-1/3 py-4 gap-8 sm:gap-4">
+            <ul className="text-left space-y-2 md:space-y-4">
+              <li className="font-medium"> FOLLOW US </li>
+              <li className="text-sm"> Github </li>
+              <li className="text-sm"> Discord </li>
+            </ul>
+            <ul className="text-left space-y-2 md:space-y-4 mt-4 sm:mt-0">
+              <li className="font-medium"> LEGAL </li>
+              <li className="text-sm"> Privacy Policy </li>
+              <li className="text-sm"> Terms & Conditions </li>
+            </ul>
+          </div>
         </div>
         <div className="flex flex-col sm:flex-row items-center justify-between px-4 md:px-12 container text-center sm:text-left gap-2 sm:gap-0">
           <p className="text-sm">
