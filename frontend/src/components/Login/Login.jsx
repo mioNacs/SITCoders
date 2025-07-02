@@ -1,11 +1,55 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { loginUser } from "../../services/api.js";
 
 function Login() {
   const [isVisible, setIsVisible] = React.useState(false);
+  const [loading, setLoading] = React.useState(false);
+  const [error, setError] = React.useState("");
+  const [formData, setFormData] = React.useState({
+    emailOrUsername: "",
+    password: ""
+  });
+  
+  const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setError("");
+    setLoading(true);
+
+    if (!formData.emailOrUsername || !formData.password) {
+      setError("Please fill all fields");
+      setLoading(false);
+      return;
+    }
+
+    try {
+      // Determine if input is email or username
+      const isEmail = formData.emailOrUsername.includes('@');
+      const loginData = {
+        password: formData.password,
+        ...(isEmail ? { email: formData.emailOrUsername } : { username: formData.emailOrUsername })
+      };
+
+      const response = await loginUser(loginData);
+      
+      // Store user data in localStorage or context
+      localStorage.setItem('user', JSON.stringify(response.user));
+      
+      // Navigate to home page
+      navigate('/');
+      
+    } catch (error) {
+      setError(error.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -19,29 +63,44 @@ function Login() {
             Coders
           </span>
         </div>
+        
+        {error && (
+          <div className="mt-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+            {error}
+          </div>
+        )}
+
         <div className="mt-4 text-sm sm:text-lg">
-          <form className="flex flex-col gap-3" action="">
+          <form className="flex flex-col gap-3" onSubmit={handleSubmit}>
             <div className="flex flex-col justify-between ">
-              <label className="font-medium" htmlFor="Email">
+              <label className="font-medium" htmlFor="emailOrUsername">
                 Email/Username:
               </label>
               <input
-                id="Email"
+                id="emailOrUsername"
+                name="emailOrUsername"
+                value={formData.emailOrUsername}
+                onChange={handleInputChange}
                 className="bg-gray-50 caret-orange-400 px-4 py-2 rounded-md outline-none border border-gray-300 focus:border-orange-400 focus:shadow-lg shadow-orange-400/10"
                 type="text"
                 placeholder="Enter your email or username"
+                required
               />
             </div>
             <div className="flex flex-col justify-between ">
-              <label className="font-medium" htmlFor="Password">
+              <label className="font-medium" htmlFor="password">
                 Password:
               </label>
               <div className="flex px-4 py-2 gap-x-1 rounded-md bg-gray-50 border border-gray-300 has-focus:border-orange-400 has-focus:shadow-lg shadow-orange-400/10">
                 <input
-                  id="Password"
+                  id="password"
+                  name="password"
+                  value={formData.password}
+                  onChange={handleInputChange}
                   className="outline-none w-full caret-orange-400"
                   type={isVisible ? "text" : "password"}
                   placeholder="Enter your password"
+                  required
                 />
                 <div
                   className="flex items-center"
@@ -67,12 +126,9 @@ function Login() {
                 Forgot Password?
               </div>
             </div>
-            <button>
-              <div
-                onClick={handleSubmit}
-                className="bg-orange-400 shadow-md hover:shadow-lg font-Saira text-lg sm:text-xl text-white px-4 py-2 rounded-md mt-2 hover:bg-orange-500 transition-all duration-200 ease-in-out cursor-pointer"
-              >
-                Log In
+            <button type="submit" disabled={loading}>
+              <div className={`${loading ? 'bg-gray-400' : 'bg-orange-400 hover:bg-orange-500'} shadow-md hover:shadow-lg font-Saira text-lg sm:text-xl text-white px-4 py-2 rounded-md mt-2 transition-all duration-200 ease-in-out cursor-pointer`}>
+                {loading ? 'Logging in...' : 'Log In'}
               </div>
             </button>
           </form>
