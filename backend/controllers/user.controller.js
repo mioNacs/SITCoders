@@ -10,14 +10,14 @@ import mongoose from "mongoose";
 const unlinkAsync = promisify(fs.unlink);
 
 function isValidRollNo(rollNo) {
-  const pattern = /^(\d{2})(cse|ee|me|ce|dee|dme|dcse|dce)(\d{1,3})$/i;
+  const pattern = /^(\d{2})(cse|ee|me|ce|dee|dme|dcse|dce|bca|bba)(\d{1,3})$/i;
   return pattern.test(rollNo);
 }
 
-const sendEmailViaOtp = async (req, res) => {
+const sendOtpViaEmail = async (req, res) => {
   const session = await mongoose.startSession();
   try {
-    const { username, fullName, email, password, rollNo, gender, semester } =
+    const { username, fullName, email, password, rollNo, gender } =
       req.body;
     if (
       !username ||
@@ -25,8 +25,7 @@ const sendEmailViaOtp = async (req, res) => {
       !email ||
       !password ||
       !rollNo ||
-      !gender ||
-      !semester
+      !gender 
     ) {
       return res.status(400).json({ message: "All fields are required" });
     }
@@ -121,7 +120,7 @@ const sendEmailViaOtp = async (req, res) => {
             url: url,
             public_id: public_id,
           },
-          semester: semester,
+         
         },
       ],
       { session }
@@ -169,7 +168,7 @@ const sendEmailViaOtp = async (req, res) => {
       email: email,
     });
   } catch (error) {
-    console.error("Error in sendEmailViaOtp:", error);
+    console.error("Error in sendOtpViaEmail:", error);
     return res.status(500).json({ message: "Internal server error" });
   } finally {
     session.endSession();
@@ -337,7 +336,6 @@ const loginUser = async (req, res) => {
           profile: user.profilePicture.url,
           rollNo: user.rollNo,
           gender: user.gender,
-          semester: user.semester,
           popularity: user.popularity,
         },
       });
@@ -349,4 +347,4 @@ const loginUser = async (req, res) => {
   }
 };
 
-export { sendEmailViaOtp, verifyOtp, resendOtp, loginUser };
+export { sendOtpViaEmail, verifyOtp, resendOtp, loginUser };

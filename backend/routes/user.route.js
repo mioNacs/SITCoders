@@ -3,7 +3,7 @@ import multer from "multer";
 import {
   loginUser,
   resendOtp,
-  sendEmailViaOtp,
+  sendOtpViaEmail,
   verifyOtp,
 } from "../controllers/user.controller.js";
 import upload from "../middlewares/multer.middleware.js";
@@ -30,7 +30,7 @@ router.post(
   "/create",
   upload.single("profilePicture"),
   handleMulterError,
-  sendEmailViaOtp
+  sendOtpViaEmail
 );
 
 // Route for OTP verification
