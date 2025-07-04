@@ -4,7 +4,7 @@ import { deleteFromCloudinary } from "../middlewares/cloudinary.js";
 
 const createAdmin = async (req, res) => {
   try {
-    const { email } = req.body;
+    const { email, role } = req.body;
     if (!email) {
       return res.status(400).json({ message: "Email is required" });
     }
@@ -12,10 +12,14 @@ const createAdmin = async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
+    const isAdmin = await Admin.findOne({ admin: user._id });
+    if (isAdmin) {
+      return res.status(400).json({ message: "User is already an admin" });
+    }
 
     const admin = new Admin({
       admin: user._id,
-      role: "admin",
+      role: role,
     });
     await admin.save({ validateBeforeSave: false });
 
@@ -86,6 +90,26 @@ const rejectUserFromAdmin = async (req, res) => {
     
   }
 };
+const isAdmin = async (req, res) => {
+try {
+    const {email} = req.body;
+    if (!email) {
+      return res.status(400).json({ message: "Email is required" });
+    }
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    const admin = await Admin.findOne({ admin: user._id });
+    if (!admin) {
+      return res.status(404).json({ message: "User is not an admin" });
+    }
+    return res.status(200).json({ message: "User is an admin", isAdmin: true });
+} catch (error) {
+    console.error("Error checking admin status:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+}
 
 
-export { createAdmin, getAllUnverifiedUsers, verifyUserFromAdmin, rejectUserFromAdmin };
+export { createAdmin, getAllUnverifiedUsers, verifyUserFromAdmin, rejectUserFromAdmin,isAdmin};
