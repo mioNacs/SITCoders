@@ -339,6 +339,7 @@ const loginUser = async (req, res) => {
           gender: user.gender,
           semester: user.semester,
           popularity: user.popularity,
+          createdAt: user.createdAt
         },
       });
   } catch (error) {

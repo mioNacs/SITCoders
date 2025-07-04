@@ -248,7 +248,7 @@ function Signup() {
                     name="confirmPassword"
                     value={formData.confirmPassword}
                     onChange={handleInputChange}
-                    type="password"
+                    type="text"
                     placeholder="Re-enter your password"
                     required
                   />

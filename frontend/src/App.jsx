@@ -2,27 +2,21 @@ import { useState, useEffect } from 'react'
 import { Landing, Home, Footer, Header } from './components'
 import { Outlet, useNavigate, useLocation } from 'react-router-dom'
 import ScrollToTop from './components/ScrollToTop';
+import { useAuth } from './context/AuthContext'
 
 function App() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const { isLoggedIn, isLoading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
   useEffect(() => {
-    setIsLoading(true);
-    const user = localStorage.getItem('user');
-    setIsLoggedIn(!!user);
-    setIsLoading(false);
-
     // Redirect logic
-    if (user && (location.pathname === '/' || location.pathname === '/login' || location.pathname === '/signup' || location.pathname === '/verify-otp')) {
+    if (isLoggedIn && (location.pathname === '/' || location.pathname === '/login' || location.pathname === '/signup' || location.pathname === '/verify-otp')) {
       navigate('/home');
-    } else if (!user && (location.pathname === '/home' || location.pathname === '/queries' || location.pathname === '/projects' || location.pathname === '/contact-admin' || location.pathname === '/user-profile' || location.pathname === '/admin-dashboard')) {
+    } else if (!isLoggedIn && (location.pathname === '/home' || location.pathname === '/queries' || location.pathname === '/projects' || location.pathname === '/contact-admin' || location.pathname === '/user-profile' || location.pathname === '/admin-dashboard')) {
       navigate('/');
     }
-    setIsLoading(false);
-  }, [navigate, location.pathname]);
+  }, [isLoggedIn, location.pathname, navigate]);
 
   if (isLoading) {
     return (
@@ -32,12 +26,25 @@ function App() {
     );
   }
 
+  if (location.pathname === '/') {
+    return (
+      <>
+        {isLoggedIn && <Header />}
+        {isLoggedIn ? 
+          <div>Redirecting to home...</div> : 
+          <div>
+            <Landing />
+          </div>
+        }
+      </>
+    );
+  }
+
   return (
     <>
       <ScrollToTop />
       {isLoggedIn && <Header />}
       <Outlet />
-      {isLoggedIn && <Footer />}
     </>
   )
 }
