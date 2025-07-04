@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { sendEmail } from "../utilities/transporter.js";
 
 const otpSchema = new mongoose.Schema(
   {
@@ -35,13 +36,10 @@ const otpSchema = new mongoose.Schema(
     otpAttempts: {
       type: Number,
       default: 0,
-
     },
   },
   { timestamps: true }
 );
-
-
 
 otpSchema.methods.isOtpValid = function (inputOtp) {
   const isValid = this.otp === inputOtp && Date.now() < this.otpExpiresAt;
@@ -57,7 +55,6 @@ otpSchema.methods.hasExceededMaxAttempts = function () {
   const MAX_ATTEMPTS = 3;
   return this.otpAttempts >= MAX_ATTEMPTS;
 };
-
 
 otpSchema.methods.isOtpExpired = function () {
   return Date.now() > this.otpExpiresAt;
@@ -77,18 +74,20 @@ otpSchema.methods.resetOtp = function () {
   this.otpExpiresAt = null;
   this.otpAttempts = 0;
 };
-otpSchema.methods.sendOtpViaEmail = async function (transporter, email, otp) {
+otpSchema.methods.sendOtpViaEmail = async function (email, otp) {
   try {
-    const mailOptions = {
-      from: process.env.SMTP_USER,
-      to: email,
-      subject: `Your OTP for ${this.purpose}`,
-      text: `Your OTP is ${otp}. It is valid for 5 minutes.`,
-      html: `<p>Your OTP is <strong>${otp}</strong>. It is valid for 5 minutes.</p>
-              <p>If you did not request this, please ignore this email.</p>`,
-    };
-
-    await transporter.sendMail(mailOptions);
+   await sendEmail(
+      email,
+      `Your OTP for ${this.purpose}`,
+      `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px;">
+      <h2 style="color: #673AB7;">One-Time Password (OTP)</h2>
+      <p>Your OTP is <strong>${otp}</strong>. It is valid for <strong>5 minutes</strong>.</p>
+      <p>If you did not request this, please ignore this email.</p>
+      <p style="margin-top: 30px;">Thank you,<br>The Team</p>
+    </div>
+  `
+    );
     console.log("OTP sent successfully");
   } catch (error) {
     console.error("Error sending OTP:", error);

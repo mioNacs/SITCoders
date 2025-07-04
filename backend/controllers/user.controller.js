@@ -1,7 +1,7 @@
 import User from "../models/user.model.js";
 import { uploadOnCloudinary } from "../middlewares/cloudinary.js";
 import Otp from "../models/otp.model.js";
-import { transporter, sendMail } from "../utilities/transporter.js";
+import { transporter, sendEmail } from "../utilities/transporter.js";
 import fs from "fs";
 import { promisify } from "util";
 import generateOtp from "../utilities/generateOtp.js";
@@ -17,16 +17,8 @@ function isValidRollNo(rollNo) {
 const sendOtpViaEmail = async (req, res) => {
   const session = await mongoose.startSession();
   try {
-    const { username, fullName, email, password, rollNo, gender } =
-      req.body;
-    if (
-      !username ||
-      !fullName ||
-      !email ||
-      !password ||
-      !rollNo ||
-      !gender 
-    ) {
+    const { username, fullName, email, password, rollNo, gender } = req.body;
+    if (!username || !fullName || !email || !password || !rollNo || !gender) {
       return res.status(400).json({ message: "All fields are required" });
     }
 
@@ -120,7 +112,6 @@ const sendOtpViaEmail = async (req, res) => {
             url: url,
             public_id: public_id,
           },
-         
         },
       ],
       { session }
@@ -154,7 +145,7 @@ const sendOtpViaEmail = async (req, res) => {
       return res.status(500).json({ message: "OTP creation failed" });
     }
     try {
-      await otpInstance[0].sendOtpViaEmail(transporter, email, otp);
+      await otpInstance[0].sendOtpViaEmail(email, otp);
     } catch (error) {
       console.error("Error sending OTP email:", error);
       await session.abortTransaction();
@@ -205,11 +196,21 @@ const verifyOtp = async (req, res) => {
     // OTP is valid, proceed with verification
     await User.updateOne({ _id: user._id }, { isEmailVerified: true });
     await otpInstance.removeInstance();
-    await sendMail(
+    await sendEmail(
       email,
       "Email Verified",
-      "Your email has been verified successfully and sent to the admin for verification"
+      `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px;">
+      <h2 style="color: #2196F3;">Email Verified</h2>
+      <p>Dear User,</p>
+      <p>Your email has been <strong>successfully verified</strong>.</p>
+      <p>It has been forwarded to the admin for final account verification.</p>
+      <p>You will receive another confirmation once your account is fully verified.</p>
+      <p style="margin-top: 30px;">Thank you,<br>The Team</p>
+    </div>
+  `
     );
+
     return res.status(200).json({ message: "Email verified successfully" });
   } catch (error) {
     console.error("Error in verifyOtp:", error.message);
@@ -324,22 +325,20 @@ const loginUser = async (req, res) => {
       maxAge: 24 * 60 * 60 * 1000, // 1 day
       sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
     });
-    res
-      .status(200)
-      .json({
-        message: "Login successful",
-        user: {
-          id: user._id,
-          email: user.email,
-          username: user.username,
-          fullName: user.fullName,
-          profile: user.profilePicture.url,
-          rollNo: user.rollNo,
-          gender: user.gender,
-          popularity: user.popularity,
-          createdAt: user.createdAt
-        },
-      });
+    res.status(200).json({
+      message: "Login successful",
+      user: {
+        _id: user._id,
+        email: user.email,
+        username: user.username,
+        fullName: user.fullName,
+        profile: user.profilePicture.url,
+        rollNo: user.rollNo,
+        gender: user.gender,
+        popularity: user.popularity,
+        createdAt: user.createdAt,
+      },
+    });
   } catch (error) {
     console.error("Error in loginUser:", error.message);
     return res
@@ -348,4 +347,19 @@ const loginUser = async (req, res) => {
   }
 };
 
-export { sendOtpViaEmail, verifyOtp, resendOtp, loginUser };
+const logOutUser = async (req, res) => {
+  try {
+    res.clearCookie("accessToken", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+    });
+
+    return res.status(200).json({ message: "Logged out successfully" });
+  } catch (error) {
+    console.error("Err while logging out user:", error.message);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export { sendOtpViaEmail, verifyOtp, resendOtp, loginUser, logOutUser };
