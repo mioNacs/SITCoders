@@ -54,7 +54,7 @@ const userSchema = new mongoose.Schema(
       enum: ["male", "female", "other"],
       required: true,
     },
-  
+    
     popularity: {
       type: Number,
       default: 0,

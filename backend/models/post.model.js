@@ -19,22 +19,6 @@ const postSchema = new mongoose.Schema({
         url: { type: String, default: "", trim: true },
         public_id: { type: String, default: "", trim: true }
     },
-    comments: [{
-        user: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "User",
-            required: true
-        },
-        content: {
-            type: String,
-            required: true,
-            trim: true
-        },
-        createdAt: {
-            type: Date,
-            default: Date.now
-        }
-    }],
     tag: {
         type: String,
         enum: ["general", "query", "announcement", "event", "project"],
