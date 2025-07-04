@@ -1,8 +1,10 @@
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { loginUser } from "../../services/api.js";
+import { useAuth } from "../../context/AuthContext.jsx";
 
 function Login() {
+  const { login } = useAuth();
   const [isVisible, setIsVisible] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState("");
@@ -40,10 +42,10 @@ function Login() {
       const response = await loginUser(loginData);
       
       // Store user data in localStorage or context
-      localStorage.setItem('user', JSON.stringify(response.user));
+      await login(response.user)
       
       // Navigate to home page
-      navigate('/');
+      navigate('/home');
       
     } catch (error) {
       setError(error.message);

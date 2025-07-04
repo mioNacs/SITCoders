@@ -4,6 +4,7 @@ import { createBrowserRouter, Route, RouterProvider, createRoutesFromElements} f
 import './index.css'
 import App from './App.jsx'
 import {Login, Signup, VerifyOTP, Landing, Home, Queries, ContactAdmin, Projects, UserProfile, AdminDashboard} from './components'
+import { AuthProvider } from './context/AuthContext.jsx'
 
 const router = createBrowserRouter(
   createRoutesFromElements(
@@ -24,6 +25,8 @@ const router = createBrowserRouter(
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <RouterProvider router={router}/>
-  </StrictMode>,
+    <AuthProvider>
+      <RouterProvider router={router}/>
+    </AuthProvider>
+  </StrictMode>
 )

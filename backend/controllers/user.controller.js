@@ -337,6 +337,7 @@ const loginUser = async (req, res) => {
           rollNo: user.rollNo,
           gender: user.gender,
           popularity: user.popularity,
+          createdAt: user.createdAt
         },
       });
   } catch (error) {
