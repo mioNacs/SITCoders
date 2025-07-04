@@ -100,11 +100,26 @@ try {
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
-    const admin = await Admin.findOne({ admin: user._id });
+    const admin = await Admin.findOne({ admin: user._id }).populate('admin');
     if (!admin) {
-      return res.status(404).json({ message: "User is not an admin" });
+      return res.status(200).json({ 
+        isAdmin: false, 
+        role: null,
+        adminData: null,
+        message: "User is not an admin" 
+      });
     }
-    return res.status(200).json({ message: "User is an admin", isAdmin: true });
+    
+    return res.status(200).json({ 
+      isAdmin: true,
+      role: admin.role,
+      adminData: {
+        id: admin._id,
+        role: admin.role,
+        createdAt: admin.createdAt
+      },
+      message: "User is an admin" 
+    });
 } catch (error) {
     console.error("Error checking admin status:", error);
     res.status(500).json({ message: "Internal server error" });
