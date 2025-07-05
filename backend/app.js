@@ -2,6 +2,7 @@ import express from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
 import connectDB from './db/index.js';
+import cookieParser from 'cookie-parser';
 import { scheduleCleanup } from './utilities/fileCleanup.js';
 
 dotenv.config();
@@ -21,6 +22,8 @@ app.use(cors({
   origin: process.env.CLIENT_URL || 'http://localhost:5173',
   credentials: true, // Allow credentials (cookies, authorization headers, etc.)
 }));
+
+app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true, limit: '16kb' }));
 app.use(express.static('public'));

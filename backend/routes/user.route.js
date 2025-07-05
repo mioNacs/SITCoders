@@ -7,6 +7,9 @@ import {
   sendOtpViaEmail,
   verifyOtp,
   getCurrentUser,
+  updateTextDetails,
+  updateProfilePicture,
+  updateBio,
 } from "../controllers/user.controller.js";
 import upload from "../middlewares/multer.middleware.js";
 import verifyUser from "../middlewares/verifyUser.js";
@@ -41,7 +44,11 @@ router.post("/verify-otp", verifyOtp);
 router.post("/resend-otp", resendOtp);
 router.post("/login", loginUser);
 router.get("/logout", logOutUser);
-router.get("/current-user", verifyUser,getCurrentUser);
 
+// protected routes
+router.get("/current-user", verifyUser,getCurrentUser);
+router.post("/update-text-details", verifyUser,updateTextDetails);
+router.post("/update-profile-picture", verifyUser,updateProfilePicture);
+router.post("/update-bio", verifyUser,updateBio);
 
 export default router;
