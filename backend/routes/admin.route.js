@@ -12,6 +12,6 @@ router.post('/create',verifyUser,verifyAdmin, createAdmin);
 router.get('/unverified-users',verifyUser,verifyAdmin, getAllUnverifiedUsers);
 router.post('/verify-user', verifyUser, verifyAdmin, verifyUserFromAdmin);
 router.post('/reject-user', verifyUser, verifyAdmin, rejectUserFromAdmin);
-router.post("/isAdmin",verifyUser,isAdmin)
+router.post("/isAdmin",verifyUser, isAdmin)
 
 export default router;
