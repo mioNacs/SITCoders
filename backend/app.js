@@ -43,3 +43,7 @@ app.use('/api/users', userRoutes);
 
 import adminRoutes from './routes/admin.route.js';
 app.use('/api/admin', adminRoutes);
+
+
+import postRoutes from './routes/post.route.js';
+app.use('/api/posts', postRoutes);
