@@ -33,7 +33,7 @@ const createPost = async (req, res) => {
 
       try {
         const uploadResult = await uploadPostImageOnCloudinary(file.path);
-        imageUrl = uploadResult.secure_url;
+        imageUrl = uploadResult.url;
         imagePublicId = uploadResult.public_id;
 
         // Delete the temporary file after uploading

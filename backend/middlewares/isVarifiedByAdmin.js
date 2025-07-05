@@ -9,8 +9,8 @@ const isVarifiedByAdmin = async (req, res, next) => {
       return res.status(401).json({ message: "User not authenticated" });
     }
 
-    if (!user.isAdminVarified) {
-      return res.status(403).json({ message: "Admin not verified" });
+    if (!user.isAdminVerified) {
+      return res.status(403).json({ message: "Admin have not verified you" });
     }
 
     next();
