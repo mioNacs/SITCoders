@@ -54,7 +54,12 @@ const userSchema = new mongoose.Schema(
       enum: ["male", "female", "other"],
       required: true,
     },
-    
+    bio: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+
     popularity: {
       type: Number,
       default: 0,

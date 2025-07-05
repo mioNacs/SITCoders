@@ -2,11 +2,14 @@ import { Router } from "express";
 import multer from "multer";
 import {
   loginUser,
+  logOutUser,
   resendOtp,
   sendOtpViaEmail,
   verifyOtp,
+  getCurrentUser,
 } from "../controllers/user.controller.js";
 import upload from "../middlewares/multer.middleware.js";
+import verifyUser from "../middlewares/verifyUser.js";
 
 const router = Router();
 
@@ -37,6 +40,8 @@ router.post(
 router.post("/verify-otp", verifyOtp);
 router.post("/resend-otp", resendOtp);
 router.post("/login", loginUser);
+router.get("/logout", logOutUser);
+router.get("/current-user", verifyUser,getCurrentUser);
 
 
 export default router;

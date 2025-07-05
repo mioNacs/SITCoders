@@ -1,5 +1,5 @@
 import User from "../models/user.model.js";
-import { uploadOnCloudinary } from "../middlewares/cloudinary.js";
+import { uploadOnCloudinary,deleteFromCloudinary } from "../middlewares/cloudinary.js";
 import Otp from "../models/otp.model.js";
 import { transporter, sendEmail } from "../utilities/transporter.js";
 import fs from "fs";
@@ -362,4 +362,212 @@ const logOutUser = async (req, res) => {
   }
 };
 
-export { sendOtpViaEmail, verifyOtp, resendOtp, loginUser, logOutUser };
+const getCurrentUser = async (req, res) => {
+  try {
+    const user = req.user; // Assuming user is set by verifyUser middleware
+    if (!user) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+    return res.status(200).json({
+      message: "Current user fetched successfully",
+      user: user,
+    });
+  } catch (error) {
+    console.error("Error in getCurrentUser:", error.message);
+    return res
+      .status(500)
+      .json({ message: "Internal server error in getCurrentUser" });
+  }
+};
+
+const updateTextDetails = async (req, res) => {
+  try {
+    const user = req.user;
+    if (!user) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+    let incomingData = req.body;
+    if (!incomingData) {
+      return res.status(400).json({ message: "No data provided for update" });
+    }
+    let isModified = false;
+    for (let key in incomingData) {
+      if (user[key] !== undefined && user[key] !== incomingData[key]) {
+        user[key] = incomingData[key];
+        isModified = true;
+      }
+    }
+    if (!isModified) {
+      return res.status(400).json({ message: "No fields to update" });
+    }
+
+    await user.save({ validateBeforeSave: false });
+    return res.status(200).json({
+      message: "User details updated successfully",
+      user: {
+        _id: user._id,
+        email: user.email,
+        username: user.username,
+        fullName: user.fullName,
+        profile: user.profilePicture.url,
+        rollNo: user.rollNo,
+        gender: user.gender,
+        popularity: user.popularity,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+      },
+    });
+  } catch (error) {
+    console.error("Error in updateTextDetails:", error.message);
+    return res
+      .status(500)
+      .json({ message: "Internal server error in updateTextDetails" });
+  }
+};
+
+const updateProfilePicture = async (req, res) => {
+  try {
+    const user = req.user;
+    if (!user) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+    const file = req.file;
+    if (!file) {
+      return res.status(400).json({ message: "No file uploaded" });
+    }
+    if (!["image/jpeg", "image/jpg", "image/png"].includes(file.mimetype)) {
+      // Clean up uploaded file if validation fails
+      if (file.path) {
+        try {
+          await unlinkAsync(file.path);
+        } catch (cleanupError) {
+          console.error("Error cleaning up invalid file:", cleanupError);
+        }
+      }
+      return res.status(400).json({ message: "Invalid image format" });
+    }
+    let url = "";
+    let public_id = "";
+    try {
+      const uploadResult = await uploadOnCloudinary(file.path);
+      url = uploadResult.url;
+      public_id = uploadResult.public_id;
+
+      if (!url || !public_id) {
+        return res.status(400).json({ message: "Image upload failed" });
+      }
+
+      // Clean up temporary file after successful upload
+      if (file.path) {
+        try {
+          await unlinkAsync(file.path);
+        } catch (cleanupError) {
+          console.error("Error cleaning up temporary file:", cleanupError);
+          // Don't fail the request if cleanup fails
+        }
+      }
+    } catch (uploadError) {
+      // Clean up temporary file if upload fails
+      if (file.path) {
+        try {
+          await unlinkAsync(file.path);
+        } catch (cleanupError) {
+          console.error(
+            "Error cleaning up file after upload failure:",
+            cleanupError
+          );
+        }
+      }
+      console.error("Cloudinary upload error:", uploadError);
+      return res.status(500).json({ message: "Image upload failed" });
+    }
+    // If user already has a profile picture, delete it from Cloudinary
+    if (user.profilePicture && user.profilePicture.public_id) {
+      try {
+        await deleteFromCloudinary(user.profilePicture.public_id);
+      } catch (error) {
+        console.error("Error deleting old profile picture:", error);
+        return res.status(500).json({ message: "Failed to delete old picture" });
+      }
+    }
+
+    // Update user's profile picture
+    user.profilePicture = {
+      url: url,
+      public_id: public_id,
+    };
+   await user.save({ validateBeforeSave: false });
+    return res.status(200).json({
+      message: "Profile picture updated successfully",
+      user: {
+        _id: user._id,
+        email: user.email,
+        username: user.username,
+        fullName: user.fullName,
+        profile: user.profilePicture.url,
+        rollNo: user.rollNo,
+        gender: user.gender,
+        popularity: user.popularity,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+      },
+    });
+  } catch (error) {
+    console.error("Error in updateProfilePicture:", error.message);
+    return res
+      .status(500)
+      .json({ message: "Internal server error in updateProfilePicture" });
+  }
+};
+
+const updateBio = async (req, res) => {
+  try {
+    const user = req.user;
+    if (!user) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+    const { bio } = req.body;
+    if (!bio) {
+      return res.status(400).json({ message: "Bio is required" });
+    }
+    const size = Buffer.byteLength(bio, "utf-8");
+    if (size > 120){
+      return res.status(400).json({
+        message: "Bio must be less than 120 characters",
+      });
+    }
+
+    user.bio = bio;
+    await user.save({ validateBeforeSave: false });
+    return res.status(200).json({
+      message: "Bio updated successfully",
+      user: {
+        _id: user._id,
+        email: user.email,
+        username: user.username,
+        fullName: user.fullName,
+        profile: user.profilePicture.url,
+        rollNo: user.rollNo,
+        gender: user.gender,
+        popularity: user.popularity,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+      },
+    });
+  } catch (error) {
+    console.error("Error in updateBio:", error.message);
+    return res.status(500).json({ message: "Internal server error in updateBio" });
+  }
+}
+
+export {
+  sendOtpViaEmail,
+  verifyOtp,
+  resendOtp,
+  loginUser,
+  logOutUser,
+  getCurrentUser,
+  updateTextDetails,
+  updateProfilePicture,
+  updateBio,
+};
