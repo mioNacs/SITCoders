@@ -1,5 +1,5 @@
 import Post from "../models/post.model.js";
-import { uploadOnCloudinary } from "../middlewares/cloudinary.js";
+import {  uploadPostImageOnCloudinary } from "../middlewares/cloudinary.js";
 import fs from "fs";
 const createPost = async (req, res) => {
   try {
@@ -32,7 +32,7 @@ const createPost = async (req, res) => {
       }
 
       try {
-        const uploadResult = await uploadOnCloudinary(file.path);
+        const uploadResult = await uploadPostImageOnCloudinary(file.path);
         imageUrl = uploadResult.secure_url;
         imagePublicId = uploadResult.public_id;
 
