@@ -96,7 +96,7 @@ const rejectUserFromAdmin = async (req, res) => {
       return res.status(404).json({ message: "User not found or already verified" });
     }
     // Delete user's profile picture from Cloudinary if it exists
-    if (user.profilePicture) {
+    if (user.profilePicture && user.profilePicture.public_id) {
       await deleteFromCloudinary(user.profilePicture.public_id);
     }
     await sendEmail(user.email, "Account Rejected", `

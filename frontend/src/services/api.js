@@ -77,3 +77,21 @@ export const loginUser = async (credentials) => {
     throw error;
   }
 };
+
+export const updateProfilePicture = async (formData) => {
+  try{
+    const response = await fetch(`${API_BASE_URL}/users/update-profile-picture`,{
+      method: 'POST',
+      credentials: 'include',
+      body: formData
+    });
+
+    const data = await response.json();
+    if(!response.ok) {
+      throw new Error(data.message || 'Failed to update profile picture');
+    }
+    return data;
+  } catch(error){
+    throw error;
+  }
+}
