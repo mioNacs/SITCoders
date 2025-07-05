@@ -464,12 +464,7 @@ const updateProfilePicture = async (req, res) => {
       const uploadResult = await uploadOnCloudinary(file.path);
       url = uploadResult.url;
       public_id = uploadResult.public_id;
-
-      if (!url || !public_id) {
-        return res.status(400).json({ message: "Image upload failed" });
-      }
-
-      // Clean up temporary file after successful upload
+      
       if (file.path) {
         try {
           await unlinkAsync(file.path);
@@ -478,6 +473,11 @@ const updateProfilePicture = async (req, res) => {
           // Don't fail the request if cleanup fails
         }
       }
+      if (!url || !public_id) {
+        return res.status(400).json({ message: "Image upload failed" });
+      }
+
+      // Clean up temporary file after successful upload
     } catch (uploadError) {
       // Clean up temporary file if upload fails
       if (file.path) {
