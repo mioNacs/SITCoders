@@ -1,5 +1,8 @@
 import User from "../models/user.model.js";
-import { uploadOnCloudinary,deleteFromCloudinary } from "../middlewares/cloudinary.js";
+import {
+  uploadOnCloudinary,
+  deleteFromCloudinary,
+} from "../middlewares/cloudinary.js";
 import Otp from "../models/otp.model.js";
 import { transporter, sendEmail } from "../utilities/transporter.js";
 import fs from "fs";
@@ -382,21 +385,30 @@ const getCurrentUser = async (req, res) => {
 
 const updateTextDetails = async (req, res) => {
   try {
-    const user = req.user;
-    if (!user) {
+    const userId = req.user._id;
+    if (!userId) {
       return res.status(401).json({ message: "Unauthorized" });
     }
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
     let incomingData = req.body;
-    if (!incomingData) {
+    const allowedProperty = ["username", "fullName"];
+
+    if (!incomingData || Object.keys(incomingData).length === 0) {
       return res.status(400).json({ message: "No data provided for update" });
     }
+
     let isModified = false;
-    for (let key in incomingData) {
-      if (user[key] !== undefined && user[key] !== incomingData[key]) {
+
+    for (let key of allowedProperty) {
+      if (incomingData[key] !== undefined && user[key] !== incomingData[key]) {
         user[key] = incomingData[key];
         isModified = true;
       }
     }
+
     if (!isModified) {
       return res.status(400).json({ message: "No fields to update" });
     }
@@ -487,7 +499,9 @@ const updateProfilePicture = async (req, res) => {
         await deleteFromCloudinary(user.profilePicture.public_id);
       } catch (error) {
         console.error("Error deleting old profile picture:", error);
-        return res.status(500).json({ message: "Failed to delete old picture" });
+        return res
+          .status(500)
+          .json({ message: "Failed to delete old picture" });
       }
     }
 
@@ -496,7 +510,7 @@ const updateProfilePicture = async (req, res) => {
       url: url,
       public_id: public_id,
     };
-   await user.save({ validateBeforeSave: false });
+    await user.save({ validateBeforeSave: false });
     return res.status(200).json({
       message: "Profile picture updated successfully",
       user: {
@@ -531,7 +545,7 @@ const updateBio = async (req, res) => {
       return res.status(400).json({ message: "Bio is required" });
     }
     const size = Buffer.byteLength(bio, "utf-8");
-    if (size > 120){
+    if (size > 120) {
       return res.status(400).json({
         message: "Bio must be less than 120 characters",
       });
@@ -549,6 +563,7 @@ const updateBio = async (req, res) => {
         profile: user.profilePicture.url,
         rollNo: user.rollNo,
         gender: user.gender,
+        bio: user.bio,
         popularity: user.popularity,
         createdAt: user.createdAt,
         updatedAt: user.updatedAt,
@@ -556,9 +571,11 @@ const updateBio = async (req, res) => {
     });
   } catch (error) {
     console.error("Error in updateBio:", error.message);
-    return res.status(500).json({ message: "Internal server error in updateBio" });
+    return res
+      .status(500)
+      .json({ message: "Internal server error in updateBio" });
   }
-}
+};
 
 export {
   sendOtpViaEmail,
