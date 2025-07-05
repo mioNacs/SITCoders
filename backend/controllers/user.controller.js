@@ -439,7 +439,11 @@ const updateTextDetails = async (req, res) => {
 
 const updateProfilePicture = async (req, res) => {
   try {
-    const user = req.user;
+    const userId = req.user._id;
+    if (!userId) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+    const user = await User.findById(userId);
     if (!user) {
       return res.status(401).json({ message: "Unauthorized" });
     }

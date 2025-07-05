@@ -32,6 +32,28 @@ const uploadOnCloudinary = async (filePath) => {
   }
 };
 
+const uploadPostImageOnCloudinary = async (filePath) => {
+  try {
+    if (!filePath) {
+      throw new Error("No filepath provided for upload");
+    }
+
+    const result = await cloudinary.uploader.upload(filePath, {
+      folder: 'sitverse/posts',
+      resource_type: 'auto',
+    });
+
+    return {
+      url: result.secure_url,
+      public_id: result.public_id,
+    };
+
+  } catch (error) {
+    console.error("Cloudinary Upload Error:", error);
+    throw new Error(error?.message || "Failed to upload file to Cloudinary");
+  }
+};
+
 const deleteFromCloudinary = async (public_id) => {
   try {
     if (!public_id) {
@@ -39,7 +61,7 @@ const deleteFromCloudinary = async (public_id) => {
     }
 
     const result = await cloudinary.uploader.destroy(public_id, {
-      resource_type: 'auto',
+      resource_type: 'image',
     });
 
     return result;
@@ -50,4 +72,4 @@ const deleteFromCloudinary = async (public_id) => {
   }
 };
 
-export { uploadOnCloudinary, deleteFromCloudinary };
+export { uploadOnCloudinary, deleteFromCloudinary , uploadPostImageOnCloudinary };
