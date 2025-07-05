@@ -1,5 +1,5 @@
 import { Router } from "express";
-import verifyUser from "../middlewares/verifyUser";
+import verifyUser from "../middlewares/verifyUser.js";
 import isVarifiedByAdmin from "../middlewares/isVarifiedByAdmin.js";
 import { createPost } from "../controllers/post.controller.js";
 import upload from "../middlewares/multer.middleware.js";
