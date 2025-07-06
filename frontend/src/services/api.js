@@ -95,3 +95,46 @@ export const updateProfilePicture = async (formData) => {
     throw error;
   }
 }
+
+export const updateTextDetails = async (userData) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/users/update-text-details`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+      body: JSON.stringify(userData) // Send as JSON
+    });
+    
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.message || 'Failed to update user details');
+    }
+    return data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const updateBio = async (bioData) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/users/update-bio`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+      body: JSON.stringify(bioData) // Send as JSON: { bio: "your bio text" }
+    });
+    
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.message || 'Failed to update bio');
+    }
+    return data;
+  } catch (error) {
+    throw error;
+  }
+};
+
