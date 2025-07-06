@@ -45,6 +45,51 @@ export const getAllUnverifiedUsers = async () => {
   }
 };
 
+export const getVerifiedUsers = async(page =1, limit = 10) => {
+  try{
+    const response = await fetch(`${API_BASE_URL}/admin/get-verified-user?page=${page}&limit=${limit}`,{
+      method: 'GET',
+      credentials: 'include',
+      headers: {
+        'content-type': 'application/json',
+      }
+    })
+
+    if(!response.ok){
+      console.log(response)
+      throw new Error('Failed to fetch verified users');
+    }
+
+    return await response.json();
+  }catch(error){
+    console.error('Error fetching verified users:', error);
+    throw error
+  }
+}
+
+export const createAdmin = async (email, role) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/admin/create`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email, role })
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Failed to create admin');
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error creating admin:', error);
+    throw error;
+  }
+};
+
 export const verifyUser = async (email) => {
   try {
     const response = await fetch(`${API_BASE_URL}/admin/verify-user`, {
