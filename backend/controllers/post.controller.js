@@ -1,6 +1,8 @@
 import Post from "../models/post.model.js";
-import {  uploadPostImageOnCloudinary,deleteFromCloudinary } from "../middlewares/cloudinary.js";
+import Admin from "../models/admin.model.js"; // Import Admin model
+import { uploadPostImageOnCloudinary, deleteFromCloudinary } from "../middlewares/cloudinary.js";
 import fs from "fs";
+
 const createPost = async (req, res) => {
   try {
     const { content, tag } = req.body;
@@ -84,31 +86,50 @@ const deletePost = async (req, res) => {
   session.startTransaction();
 
   try {
-    const postId = req.params.id;
-    const authorId = req.user._id;
+    const postId = req.params.postId;
+    const userId = req.user._id;
 
-    if (!postId || !authorId) {
+    if (!postId || !userId) {
       await session.abortTransaction();
       session.endSession();
-      return res.status(400).json({ message: "Post ID and Author ID are required." });
+      return res.status(400).json({ message: "Post ID and User ID are required." });
     }
 
-    const post = await Post.findOne({ _id: postId, author: authorId }).session(session);
+    // Check if user is an admin by looking in the Admin collection
+    const adminRecord = await Admin.findOne({ admin: userId });
+    const isAdmin = adminRecord !== null;
+
+    // Find the post (not filtered by author initially)
+    const post = await Post.findById(postId).session(session);
     if (!post) {
       await session.abortTransaction();
       session.endSession();
-      return res.status(404).json({ message: "Post not found or unauthorized." });
+      return res.status(404).json({ message: "Post not found." });
+    }
+
+    // Check permissions: user is the author OR user is an admin
+    const isAuthor = post.author.toString() === userId.toString();
+    
+    if (!isAuthor && !isAdmin) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(403).json({ 
+        message: "Unauthorized. You can only delete your own posts or you must be an admin." 
+      });
     }
 
     const imagePublicId = post.postImage?.public_id;
 
-    // Step 1: Delete image from Cloudinary
+    // Step 1: Delete image from Cloudinary if exists
     if (imagePublicId) {
-      const deleteResult = await deleteFromCloudinary(imagePublicId);
-      if (!deleteResult || deleteResult.result !== "ok") {
-        await session.abortTransaction();
-        session.endSession();
-        return res.status(500).json({ message: "Failed to delete image from Cloudinary." });
+      try {
+        const deleteResult = await deleteFromCloudinary(imagePublicId);
+        if (!deleteResult || deleteResult.result !== "ok") {
+          console.warn("Failed to delete image from Cloudinary, but continuing with post deletion");
+        }
+      } catch (cloudinaryError) {
+        console.warn("Error deleting image from Cloudinary:", cloudinaryError);
+        // Continue with post deletion even if image deletion fails
       }
     }
 
@@ -118,21 +139,24 @@ const deletePost = async (req, res) => {
     await session.commitTransaction();
     session.endSession();
 
-    return res.status(200).json({ message: "Post deleted successfully." });
+    return res.status(200).json({ 
+      message: "Post deleted successfully.",
+      deletedBy: isAdmin && !isAuthor ? "admin" : "author"
+    });
 
   } catch (error) {
     await session.abortTransaction();
     session.endSession();
     console.error("Error deleting post:", error);
     return res.status(500).json({ message: "Internal server error" });
-  }finally {
+  } finally {
     if (session) {
       session.endSession();
     }
   }
 };
 
-const getALLPosts = async (req,res) => {
+const getALLPosts = async (req, res) => {
   try {
     // Default values if not provided
     const page = Math.max(1, parseInt(req.query.page)) || 1;
@@ -142,7 +166,7 @@ const getALLPosts = async (req,res) => {
 
     // Fetch posts with pagination
     const posts = await Post.find()
-      .populate("author", "name profilePicture") // Populate author details
+      .populate("author", "fullName username rollNo profilePicture") // Fixed field name
       .sort({ createdAt: -1 }) // Sort by creation date, newest first
       .skip(skip)
       .limit(limit);
@@ -161,10 +185,7 @@ const getALLPosts = async (req,res) => {
   } catch (error) {
     console.error("Error fetching post:", error);
     res.status(500).json({ message: "Internal server error" });
-    
   }
 };
 
-
-
-export { createPost, deletePost,getALLPosts };
+export { createPost, deletePost, getALLPosts };
