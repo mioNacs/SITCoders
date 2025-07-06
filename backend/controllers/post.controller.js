@@ -132,5 +132,39 @@ const deletePost = async (req, res) => {
   }
 };
 
+const getALLPosts = async (req,res) => {
+  try {
+    // Default values if not provided
+    const page = Math.max(1, parseInt(req.query.page)) || 1;
+    const limit = Math.max(1, parseInt(req.query.limit)) || 10;
 
-export { createPost, deletePost };
+    const skip = (page - 1) * limit;
+
+    // Fetch posts with pagination
+    const posts = await Post.find()
+      .populate("author", "name profilePicture") // Populate author details
+      .sort({ createdAt: -1 }) // Sort by creation date, newest first
+      .skip(skip)
+      .limit(limit);
+
+    // Count total posts for pagination
+    const totalPosts = await Post.countDocuments();
+
+    res.status(200).json({
+      message: "Posts fetched successfully",
+      posts,
+      totalPosts,
+      currentPage: page,
+      totalPages: Math.ceil(totalPosts / limit),
+    });
+    
+  } catch (error) {
+    console.error("Error fetching post:", error);
+    res.status(500).json({ message: "Internal server error" });
+    
+  }
+};
+
+
+
+export { createPost, deletePost,getALLPosts };
