@@ -102,13 +102,15 @@ function UserProfile() {
     <>
       <div className="pt-20 bg-orange-50 min-h-screen select-none">
         <div className="flex flex-col md:flex-row gap-6 md:max-w-[90%] lg:max-w-[80%] mx-auto pb-8 px-4">
-          {/* Posts Section */}
-          <PostsSection />
+          <div className="w-full md:w-[40%] order-2 md:order-1">
+            {/* Posts Section */}
+            <PostsSection />
+          </div>
 
           {/* Profile Section */}
-          <div className="w-full md:w-[60%] bg-white rounded-lg shadow-md border border-orange-100 overflow-hidden">
+          <div className="w-full md:w-[60%] bg-white rounded-lg shadow-md border border-orange-100 overflow-hidden order-1 md:order-2">
             {/* Profile Header */}
-            <ProfileHeader />
+            <ProfileHeader showDialog={showDialog} />
 
             <div className="flex px-6 relative">
               {/* Action Buttons */}
@@ -124,7 +126,11 @@ function UserProfile() {
               />
 
               {/* Profile Information */}
-              <ProfileInfo user={user} adminStatus={adminStatus} />
+              <ProfileInfo
+                user={user}
+                adminStatus={adminStatus}
+                showDialog={showDialog}
+              />
             </div>
           </div>
         </div>
