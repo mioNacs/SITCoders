@@ -126,7 +126,7 @@ function Home() {
       formData.append('tag', newPost.tag);
       
       if (newPost.image) {
-        formData.append('image', newPost.image);
+        formData.append('postImage', newPost.image);
       }
 
       await createPost(formData);
