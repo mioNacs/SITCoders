@@ -549,9 +549,9 @@ const updateBio = async (req, res) => {
       return res.status(400).json({ message: "Bio is required" });
     }
     const size = Buffer.byteLength(bio, "utf-8");
-    if (size > 120) {
+    if (size > 200) {
       return res.status(400).json({
-        message: "Bio must be less than 120 characters",
+        message: "Bio must be less than 200 characters",
       });
     }
 
