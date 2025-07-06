@@ -79,4 +79,8 @@ const createPost = async (req, res) => {
   }
 };
 
-export { createPost };
+const deletePost = async (req, res) => {
+
+}
+
+export { createPost, deletePost };

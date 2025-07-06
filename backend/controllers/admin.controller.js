@@ -33,13 +33,11 @@ const createAdmin = async (req, res) => {
 
 const getAllUnverifiedUsers = async (req, res) => {
   try {
-    console.log("Fetching all unverified users");
-    
     const unverifiedUsers = await User.find({ isAdminVerified: false })
       .select("-password -__v");
 
     if (unverifiedUsers.length === 0) {
-      return res.status(404).json({ message: "No unverified users found" });
+      return res.status(200).json({ message: "All users are verified" });
     }
 
     res.status(200).json({ message: "Unverified users fetched successfully", users: unverifiedUsers });
