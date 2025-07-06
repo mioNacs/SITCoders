@@ -10,6 +10,7 @@ import {
   updateTextDetails,
   updateProfilePicture,
   updateBio,
+  getUser,
 } from "../controllers/user.controller.js";
 import upload from "../middlewares/multer.middleware.js";
 import verifyUser from "../middlewares/verifyUser.js";
@@ -50,5 +51,6 @@ router.get("/current-user", verifyUser,getCurrentUser);
 router.post("/update-text-details", verifyUser,updateTextDetails);
 router.post("/update-profile-picture", verifyUser, upload.single("profilePicture"), handleMulterError, updateProfilePicture);
 router.post("/update-bio", verifyUser,updateBio);
+router.post("/get-user",verifyUser,getUser);
 
 export default router;

@@ -48,6 +48,9 @@ const getAllUnverifiedUsers = async (req, res) => {
   }
 };
 
+
+// todo :- get All verified users
+
 const verifyUserFromAdmin = async (req,res) => {
   try {
     const {email} = req.body;

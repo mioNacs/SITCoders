@@ -581,6 +581,36 @@ const updateBio = async (req, res) => {
   }
 };
 
+
+const getUser = async (req, res) => {
+  try {
+    const { username } = req.query;
+
+    // Validate username input
+    if (!username || typeof username !== "string" || !username.trim()) {
+      return res.status(400).json({ message: "Username is required" });
+    }
+
+    // Avoid regex injection or unnecessary regex usage
+    const cleanUsername = username.trim();
+
+    const regex = new RegExp(`^${cleanUsername}`, "i"); // Case-insensitive exact match
+
+    const user = await User.findOne({ username: regex })
+      .select("_id username fullName profilePicture");
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    return res.status(200).json({ user });
+  } catch (error) {
+    console.error("Error in getUser:", error.message);
+    return res.status(500).json({ message: "Internal server error in getUser" });
+  }
+};
+
+
 export {
   sendOtpViaEmail,
   verifyOtp,
@@ -591,4 +621,5 @@ export {
   updateTextDetails,
   updateProfilePicture,
   updateBio,
+  getUser,
 };

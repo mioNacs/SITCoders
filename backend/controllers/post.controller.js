@@ -1,5 +1,5 @@
 import Post from "../models/post.model.js";
-import {  uploadPostImageOnCloudinary } from "../middlewares/cloudinary.js";
+import {  uploadPostImageOnCloudinary,deleteFromCloudinary } from "../middlewares/cloudinary.js";
 import fs from "fs";
 const createPost = async (req, res) => {
   try {
@@ -80,7 +80,57 @@ const createPost = async (req, res) => {
 };
 
 const deletePost = async (req, res) => {
+  const session = await Post.startSession();
+  session.startTransaction();
 
-}
+  try {
+    const postId = req.params.id;
+    const authorId = req.user._id;
+
+    if (!postId || !authorId) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(400).json({ message: "Post ID and Author ID are required." });
+    }
+
+    const post = await Post.findOne({ _id: postId, author: authorId }).session(session);
+    if (!post) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(404).json({ message: "Post not found or unauthorized." });
+    }
+
+    const imagePublicId = post.postImage?.public_id;
+
+    // Step 1: Delete image from Cloudinary
+    if (imagePublicId) {
+      const deleteResult = await deleteFromCloudinary(imagePublicId);
+      if (!deleteResult || deleteResult.result !== "ok") {
+        await session.abortTransaction();
+        session.endSession();
+        return res.status(500).json({ message: "Failed to delete image from Cloudinary." });
+      }
+    }
+
+    // Step 2: Delete Post using session
+    await Post.deleteOne({ _id: postId }).session(session);
+
+    await session.commitTransaction();
+    session.endSession();
+
+    return res.status(200).json({ message: "Post deleted successfully." });
+
+  } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+    console.error("Error deleting post:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }finally {
+    if (session) {
+      session.endSession();
+    }
+  }
+};
+
 
 export { createPost, deletePost };
