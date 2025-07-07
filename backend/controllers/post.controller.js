@@ -188,4 +188,70 @@ const getALLPosts = async (req, res) => {
   }
 };
 
-export { createPost, deletePost, getALLPosts };
+const getALLPostsOfUser = async (req,res) => {
+  try {
+    const userId = req.user._id; // Assuming user ID is stored in req.user
+    const limit = parseInt(req.query.limit) || 10; // Default limit
+    const page = parseInt(req.query.page) || 1; // Default page number
+    const skip = (page - 1) * limit;
+    if (!userId) {
+      return res.status(400).json({ message: "User ID is required." });
+    }
+
+    const posts = await Post.find({ author: userId })
+      .populate("author", "fullName username rollNo profilePicture")
+      .sort({ createdAt: -1 }) // Sort by creation date, newest first
+      .skip(skip)
+      .limit(limit);
+    // Count total posts for pagination
+    const totalPosts = await Post.countDocuments({ author: userId });
+    
+    res.status(200).json({
+      message: "User's posts fetched successfully",
+      posts,
+      totalPosts,
+      currentPage: page,
+      totalPages: Math.ceil(totalPosts / limit),
+    });
+
+  } catch (error) {
+    console.error("Error fetching user's posts:", error);
+    res.status(500).json({ message: "Internal server error" });
+    
+  }
+}
+const editPost = async (req, res) => {
+  try {
+    const postId = req.params.postId;
+    const { content, tag } = req.body;
+    const userId = req.user._id;
+
+    if (!postId || !content?.trim() || !userId) {
+      return res.status(400).json({ message: "Post ID, content, and user ID are required." });
+    }
+
+    // Check if the post exists
+    const post = await Post.findById(postId);
+    if (!post) {
+      return res.status(404).json({ message: "Post not found." });
+    }
+
+    // Check if the user is the author of the post
+    if (post.author.toString() !== userId.toString()) {
+      return res.status(403).json({ message: "You can only edit your own posts." });
+    }
+
+    // Update the post
+    post.content = content.trim();;
+    post.tag = tag || post.tag; // Keep existing tag if not provided
+
+    await post.save();
+
+    res.status(200).json({ message: "Post updated successfully", post });
+  } catch (error) {
+    console.error("Error updating post:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export { createPost, deletePost, getALLPosts, getALLPostsOfUser, editPost };

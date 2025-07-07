@@ -47,3 +47,6 @@ app.use('/api/admin', adminRoutes);
 
 import postRoutes from './routes/post.route.js';
 app.use('/api/posts', postRoutes);
+
+import commentRoutes from './routes/comment.route.js';
+app.use('/api/comments', commentRoutes);
