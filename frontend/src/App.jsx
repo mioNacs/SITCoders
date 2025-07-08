@@ -3,6 +3,9 @@ import { Landing, Home, Footer, Header } from './components'
 import { Outlet, useNavigate, useLocation } from 'react-router-dom'
 import ScrollToTop from './components/ScrollToTop';
 import { useAuth } from './context/AuthContext'
+import React from 'react';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 function App() {
   const { isLoggedIn, isLoading } = useAuth();
@@ -44,11 +47,27 @@ function App() {
   }
 
   return (
-    <>
-      <ScrollToTop />
-      {isLoggedIn && <Header />}
-      <Outlet />
-    </>
+    <div className="App">
+      <>
+        <ScrollToTop />
+        {isLoggedIn && <Header />}
+        <Outlet />
+      </>
+      
+      {/* Add ToastContainer at the end */}
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
+    </div>
   )
 }
 

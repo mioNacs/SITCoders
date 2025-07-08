@@ -85,18 +85,38 @@ const getParentComment = async (req, res) => {
     if (!postId) {
       return res.status(400).json({ message: "Post ID is required." });
     }
-    // Fetch the parent comment for the given post
-    const parentComment = await Comment.find({
+    
+    // Fetch parent comments for the given post
+    const parentComments = await Comment.find({
       post: postId,
       parentComment: null,
     })
       .select("-__v")
-      .populate("user", "username profilePicture")
+      .populate("user", "fullName username profilePicture")
       .sort({ createdAt: -1 });
-    if (!parentComment || parentComment.length === 0) {
-      return res.status(200).json({ message: "No comments found." });
+
+    // Fetch replies for each parent comment
+    const commentsWithReplies = await Promise.all(
+      parentComments.map(async (comment) => {
+        const replies = await Comment.find({
+          parentComment: comment._id
+        })
+          .select("-__v")
+          .populate("user", "fullName username profilePicture")
+          .sort({ createdAt: 1 });
+        
+        return {
+          ...comment.toObject(),
+          replies: replies
+        };
+      })
+    );
+
+    if (!commentsWithReplies || commentsWithReplies.length === 0) {
+      return res.status(200).json({ message: "No comments found.", parentComment: [] });
     }
-    res.status(200).json({ parentComment });
+    
+    res.status(200).json({ parentComment: commentsWithReplies });
   } catch (error) {
     console.error("Error fetching parent comment:", error.message);
     return res.status(500).json({ message: "Internal server error" });

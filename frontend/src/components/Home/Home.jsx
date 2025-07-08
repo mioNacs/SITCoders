@@ -1,7 +1,22 @@
 import React, { useState, useEffect } from "react";
-import { FaUser, FaFire, FaClipboard, FaPlus, FaTimes, FaImage, FaSpinner, FaTrash, FaEllipsisV } from "react-icons/fa";
+import {
+  FaUserCircle,
+  FaFire,
+  FaClipboard,
+  FaArrowRight,
+  FaComments,
+  FaPlus,
+  FaTimes,
+  FaImage,
+  FaSpinner,
+  FaTrash,
+  FaEllipsisV,
+} from "react-icons/fa";
 import { createPost, getAllPosts, deletePost } from "../../services/postApi";
 import { verifyIsAdmin } from "../../services/adminApi";
+import { toast } from "react-toastify";
+import { getComments} from "../../services/commentApi";
+import ViewPost from "./ViewPost";
 
 function Home() {
   const userString = localStorage.getItem("user");
@@ -15,9 +30,9 @@ function Home() {
   // State for create post modal
   const [showCreatePost, setShowCreatePost] = useState(false);
   const [newPost, setNewPost] = useState({
-    content: '',
-    tag: 'general',
-    image: null
+    content: "",
+    tag: "general",
+    image: null,
   });
   const [imagePreview, setImagePreview] = useState(null);
   const [createLoading, setCreateLoading] = useState(false);
@@ -31,6 +46,11 @@ function Home() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(null);
   const [showPostMenu, setShowPostMenu] = useState(null);
 
+  //comments 
+  const [comments, setComments] = useState({});
+  const [commentLoading, setCommentLoading] = useState(false);
+  const [showComments, setShowComments] = useState(null);
+
   // Check admin status
   useEffect(() => {
     const checkAdminStatus = async () => {
@@ -39,7 +59,7 @@ function Home() {
           const adminStatus = await verifyIsAdmin(user.email);
           setIsAdmin(adminStatus.isAdmin);
         } catch (error) {
-          console.error('Error checking admin status:', error);
+          console.error("Error checking admin status:", error);
           setIsAdmin(false);
         }
       }
@@ -57,14 +77,14 @@ function Home() {
   // Define available tags based on admin status
   const getAvailableTags = () => {
     const baseTags = [
-      { value: 'general', label: 'General' },
-      { value: 'query', label: 'Query' },
-      { value: 'project', label: 'Project' }
+      { value: "general", label: "General" },
+      { value: "query", label: "Query" },
+      { value: "project", label: "Project" },
     ];
 
     const adminTags = [
-      { value: 'announcement', label: 'Announcement' },
-      { value: 'event', label: 'Event' }
+      { value: "announcement", label: "Announcement" },
+      { value: "event", label: "Event" },
     ];
 
     return isAdmin ? [...baseTags, ...adminTags] : baseTags;
@@ -75,23 +95,47 @@ function Home() {
       setPostsLoading(true);
       const data = await getAllPosts(1, 20); // Fetch first 20 posts
       setPosts(data.posts || []);
+      fetchComments(data.posts.map(post => post._id));
     } catch (error) {
-      console.error('Error fetching posts:', error);
+      console.error("Error fetching posts:", error);
+      toast.error("Failed to load posts. Please try again.");
     } finally {
       setPostsLoading(false);
     }
   };
 
+  const fetchComments = async (postIds) => {
+    if (!postIds || postIds.length === 0) return;
+
+    setCommentLoading(true);
+    try {
+      const allComments = await Promise.all(
+        postIds.map((postId) => getComments(postId))
+      );
+      const commentsMap = {};
+      allComments.forEach((data, index) => {
+        commentsMap[postIds[index]] = data.parentComment || [];
+      });
+      setComments(commentsMap);
+    } catch (error) {
+      console.error("Error fetching comments:", error);
+      toast.error("Failed to load comments. Please try again.");
+    } finally {
+      setCommentLoading(false);
+    }
+  }
+
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      if (file.size > 5 * 1024 * 1024) { // 5MB limit
-        alert('Image size should be less than 5MB');
+      if (file.size > 5 * 1024 * 1024) {
+        // 5MB limit
+        toast.error("Image size should be less than 5MB");
         return;
       }
-      
+
       setNewPost({ ...newPost, image: file });
-      
+
       // Create preview
       const reader = new FileReader();
       reader.onload = (e) => setImagePreview(e.target.result);
@@ -106,43 +150,43 @@ function Home() {
 
   const handleCreatePost = async (e) => {
     e.preventDefault();
-    
+
     if (!newPost.content.trim()) {
-      alert('Please add some content to your post');
+      toast.warning("Please add some content to your post");
       return;
     }
 
     // Check if user is trying to use admin-only tags
-    if (['announcement', 'event'].includes(newPost.tag) && !isAdmin) {
-      alert('Only administrators can create announcements and events');
+    if (["announcement", "event"].includes(newPost.tag) && !isAdmin) {
+      toast.error("Only administrators can create announcements and events");
       return;
     }
 
     setCreateLoading(true);
-    
+
     try {
       const formData = new FormData();
-      formData.append('content', newPost.content);
-      formData.append('tag', newPost.tag);
-      
+      formData.append("content", newPost.content);
+      formData.append("tag", newPost.tag);
+
       if (newPost.image) {
-        formData.append('postImage', newPost.image);
+        formData.append("postImage", newPost.image);
       }
 
       await createPost(formData);
-      
+
       // Reset form
-      setNewPost({ content: '', tag: 'general', image: null });
+      setNewPost({ content: "", tag: "general", image: null });
       setImagePreview(null);
       setShowCreatePost(false);
-      
+
       // Refresh posts
       fetchPosts();
-      
-      alert('Post created successfully!');
+
+      toast.success("Post created successfully!");
     } catch (error) {
-      console.error('Error creating post:', error);
-      alert('Failed to create post. Please try again.');
+      console.error("Error creating post:", error);
+      toast.error("Failed to create post. Please try again.");
     } finally {
       setCreateLoading(false);
     }
@@ -151,29 +195,29 @@ function Home() {
   // Check if user can delete a post
   const canDeletePost = (post) => {
     if (!user) return false;
-    
+
     // User is the author
     const isAuthor = post.author?._id === user._id;
-    
+
     // User is an admin
     const isAdminUser = isAdmin;
-    
+
     return isAuthor || isAdminUser;
   };
 
   const handleDeletePost = async (postId) => {
     setDeleteLoading(postId);
-    
+
     try {
       await deletePost(postId);
-      
+
       // Remove post from local state
-      setPosts(posts.filter(post => post._id !== postId));
-      
-      alert('Post deleted successfully!');
+      setPosts(posts.filter((post) => post._id !== postId));
+
+      toast.success("Post deleted successfully!");
     } catch (error) {
-      console.error('Error deleting post:', error);
-      alert('Failed to delete post. Please try again.');
+      console.error("Error deleting post:", error);
+      toast.error("Failed to delete post. Please try again.");
     } finally {
       setDeleteLoading(null);
       setShowDeleteConfirm(null);
@@ -182,26 +226,74 @@ function Home() {
   };
 
   const formatDate = (dateString) => {
+    const now = new Date();
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+    const diffInSeconds = Math.floor((now - date) / 1000);
+
+    if (diffInSeconds < 60) {
+      return "now";
+    }
+
+    const diffInMinutes = Math.floor(diffInSeconds / 60);
+    if (diffInMinutes < 60) {
+      return `${diffInMinutes} minute${diffInMinutes === 1 ? "" : "s"} ago`;
+    }
+
+    const diffInHours = Math.floor(diffInMinutes / 60);
+    if (diffInHours < 24) {
+      return `${diffInHours} hour${diffInHours === 1 ? "" : "s"} ago`;
+    }
+
+    const diffInDays = Math.floor(diffInHours / 24);
+    if (diffInDays < 7) {
+      return `${diffInDays} day${diffInDays === 1 ? "" : "s"} ago`;
+    }
+
+    const diffInWeeks = Math.floor(diffInDays / 7);
+    if (diffInWeeks < 4) {
+      return `${diffInWeeks} week${diffInWeeks === 1 ? "" : "s"} ago`;
+    }
+
+    const diffInMonths = Math.floor(diffInDays / 30);
+    if (diffInMonths < 12) {
+      return `${diffInMonths} month${diffInMonths === 1 ? "" : "s"} ago`;
+    }
+
+    const diffInYears = Math.floor(diffInDays / 365);
+    return `${diffInYears} year${diffInYears === 1 ? "" : "s"} ago`;
   };
+
+  const handleShowComments = (postId) => {
+    setShowComments((prev) => (prev === postId ? null : postId));
+    if (!comments[postId]) {
+      // Fetch comments for this post if not already loaded
+      setCommentLoading(true);
+      getComments(postId)
+        .then((data) => {
+          setComments((prev) => ({
+            ...prev,
+            [postId]: data.parentComment || [],
+          }));
+        })
+        .catch((error) => {
+          console.error("Error fetching comments:", error);
+          toast.error("Failed to load comments. Please try again.");
+        })
+        .finally(() => {
+          setCommentLoading(false);
+        });
+    }
+  }
 
   // Get tag display style
   const getTagStyle = (tag) => {
     const styles = {
-      general: 'bg-gray-100 text-gray-600',
-      query: 'bg-blue-100 text-blue-600',
-      project: 'bg-green-100 text-green-600',
-      announcement: 'bg-red-100 text-red-600',
-      event: 'bg-purple-100 text-purple-600'
+      query: "bg-blue-100 text-blue-600",
+      project: "bg-green-100 text-green-600",
+      announcement: "bg-red-100 text-red-600",
+      event: "bg-purple-100 text-purple-600",
     };
-    return styles[tag] || 'bg-gray-100 text-gray-600';
+    return styles[tag] || "bg-gray-100 text-gray-600";
   };
 
   // Close menus when clicking outside
@@ -210,8 +302,8 @@ function Home() {
       setShowPostMenu(null);
     };
 
-    document.addEventListener('click', handleClickOutside);
-    return () => document.removeEventListener('click', handleClickOutside);
+    document.addEventListener("click", handleClickOutside);
+    return () => document.removeEventListener("click", handleClickOutside);
   }, []);
 
   return (
@@ -227,56 +319,89 @@ function Home() {
                 className="w-full flex items-center gap-3 p-4 text-black/50 bg-orange-400/10 outline outline-offset-2 outline-orange-400 rounded-lg font-medium hover:opacity-90 transition-all cursor-text"
               >
                 <FaPlus />
-                <span>What's on your mind, {user?.username || 'User'}?</span>
+                <span>What's on your mind, {user?.username || "User"}?</span>
               </button>
             </div>
 
             {/* Posts Feed */}
             <div className="bg-white rounded-2xl shadow-md border border-orange-100 p-6">
-              <h2 className="text-2xl font-semibold text-gray-800 border-b pb-3 border-orange-100 mb-4">Feed</h2>
-              
+              <h2 className="text-2xl font-semibold text-gray-800 border-b pb-3 border-orange-100 mb-4">
+                Feed
+              </h2>
+
               {postsLoading ? (
                 <div className="flex justify-center items-center py-8">
-                  <FaSpinner className="animate-spin text-orange-500" size={24} />
+                  <FaSpinner
+                    className="animate-spin text-orange-500"
+                    size={24}
+                  />
                   <span className="ml-2 text-gray-600">Loading posts...</span>
                 </div>
               ) : posts.length === 0 ? (
                 <div className="text-center py-8 text-gray-600">
-                  <FaClipboard className="mx-auto mb-4 text-gray-400" size={48} />
+                  <FaClipboard
+                    className="mx-auto mb-4 text-gray-400"
+                    size={48}
+                  />
                   <p>No posts yet. Be the first to share something!</p>
                 </div>
               ) : (
                 <div className="space-y-6">
                   {posts.map((post) => (
-                    <div key={post._id} className="border border-gray-200 rounded-lg p-4 hover:border-orange-200 transition-colors">
+                    <div
+                      key={post._id}
+                      className="border border-gray-200 rounded-lg p-4 hover:border-orange-200 transition-colors"
+                    >
                       {/* Post Header */}
                       <div className="flex items-center gap-3 mb-3">
-                        <img
-                          src={post.author?.profilePicture?.url || "https://www.iconpacks.net/icons/2/free-user-icon-3296-thumb.png"}
-                          alt="Author"
-                          className="w-10 h-10 rounded-full object-cover"
-                        />
+                        {post.author.profilePicture ? (
+                          <img
+                            src={post.author.profilePicture.url}
+                            alt="Author"
+                            className="w-10 h-10 rounded-full object-cover"
+                          />
+                        ) : (
+                          <FaUserCircle className="w-10 h-10 rounded-full object-cover" />
+                        )}
                         <div className="flex-1">
-                          <h4 className="font-semibold text-gray-800">{post.author?.fullName || post.author?.username || 'Unknown User'}</h4>
-                          <p className="text-sm text-gray-500">{formatDate(post.createdAt)}</p>
+                          <h4 className="font-semibold text-gray-800">
+                            {post.author?.fullName ||
+                              post.author?.username ||
+                              "Unknown User"}
+                          </h4>
+                          <p className="text-sm text-gray-500">
+                            {formatDate(post.createdAt)}
+                          </p>
                         </div>
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${getTagStyle(post.tag)}`}>
-                          {post.tag.charAt(0).toUpperCase() + post.tag.slice(1)}
-                        </span>
-                        
+                        {post.tag !== "general" && (
+                          <span
+                            className={`px-2 py-1 rounded-lg text-xs font-medium ${getTagStyle(
+                              post.tag
+                            )}`}
+                          >
+                            {post.tag.charAt(0).toUpperCase() +
+                              post.tag.slice(1)}
+                          </span>
+                        )}
+
                         {/* Post Menu - Only show if user can delete */}
                         {canDeletePost(post) && (
                           <div className="relative">
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
-                                setShowPostMenu(showPostMenu === post._id ? null : post._id);
+                                setShowPostMenu(
+                                  showPostMenu === post._id ? null : post._id
+                                );
                               }}
                               className="p-2 hover:bg-gray-100 rounded-full transition-colors"
                             >
-                              <FaEllipsisV className="text-gray-500" size={14} />
+                              <FaEllipsisV
+                                className="text-gray-500"
+                                size={14}
+                              />
                             </button>
-                            
+
                             {/* Dropdown Menu */}
                             {showPostMenu === post._id && (
                               <div className="absolute right-0 top-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-10 min-w-[120px]">
@@ -310,10 +435,12 @@ function Home() {
                       )}
 
                       {/* Post Actions */}
-                      <div className="flex items-center gap-4 text-sm text-gray-500 border-t pt-3">
-                        <button className="hover:text-orange-500 transition-colors">Like</button>
-                        <button className="hover:text-orange-500 transition-colors">Comment</button>
-                        <button className="hover:text-orange-500 transition-colors">Share</button>
+                      <div className="flex items-center justify-end gap-4 text-xs md:text-sm text-gray-500 border-t pt-3">
+                        <button 
+                        onClick={() => handleShowComments(post._id)}
+                        className="flex items-center gap-3 hover:text-orange-500 transition-colors cursor-pointer bg-gray-50 p-2 px-4 rounded-xl outline">
+                          <FaComments /> {comments[post._id]?.length}<FaArrowRight />
+                        </button>
                       </div>
                     </div>
                   ))}
@@ -321,7 +448,7 @@ function Home() {
               )}
             </div>
           </div>
-          
+
           {/* Sidebar */}
           <div className="md:w-1/3 h-full flex flex-col gap-6">
             {/* Profile Card */}
@@ -329,20 +456,25 @@ function Home() {
               <div className="flex flex-col items-center">
                 <div className="relative">
                   <div className="absolute inset-0 rounded-full bg-gradient-to-r from-orange-300 to-amber-400 blur-sm -z-10 transform scale-110"></div>
-                  <img
-                    src={
-                      user?.profilePicture?.url ||
-                      user?.profile ||
-                      "https://www.iconpacks.net/icons/2/free-user-icon-3296-thumb.png"
-                    }
-                    alt="Profile"
-                    className="w-24 h-24 rounded-full object-cover border-2 border-white shadow-md"
-                  />
+                  {user.profile ? (
+                          <img
+                            src={user.profile}
+                            alt="Author"
+                            className="w-24 h-24 rounded-full object-cover border-2 border-white shadow-md"
+                          />
+                        ) : (
+                          <FaUserCircle className="w-24 h-24 rounded-full object-cover border-2 border-white shadow-md" />
+                        )}
                 </div>
-                <h3 className="mt-4 text-xl font-semibold text-gray-800">{user?.fullName || user?.username || "User"}</h3>
+                <h3 className="mt-4 text-xl font-semibold text-gray-800">
+                  {user?.fullName || user?.username || "User"}
+                </h3>
                 <div className="mt-2 flex items-center gap-2 text-amber-500">
                   <FaFire />
-                  <span className="text-gray-700">Popularity: <span className="font-medium">{user?.popularity || 0}</span></span>
+                  <span className="text-gray-700">
+                    Popularity:{" "}
+                    <span className="font-medium">{user?.popularity || 0}</span>
+                  </span>
                 </div>
                 {/* Show admin badge if user is admin */}
                 {!adminLoading && isAdmin && (
@@ -355,15 +487,22 @@ function Home() {
                 </button>
               </div>
             </div>
-            
+
             {/* Posts Card */}
             <div className="bg-white rounded-2xl shadow-md border border-orange-100 p-6">
               <div className="flex items-center gap-2 mb-4">
                 <FaClipboard className="text-amber-500" />
-                <h3 className="text-xl font-semibold text-gray-800">Your Posts</h3>
+                <h3 className="text-xl font-semibold text-gray-800">
+                  Your Posts
+                </h3>
               </div>
               <div className="text-gray-600 text-sm">
-                {user ? `You have ${posts.filter(post => post.author?._id === user._id).length} posts` : "You haven't created any posts yet."}
+                {user
+                  ? `You have ${
+                      posts.filter((post) => post.author?._id === user._id)
+                        .length
+                    } posts`
+                  : "You haven't created any posts yet."}
               </div>
               <button
                 onClick={() => setShowCreatePost(true)}
@@ -383,7 +522,9 @@ function Home() {
             {/* Modal Header */}
             <div className="p-6 border-b border-gray-200">
               <div className="flex items-center justify-between">
-                <h3 className="text-xl font-bold text-gray-800">Create New Post</h3>
+                <h3 className="text-xl font-bold text-gray-800">
+                  Create New Post
+                </h3>
                 <button
                   onClick={() => setShowCreatePost(false)}
                   className="text-gray-400 hover:text-gray-600 transition-colors"
@@ -399,7 +540,9 @@ function Home() {
               <div className="mb-4">
                 <textarea
                   value={newPost.content}
-                  onChange={(e) => setNewPost({ ...newPost, content: e.target.value })}
+                  onChange={(e) =>
+                    setNewPost({ ...newPost, content: e.target.value })
+                  }
                   className="w-full p-3 border border-gray-300 rounded-lg focus:ring focus:ring-orange-400 focus:border-orange-500 resize-none outline-none"
                   rows="10"
                   placeholder="Share your thoughts..."
@@ -413,7 +556,9 @@ function Home() {
                   <div className="flex items-center gap-3">
                     <label className="flex items-center gap-2 cursor-pointer bg-gray-100 hover:bg-gray-200 px-4 py-2 rounded-lg transition-colors">
                       <FaImage className="text-gray-600" />
-                      <span className="text-sm text-gray-600">Choose Image</span>
+                      <span className="text-sm text-gray-600">
+                        Choose Image
+                      </span>
                       <input
                         type="file"
                         accept="image/*"
@@ -437,7 +582,9 @@ function Home() {
                 <div className="mb-4">
                   <select
                     value={newPost.tag}
-                    onChange={(e) => setNewPost({ ...newPost, tag: e.target.value })}
+                    onChange={(e) =>
+                      setNewPost({ ...newPost, tag: e.target.value })
+                    }
                     className="w-full p-2 border border-gray-300 rounded-lg focus:ring focus:ring-orange-500 focus:border-orange-400 outline-none"
                   >
                     {getAvailableTags().map((tag) => (
@@ -500,15 +647,20 @@ function Home() {
                   <FaTrash className="text-red-600" size={20} />
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-gray-800">Delete Post</h3>
-                  <p className="text-sm text-gray-600">This action cannot be undone</p>
+                  <h3 className="text-lg font-bold text-gray-800">
+                    Delete Post
+                  </h3>
+                  <p className="text-sm text-gray-600">
+                    This action cannot be undone
+                  </p>
                 </div>
               </div>
-              
+
               <p className="text-gray-600 mb-6">
-                Are you sure you want to delete this post? This will permanently remove the post and all its content.
+                Are you sure you want to delete this post? This will permanently
+                remove the post and all its content.
               </p>
-              
+
               <div className="flex gap-3">
                 <button
                   onClick={() => setShowDeleteConfirm(null)}
@@ -537,6 +689,20 @@ function Home() {
               </div>
             </div>
           </div>
+        </div>
+      )}
+
+      {showComments && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4">
+          <ViewPost 
+          posts={posts}
+          comments={comments}
+          setComments={setComments}
+          setShowComments={setShowComments}
+          setCommentLoading={setCommentLoading}
+          commentLoading={commentLoading}
+          showComments={showComments}
+          />
         </div>
       )}
     </>
