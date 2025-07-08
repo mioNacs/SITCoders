@@ -31,6 +31,36 @@ const createAdmin = async (req, res) => {
   }
 };
 
+const removeFromAdmin = async (req,res) => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      return res.status(400).json({ message: "Email is required" });
+    }
+    if(!req.isSuperAdmin) {
+      return res.status(403).json({ message: "Access denied, not a super admin" });
+    }
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    const admin = await Admin.findOne({ admin: user._id });
+    if (!admin) {
+      return res.status(404).json({ message: "User is not an admin" });
+    }
+    // Delete the admin record
+    await Admin.deleteOne({ _id: admin._id });
+
+    return res.status(200).json({ message: "Admin removed successfully" });
+
+    
+  } catch (error) {
+    console.error("Error removing admin:", error);
+    res.status(500).json({ message: "Internal server error" });
+    
+  }
+}
+
 const getAllUnverifiedUsers = async (req, res) => {
   try {
     const unverifiedUsers = await User.find({ isAdminVerified: false }).select(
@@ -204,4 +234,5 @@ export {
   rejectUserFromAdmin,
   isAdmin,
   getVerifiedUser,
+  removeFromAdmin,
 };

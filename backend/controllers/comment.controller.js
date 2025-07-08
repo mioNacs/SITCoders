@@ -123,4 +123,10 @@ const getParentComment = async (req, res) => {
   }
 };
 
+const deleteComment = async (req, res) => {};
+
+const updateComment = async (req, res) => {};
+ 
+
+
 export { createComment, createReply, getParentComment };

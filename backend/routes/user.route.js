@@ -47,10 +47,16 @@ router.post("/login", loginUser);
 router.get("/logout", logOutUser);
 
 // protected routes
-router.get("/current-user", verifyUser,getCurrentUser);
-router.post("/update-text-details", verifyUser,updateTextDetails);
-router.post("/update-profile-picture", verifyUser, upload.single("profilePicture"), handleMulterError, updateProfilePicture);
-router.post("/update-bio", verifyUser,updateBio);
-router.post("/get-user",verifyUser,getUser);
+router.get("/current-user", verifyUser, getCurrentUser);
+router.post("/update-text-details", verifyUser, updateTextDetails);
+router.post(
+  "/update-profile-picture",
+  verifyUser,
+  upload.single("profilePicture"),
+  handleMulterError,
+  updateProfilePicture
+);
+router.post("/update-bio", verifyUser, updateBio);
+router.post("/get-user", verifyUser, getUser);
 
 export default router;

@@ -1,17 +1,19 @@
-import express from 'express';
 import dotenv from 'dotenv';
+dotenv.config();
 import cors from 'cors';
+import express from 'express';
 import connectDB from './db/index.js';
 import cookieParser from 'cookie-parser';
 import { scheduleCleanup } from './utilities/fileCleanup.js';
 
-dotenv.config();
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 connectDB().then(() => {
   console.log('Database connected successfully');
   // Start automatic cleanup of temporary files
+  import('./utilities/deleteUsers.js');
   scheduleCleanup(6); // Cleanup every 6 hours
 }).catch((error) => {
   console.error('Database connection failed:', error);
