@@ -17,7 +17,7 @@ import UnverifiedUsers from "./UnverifiedUsers";
 import VerifiedUsers from "./VerifiedUsers";
 
 function AdminDashboard() {
-  const { user } = useAuth();
+  const { user, isAuthenticated, isLoading: authLoading } = useAuth();
   const navigate = useNavigate();
 
   // State management
@@ -33,8 +33,8 @@ function AdminDashboard() {
   const [showUsers, setShowUsers] = useState("");
 
   const handleShowUsers = (type) => {
-    setShowUsers(type)
-  }
+    setShowUsers(type);
+  };
 
   const [pagination, setPagination] = useState({
     currentPage: 1,
@@ -53,13 +53,7 @@ function AdminDashboard() {
     onConfirm: null,
   });
 
-  const showDialog = (
-    title,
-    message,
-    type = "info",
-    showConfirm = false,
-    onConfirm = null
-  ) => {
+  const showDialog = (title, message, type = "info", showConfirm = false, onConfirm = null) => {
     setDialog({
       isOpen: true,
       title,
@@ -71,25 +65,29 @@ function AdminDashboard() {
   };
 
   const closeDialog = () => {
-    setDialog({ ...dialog, isOpen: false });
+    setDialog(prev => ({ ...prev, isOpen: false }));
   };
 
   const formatJoinDate = (dateString) => {
-    if (!dateString) return "Unknown";
-    const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", {
+    return new Date(dateString).toLocaleDateString("en-US", {
       year: "numeric",
-      month: "short",
+      month: "long",
       day: "numeric",
     });
   };
 
   const getAdminStatus = async () => {
-    if (user && user.email) {
+    if (!user?.email) {
+      return { isAdmin: false };
+    }
+    
+    try {
       const status = await verifyIsAdmin(user.email);
       return status;
+    } catch (error) {
+      console.error("Error verifying admin status:", error);
+      return { isAdmin: false };
     }
-    return false;
   };
 
   const fetchUnverifiedUsers = async () => {
@@ -162,7 +160,9 @@ function AdminDashboard() {
   };
 
   useEffect(() => {
-    if (!user) {
+    if (authLoading) return;
+
+    if (!isAuthenticated || !user) {
       navigate("/login");
       return;
     }
@@ -172,14 +172,16 @@ function AdminDashboard() {
         navigate("/");
       } else {
         setAdminStatus(res);
+        console.log(res)
         fetchUnverifiedUsers();
         fetchVerifiedUsers();
       }
       setLoading(false);
     });
-  }, [user, navigate]);
+  }, [user, navigate, isAuthenticated, authLoading]);
 
-  if (loading) {
+  // Show loading while auth is being checked
+  if (authLoading || loading) {
     return (
       <div className="pt-20 min-h-screen bg-gradient-to-br from-orange-50 to-orange-100 flex justify-center items-center px-4">
         <div className="text-center">
@@ -221,7 +223,7 @@ function AdminDashboard() {
                 <div className="relative flex-shrink-0">
                   <img
                     src={
-                      user.profile ||
+                      user?.profilePicture?.url ||
                       "https://www.iconpacks.net/icons/2/free-user-icon-3296-thumb.png"
                     }
                     alt="Admin Profile"
@@ -233,7 +235,7 @@ function AdminDashboard() {
                 </div>
                 <div className="min-w-0 flex-1">
                   <h2 className="text-lg md:text-xl lg:text-2xl font-bold text-gray-800 flex items-center gap-2">
-                    <span className="truncate">{user.fullName}</span>
+                    <span className="truncate">{user?.fullName}</span>
                     <FaCrown
                       className={`${
                         adminStatus.role === "superadmin"
@@ -245,7 +247,7 @@ function AdminDashboard() {
                   </h2>
                   <p className="text-sm md:text-base text-gray-600 flex items-center space-x-1 mt-1">
                     <FaEnvelope size={12} className="flex-shrink-0" />
-                    <span className="truncate">{user.email}</span>
+                    <span className="truncate">{user?.email}</span>
                   </p>
                 </div>
               </div>

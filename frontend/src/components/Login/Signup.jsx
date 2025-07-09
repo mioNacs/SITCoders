@@ -1,8 +1,9 @@
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { signupUser } from "../../services/api.js";
+import { useAuth } from "../../context/AuthContext.jsx";
 
 function Signup() {
+  const { register, isAuthenticated, isLoading: authLoading } = useAuth();
   const [phase, setPhase] = React.useState(1);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState("");
@@ -18,6 +19,13 @@ function Signup() {
   });
   
   const navigate = useNavigate();
+
+  // Redirect if already authenticated
+  React.useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/');
+    }
+  }, [isAuthenticated, navigate]);
 
   const handleInputChange = (e) => {
     const { name, value, files } = e.target;
@@ -81,17 +89,30 @@ function Signup() {
       submitData.append('rollNo', formData.rollNo);
       submitData.append('gender', formData.gender);
 
-      await signupUser(submitData);
+      const result = await register(submitData);
       
-      // Navigate to OTP verification page with email
-      navigate('/verify-otp', { state: { email: formData.email } });
+      if (result.success) {
+        // Navigate to OTP verification page with email
+        navigate('/verify-otp', { state: { email: formData.email } });
+      } else {
+        setError(result.message);
+      }
       
     } catch (error) {
-      setError(error.message);
+      setError('An unexpected error occurred');
     } finally {
       setLoading(false);
     }
   };
+
+  // Show loading while checking auth status
+  if (authLoading) {
+    return (
+      <div className="font-Jost flex h-screen justify-center items-center text-gray-600 bg-orange-100/30">
+        <div className="text-lg">Loading...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="font-Jost flex h-screen justify-center items-center text-gray-600 bg-orange-100/30">
@@ -132,6 +153,7 @@ function Signup() {
                       type="text"
                       placeholder="eg: John/Jane"
                       required
+                      disabled={loading}
                     />
                   </div>
                   <div className="flex flex-col w-full">
@@ -147,6 +169,7 @@ function Signup() {
                       type="text"
                       placeholder="eg: Doe"
                       required
+                      disabled={loading}
                     />
                   </div>
                 </div>
@@ -163,6 +186,7 @@ function Signup() {
                     type="email"
                     placeholder="eg: johndoe@example.com"
                     required
+                    disabled={loading}
                   />
                 </div>
                 <div className="flex flex-col sm:flex-row gap-3">
@@ -179,6 +203,7 @@ function Signup() {
                       type="text"
                       placeholder="eg: 22CSE08"
                       required
+                      disabled={loading}
                     />
                   </div>
                   <div className="flex flex-col w-full">
@@ -192,6 +217,7 @@ function Signup() {
                       onChange={handleInputChange}
                       className="bg-gray-50 px-4 py-2 rounded-md outline-none border border-gray-300 focus:border-orange-400 focus:shadow-lg shadow-orange-400/10"
                       required
+                      disabled={loading}
                     >
                       <option value="">Select gender</option>
                       <option value="male">Male</option>
@@ -200,7 +226,7 @@ function Signup() {
                     </select>
                   </div>
                 </div>
-                <button type="submit">
+                <button type="submit" disabled={loading}>
                   <div className="bg-orange-400 shadow-md hover:shadow-lg font-Saira text-lg sm:text-xl text-white px-4 py-2 rounded-md mt-2 hover:bg-orange-500 transition-all duration-200 ease-in-out cursor-pointer">
                     Next
                   </div>
@@ -221,6 +247,7 @@ function Signup() {
                     type="text"
                     placeholder="Enter a username"
                     required
+                    disabled={loading}
                   />
                 </div>
                 <div className="flex flex-col justify-between">
@@ -236,6 +263,7 @@ function Signup() {
                     type="password"
                     placeholder="Enter your password"
                     required
+                    disabled={loading}
                   />
                 </div>
                 <div className="flex flex-col justify-between">
@@ -251,10 +279,11 @@ function Signup() {
                     type="text"
                     placeholder="Re-enter your password"
                     required
+                    disabled={loading}
                   />
                 </div>
                 <div className="flex flex-col gap-2">
-                  <button type="button" onClick={handlePrevPhase}>
+                  <button type="button" onClick={handlePrevPhase} disabled={loading}>
                     <div className="bg-gray-400 shadow-md hover:shadow-lg font-Saira text-lg sm:text-xl text-white px-4 py-2 rounded-md mt-2 hover:bg-gray-500 transition-all duration-200 ease-in-out cursor-pointer">
                       Back
                     </div>

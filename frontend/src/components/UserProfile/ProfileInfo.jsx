@@ -1,13 +1,12 @@
 import React, { useState } from "react";
 import { FaEnvelope, FaCalendarAlt, FaPen, FaCheck, FaTimes, FaSpinner } from "react-icons/fa";
 import { FaCrown } from "react-icons/fa6";
-import { updateBio } from "../../services/api";
 import { useAuth } from "../../context/AuthContext";
 
-const ProfileInfo = ({ user, adminStatus, showDialog }) => {
+const ProfileInfo = ({ user, isAdmin, adminRole, showDialog }) => {
   const { updateUser } = useAuth();
   const [isEditingBio, setIsEditingBio] = useState(false);
-  const [bioText, setBioText] = useState(user.bio || "");
+  const [bioText, setBioText] = useState(user?.bio || "");
   const [loading, setLoading] = useState(false);
 
   const formatJoinDate = (dateString) => {
@@ -21,12 +20,12 @@ const ProfileInfo = ({ user, adminStatus, showDialog }) => {
 
   const handleEditBio = () => {
     setIsEditingBio(true);
-    setBioText(user.bio || "");
+    setBioText(user?.bio || "");
   };
 
   const handleCancelEdit = () => {
     setIsEditingBio(false);
-    setBioText(user.bio || "");
+    setBioText(user?.bio || "");
   };
 
   const handleBioChange = (e) => {
@@ -50,19 +49,25 @@ const ProfileInfo = ({ user, adminStatus, showDialog }) => {
 
     setLoading(true);
     try {
-      const response = await updateBio({ bio: bioText.trim() });
-      
-      // Update user context with new bio
-      updateUser({
-        bio: response.user.bio
+      // Use the updateUser function from AuthContext
+      const result = await updateUser({
+        bio: bioText.trim()
       });
 
-      setIsEditingBio(false);
-      showDialog(
-        'Success',
-        'Bio updated successfully!',
-        'success'
-      );
+      if (result.success) {
+        setIsEditingBio(false);
+        showDialog(
+          'Success',
+          'Bio updated successfully!',
+          'success'
+        );
+      } else {
+        showDialog(
+          'Update Failed',
+          result.message || 'Failed to update bio. Please try again.',
+          'error'
+        );
+      }
     } catch (error) {
       console.error('Error updating bio:', error);
       showDialog(
@@ -86,30 +91,27 @@ const ProfileInfo = ({ user, adminStatus, showDialog }) => {
   return (
     <div className="pt-20 pb-6 w-full">
       <h1 className="flex items-center gap-2 text-2xl font-bold text-gray-800">
-        {user.fullName || "Your Name"}
+        {user?.fullName || "Your Name"}
         {/* only for admins */}
-        {adminStatus.isAdmin && (
-          <FaCrown
-            className={
-              adminStatus.role === "superadmin"
-                ? "text-orange-400"
-                : "text-blue-500"
-            }
-          />
+        {isAdmin && (adminRole === "superadmin") && (
+          <FaCrown className="text-orange-400" />
+        )}
+        {isAdmin && (adminRole === "admin") && (
+          <FaCrown className="text-blue-400" />
         )}
       </h1>
       <p className="text-orange-500 font-medium">
-        @{user.username || "username"}
+        @{user?.username || "username"}
       </p>
 
       <div className="mt-6 space-y-3 text-gray-600">
         <div className="flex items-center gap-3">
           <FaEnvelope className="text-orange-400" />
-          <span>{user.email || "email@example.com"}</span>
+          <span>{user?.email || "email@example.com"}</span>
         </div>
         <div className="flex items-center gap-3">
           <FaCalendarAlt className="text-orange-400" />
-          <span>Joined {formatJoinDate(user.createdAt)}</span>
+          <span>Joined {formatJoinDate(user?.createdAt)}</span>
         </div>
       </div>
 
@@ -130,7 +132,7 @@ const ProfileInfo = ({ user, adminStatus, showDialog }) => {
         {!isEditingBio ? (
           // Display Mode
           <p className="text-gray-600 leading-relaxed">
-            {user.bio || "No bio available"}
+            {user?.bio || "No bio available"}
           </p>
         ) : (
           // Edit Mode

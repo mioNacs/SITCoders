@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { Navigate } from "react-router-dom";
 import {
   FaUserCircle,
   FaFire,
@@ -12,19 +13,19 @@ import {
   FaTrash,
   FaEllipsisV,
 } from "react-icons/fa";
+import { useAuth } from "../../context/AuthContext";
 import { createPost, getAllPosts, deletePost } from "../../services/postApi";
 import { verifyIsAdmin } from "../../services/adminApi";
 import { toast } from "react-toastify";
-import { getComments} from "../../services/commentApi";
+import { getComments } from "../../services/commentApi";
 import ViewPost from "./ViewPost";
 
 function Home() {
-  const userString = localStorage.getItem("user");
-  const user = userString ? JSON.parse(userString) : null;
+  // Use auth context instead of localStorage
+  const { user, isAuthenticated, isLoading: authLoading } = useAuth();
 
   // State for posts
   const [posts, setPosts] = useState([]);
-  const [loading, setLoading] = useState(false);
   const [postsLoading, setPostsLoading] = useState(true);
 
   // State for create post modal
@@ -46,7 +47,7 @@ function Home() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(null);
   const [showPostMenu, setShowPostMenu] = useState(null);
 
-  //comments 
+  // Comments 
   const [comments, setComments] = useState({});
   const [commentLoading, setCommentLoading] = useState(false);
   const [showComments, setShowComments] = useState(null);
@@ -54,25 +55,44 @@ function Home() {
   // Check admin status
   useEffect(() => {
     const checkAdminStatus = async () => {
-      if (user && user.email) {
-        try {
-          const adminStatus = await verifyIsAdmin(user.email);
-          setIsAdmin(adminStatus.isAdmin);
-        } catch (error) {
-          console.error("Error checking admin status:", error);
-          setIsAdmin(false);
-        }
+      if (!isAuthenticated || !user?.email) {
+        setAdminLoading(false);
+        return;
       }
-      setAdminLoading(false);
+
+      try {
+        const adminStatus = await verifyIsAdmin(user.email);
+        setIsAdmin(adminStatus.isAdmin);
+      } catch (error) {
+        console.error("Error checking admin status:", error);
+        setIsAdmin(false);
+      } finally {
+        setAdminLoading(false);
+      }
     };
-
+    
+    if (isAuthenticated) {
+      fetchPosts();
+    }
     checkAdminStatus();
-  }, [user]);
+  }, [isAuthenticated, user]);
 
-  // Fetch posts on component mount
-  useEffect(() => {
-    fetchPosts();
-  }, []);
+  // Show loading screen while auth is being checked
+  if (authLoading) {
+    return (
+      <div className="pt-20 min-h-screen bg-orange-50 flex items-center justify-center">
+        <div className="flex flex-col items-center">
+          <FaSpinner className="animate-spin text-orange-500" size={32} />
+          <span className="mt-4 text-gray-600">Loading...</span>
+        </div>
+      </div>
+    );
+  }
+
+  // Redirect to login if not authenticated
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
 
   // Define available tags based on admin status
   const getAvailableTags = () => {
@@ -95,7 +115,10 @@ function Home() {
       setPostsLoading(true);
       const data = await getAllPosts(1, 20); // Fetch first 20 posts
       setPosts(data.posts || []);
-      fetchComments(data.posts.map(post => post._id));
+      
+      if (data.posts && data.posts.length > 0) {
+        fetchComments(data.posts.map(post => post._id));
+      }
     } catch (error) {
       console.error("Error fetching posts:", error);
       toast.error("Failed to load posts. Please try again.");
@@ -123,7 +146,7 @@ function Home() {
     } finally {
       setCommentLoading(false);
     }
-  }
+  };
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -214,6 +237,13 @@ function Home() {
       // Remove post from local state
       setPosts(posts.filter((post) => post._id !== postId));
 
+      // Remove comments for this post
+      setComments(prev => {
+        const newComments = { ...prev };
+        delete newComments[postId];
+        return newComments;
+      });
+
       toast.success("Post deleted successfully!");
     } catch (error) {
       console.error("Error deleting post:", error);
@@ -283,7 +313,7 @@ function Home() {
           setCommentLoading(false);
         });
     }
-  }
+  };
 
   // Get tag display style
   const getTagStyle = (tag) => {
@@ -306,6 +336,9 @@ function Home() {
     return () => document.removeEventListener("click", handleClickOutside);
   }, []);
 
+  // Calculate user's post count
+  const userPostsCount = posts.filter((post) => post.author?._id === user._id).length;
+
   return (
     <>
       <div className="pt-20 min-h-screen bg-orange-50">
@@ -319,7 +352,7 @@ function Home() {
                 className="w-full flex items-center gap-3 p-4 text-black/50 bg-orange-400/10 outline outline-offset-2 outline-orange-400 rounded-lg font-medium hover:opacity-90 transition-all cursor-text"
               >
                 <FaPlus />
-                <span>What's on your mind, {user?.username || "User"}?</span>
+                <span>What's on your mind, {user?.username || user?.fullName || "User"}?</span>
               </button>
             </div>
 
@@ -354,14 +387,14 @@ function Home() {
                     >
                       {/* Post Header */}
                       <div className="flex items-center gap-3 mb-3">
-                        {post.author.profilePicture ? (
+                        {post.author?.profilePicture?.url ? (
                           <img
                             src={post.author.profilePicture.url}
                             alt="Author"
                             className="w-10 h-10 rounded-full object-cover"
                           />
                         ) : (
-                          <FaUserCircle className="w-10 h-10 rounded-full object-cover" />
+                          <FaUserCircle className="w-10 h-10 text-gray-400" />
                         )}
                         <div className="flex-1">
                           <h4 className="font-semibold text-gray-800">
@@ -437,9 +470,10 @@ function Home() {
                       {/* Post Actions */}
                       <div className="flex items-center justify-end gap-4 text-xs md:text-sm text-gray-500 border-t pt-3">
                         <button 
-                        onClick={() => handleShowComments(post._id)}
-                        className="flex items-center gap-3 hover:text-orange-500 transition-colors cursor-pointer bg-gray-50 p-2 px-4 rounded-xl outline">
-                          <FaComments /> {comments[post._id]?.length}<FaArrowRight />
+                          onClick={() => handleShowComments(post._id)}
+                          className="flex items-center gap-3 hover:text-orange-500 transition-colors cursor-pointer bg-gray-50 p-2 px-4 rounded-xl outline"
+                        >
+                          <FaComments /> {comments[post._id]?.length || 0}<FaArrowRight />
                         </button>
                       </div>
                     </div>
@@ -456,15 +490,15 @@ function Home() {
               <div className="flex flex-col items-center">
                 <div className="relative">
                   <div className="absolute inset-0 rounded-full bg-gradient-to-r from-orange-300 to-amber-400 blur-sm -z-10 transform scale-110"></div>
-                  {user.profile ? (
-                          <img
-                            src={user.profile}
-                            alt="Author"
-                            className="w-24 h-24 rounded-full object-cover border-2 border-white shadow-md"
-                          />
-                        ) : (
-                          <FaUserCircle className="w-24 h-24 rounded-full object-cover border-2 border-white shadow-md" />
-                        )}
+                  {user?.profilePicture?.url ? (
+                    <img
+                      src={user.profilePicture.url}
+                      alt="Profile"
+                      className="w-24 h-24 rounded-full object-cover border-2 border-white shadow-md"
+                    />
+                  ) : (
+                    <FaUserCircle className="w-24 h-24 text-gray-400 border-2 border-white shadow-md rounded-full" />
+                  )}
                 </div>
                 <h3 className="mt-4 text-xl font-semibold text-gray-800">
                   {user?.fullName || user?.username || "User"}
@@ -498,10 +532,7 @@ function Home() {
               </div>
               <div className="text-gray-600 text-sm">
                 {user
-                  ? `You have ${
-                      posts.filter((post) => post.author?._id === user._id)
-                        .length
-                    } posts`
+                  ? `You have ${userPostsCount} post${userPostsCount === 1 ? '' : 's'}`
                   : "You haven't created any posts yet."}
               </div>
               <button
@@ -695,13 +726,13 @@ function Home() {
       {showComments && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4">
           <ViewPost 
-          posts={posts}
-          comments={comments}
-          setComments={setComments}
-          setShowComments={setShowComments}
-          setCommentLoading={setCommentLoading}
-          commentLoading={commentLoading}
-          showComments={showComments}
+            posts={posts}
+            comments={comments}
+            setComments={setComments}
+            setShowComments={setShowComments}
+            setCommentLoading={setCommentLoading}
+            commentLoading={commentLoading}
+            showComments={showComments}
           />
         </div>
       )}

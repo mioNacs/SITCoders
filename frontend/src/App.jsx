@@ -8,10 +8,9 @@ import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 function App() {
-  const { isLoggedIn, isLoading } = useAuth();
+  const { isLoggedIn, isLoading, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-
   useEffect(() => {
     // Only run redirect logic after auth state is determined
     if (isLoading) return;

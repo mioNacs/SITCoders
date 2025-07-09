@@ -1,8 +1,9 @@
 import React from "react";
 import { useLocation, useNavigate, Link } from "react-router-dom";
-import { verifyOTP, resendOTP } from "../../services/api.js";
+import { useAuth } from "../../context/AuthContext.jsx";
 
 function VerifyOTP() {
+  const { verifyOtp, resendOtp, isAuthenticated, isLoading: authLoading } = useAuth();
   const [otp, setOtp] = React.useState("");
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState("");
@@ -19,6 +20,13 @@ function VerifyOTP() {
     }
   }, [email, navigate]);
 
+  // Redirect if already authenticated
+  React.useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/');
+    }
+  }, [isAuthenticated, navigate]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
@@ -31,13 +39,18 @@ function VerifyOTP() {
     }
 
     try {
-      await verifyOTP(email, otp);
-      setSuccess("Email verified successfully! Redirecting to login...");
-      setTimeout(() => {
-        navigate('/login');
-      }, 2000);
+      const result = await verifyOtp(email, otp);
+      
+      if (result.success) {
+        setSuccess("Email verified successfully! Redirecting to login...");
+        setTimeout(() => {
+          navigate('/login');
+        }, 2000);
+      } else {
+        setError(result.message);
+      }
     } catch (error) {
-      setError(error.message);
+      setError('An unexpected error occurred');
     } finally {
       setLoading(false);
     }
@@ -48,15 +61,29 @@ function VerifyOTP() {
     setResending(true);
 
     try {
-      await resendOTP(email);
-      setSuccess("OTP resent successfully!");
-      setTimeout(() => setSuccess(""), 3000);
+      const result = await resendOtp(email);
+      
+      if (result.success) {
+        setSuccess("OTP resent successfully!");
+        setTimeout(() => setSuccess(""), 3000);
+      } else {
+        setError(result.message);
+      }
     } catch (error) {
-      setError(error.message);
+      setError('Failed to resend OTP');
     } finally {
       setResending(false);
     }
   };
+
+  // Show loading while checking auth status
+  if (authLoading) {
+    return (
+      <div className="font-Jost flex h-screen justify-center items-center text-gray-600 bg-orange-100/30">
+        <div className="text-lg">Loading...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="font-Jost flex h-screen justify-center items-center text-gray-600 bg-orange-100/30">
@@ -103,6 +130,7 @@ function VerifyOTP() {
                 placeholder="000000"
                 maxLength="6"
                 required
+                disabled={loading}
               />
             </div>
             
