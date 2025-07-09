@@ -12,11 +12,14 @@ import PostsSection from "./PostsSection";
 import ActionButtons from "./ActionButtons";
 
 function UserProfile() {
-  const { user, isLoading, logout } = useAuth();
+  const { user, isAuthenticated, isLoading: authLoading, updateUser, logout } = useAuth();
   const navigate = useNavigate();
-  const [adminStatus, setAdminStatus] = useState(false);
 
-  // Dialog states
+  const [loading, setLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [adminRole, setAdminRole] = useState("");
+
+  // Dialog state
   const [dialog, setDialog] = useState({
     isOpen: false,
     title: "",
@@ -26,13 +29,7 @@ function UserProfile() {
     onConfirm: null,
   });
 
-  const showDialog = (
-    title,
-    message,
-    type = "info",
-    showConfirm = false,
-    onConfirm = null
-  ) => {
+  const showDialog = (title, message, type = "info", showConfirm = false, onConfirm = null) => {
     setDialog({
       isOpen: true,
       title,
@@ -44,46 +41,62 @@ function UserProfile() {
   };
 
   const closeDialog = () => {
-    setDialog({ ...dialog, isOpen: false });
+    setDialog({ 
+      isOpen: false, 
+      title: "", 
+      message: "", 
+      type: "info", 
+      showConfirm: false, 
+      onConfirm: null 
+    });
   };
 
-  const getAdminStatus = async () => {
-    if (user && user.email) {
-      const isAdmin = await verifyIsAdmin(user.email);
-      return isAdmin;
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate("/");
+      closeDialog(); // Close the dialog after successful logout
+    } catch (error) {
+      console.error("Logout error:", error);
+      showDialog(
+        "Logout Failed",
+        "Failed to logout. Please try again.",
+        "error"
+      );
     }
-    return false;
   };
 
   useEffect(() => {
-    getAdminStatus().then((res) => {
-      setAdminStatus(res);
-    });
-  }, [user]);
+    if (authLoading) return;
 
-  const initiateLogout = () => {
-    showDialog(
-      "Confirm Logout",
-      "Are you sure you want to logout? You will need to login again to access your account.",
-      "confirm",
-      true,
-      async () => {
-        closeDialog();
-        await logout();
-        navigate("/");
-        showDialog(
-          "Logged Out",
-          "You have been successfully logged out.",
-          "success"
-        );
+    if (!isAuthenticated) {
+      navigate("/login");
+      return;
+    }
+
+    // Check admin status
+    const checkAdminStatus = async () => {
+      if (user?.email) {
+        try {
+          const adminStatus = await verifyIsAdmin(user.email);
+          setIsAdmin(adminStatus.isAdmin);
+          setAdminRole(adminStatus.role);
+        } catch (error) {
+          console.error("Error checking admin status:", error);
+          setIsAdmin(false);
+          setAdminRole("");
+        }
       }
-    );
-  };
+      setLoading(false);
+    };
 
-  if (isLoading) {
+    checkAdminStatus();
+  }, [user, isAuthenticated, authLoading, navigate]);
+
+  if (authLoading || loading) {
     return (
-      <div className="pt-20 bg-orange-50 min-h-screen flex justify-center items-center">
-        <div className="text-xl text-gray-600">Loading...</div>
+      <div className="pt-20 min-h-screen bg-orange-50 flex items-center justify-center">
+        <div className="text-lg text-gray-600">Loading...</div>
       </div>
     );
   }
@@ -110,25 +123,34 @@ function UserProfile() {
           {/* Profile Section */}
           <div className="w-full md:w-[60%] bg-white rounded-lg shadow-md border border-orange-100 overflow-hidden order-1 md:order-2">
             {/* Profile Header */}
-            <ProfileHeader showDialog={showDialog} />
+            <ProfileHeader 
+              user={user} 
+              updateUser={updateUser}
+              showDialog={showDialog}
+            />
 
             <div className="flex px-6 relative">
               {/* Action Buttons */}
-              <ActionButtons
-                adminStatus={adminStatus}
-                onLogout={initiateLogout}
+              <ActionButtons 
+                user={user}
+                isAdmin={isAdmin}
+                showDialog={showDialog}
+                onLogout={handleLogout}
               />
 
               {/* Profile Picture */}
-              <ProfilePicture
+              <ProfilePicture 
+                user={user} 
+                updateUser={updateUser}
                 showDialog={showDialog}
-                closeDialog={closeDialog}
               />
 
               {/* Profile Information */}
-              <ProfileInfo
-                user={user}
-                adminStatus={adminStatus}
+              <ProfileInfo 
+                user={user} 
+                isAdmin={isAdmin}
+                adminRole={adminRole}
+                updateUser={updateUser}
                 showDialog={showDialog}
               />
             </div>
@@ -136,7 +158,6 @@ function UserProfile() {
         </div>
       </div>
 
-      {/* Dialog Component */}
       <Dialog
         isOpen={dialog.isOpen}
         onClose={closeDialog}

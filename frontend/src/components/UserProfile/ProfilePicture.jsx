@@ -9,10 +9,9 @@ import {
 } from "react-icons/fa";
 import ReactCrop from "react-image-crop";
 import "react-image-crop/dist/ReactCrop.css";
-import { updateProfilePicture } from "../../services/api.js";
 import { useAuth } from "../../context/AuthContext";
 
-const ProfilePicture = ({ showDialog, closeDialog }) => {
+const ProfilePicture = ({ showDialog }) => {
   const { user, updateUser } = useAuth();
   const [uploading, setUploading] = useState(false);
   const [openPicture, setOpenPicture] = useState(false);
@@ -33,7 +32,7 @@ const ProfilePicture = ({ showDialog, closeDialog }) => {
   const [selectedFile, setSelectedFile] = useState(null);
 
   const viewProfilePicture = () => {
-    if (user.profile) {
+    if (user?.profilePicture?.url) {
       setOpenPicture(true);
     }
   };
@@ -44,7 +43,7 @@ const ProfilePicture = ({ showDialog, closeDialog }) => {
 
   const closeCropModal = () => {
     setShowCropModal(false);
-    resetCrop()
+    resetCrop();
     setImageSrc(null);
     setSelectedFile(null);
     if (fileInputRef.current) {
@@ -160,7 +159,7 @@ const ProfilePicture = ({ showDialog, closeDialog }) => {
         });
 
         closeCropModal();
-        resetCrop()
+        resetCrop();
         uploadProfilePicture(croppedFile);
       }
     } catch (error) {
@@ -176,17 +175,22 @@ const ProfilePicture = ({ showDialog, closeDialog }) => {
   const uploadProfilePicture = async (file) => {
     setUploading(true);
     try {
+      // Create FormData for file upload
       const formData = new FormData();
-      formData.append("profilePicture", file);
+      formData.append('profilePicture', file);
 
-      const response = await updateProfilePicture(formData);
+      // Pass FormData directly to updateUser
+      const result = await updateUser(formData);
 
-      // Update user context with new profile picture
-      updateUser({
-        profile: response.user.profile,
-      });
-
-      showDialog("Success", "Profile picture updated successfully!", "success");
+      if (result.success) {
+        showDialog("Success", "Profile picture updated successfully!", "success");
+      } else {
+        showDialog(
+          "Upload Failed",
+          result.message || "Failed to update profile picture. Please try again.",
+          "error"
+        );
+      }
     } catch (error) {
       console.error("Error updating profile picture:", error);
       showDialog(
@@ -213,13 +217,18 @@ const ProfilePicture = ({ showDialog, closeDialog }) => {
     <>
       <div className="absolute -top-16 left-4 w-32 h-32 rounded-full bg-white p-1 shadow-md">
         <div className="relative w-full h-full">
-          {user.profile ? (
+          {user?.profilePicture?.url ? (
             <img
-              src={user.profile}
+              key={user.profilePicture.url} // Add key to force re-render when URL changes
+              src={user.profilePicture.url}
               alt="profile"
               className="w-full h-full rounded-full object-cover cursor-pointer hover:opacity-90 transition-opacity"
               onClick={viewProfilePicture}
               title="Click to view full size"
+              onError={(e) => {
+                // If image fails to load, you can add a fallback here
+                console.log("Image failed to load:", e.target.src);
+              }}
             />
           ) : (
             <div className="w-full h-full rounded-full bg-orange-100 flex items-center justify-center">
@@ -253,21 +262,21 @@ const ProfilePicture = ({ showDialog, closeDialog }) => {
       </div>
 
       {/* Profile Picture View Modal */}
-      {openPicture && user.profile && (
+      {openPicture && user?.profilePicture?.url && (
         <div className="fixed inset-0 flex justify-center items-center bg-black/60 z-50">
           <div onClick={closePictureModal} className="fixed inset-0"></div>
           <div className="relative">
             <button
               onClick={closePictureModal}
-              className="absolute top-4 right-4 bg-white  hover:bg-white/30 text-black p-2 rounded-full transition-colors z-10 cursor-pointer"
+              className="absolute top-4 right-4 bg-white hover:bg-white/30 text-black p-2 rounded-full transition-colors z-10 cursor-pointer"
               title="Close"
             >
               <FaTimes size={20} />
             </button>
             <img
-              className="h-fit w-[75vw] sm:w-[60vw] md:w-[50vw] lg:w-[40vw] z-10 rounded-lg shadow-md
-              outline-2 outline-orange-500 outline-offset-2"
-              src={user.profile}
+              key={user.profilePicture.url} // Add key here too
+              className="h-fit w-[75vw] sm:w-[60vw] md:w-[50vw] lg:w-[40vw] z-10 rounded-lg shadow-md outline-2 outline-orange-500 outline-offset-2"
+              src={user.profilePicture.url}
               alt="profile"
             />
           </div>

@@ -1,138 +1,98 @@
-const API_BASE_URL = 'http://localhost:3000/api';
+import { api } from '../context/AuthContext';
 
-export const signupUser = async (formData) => {
+// Posts API
+export const getAllPosts = async (page = 1, limit = 20) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/users/create`, {
-      method: 'POST',
-      body: formData, // FormData object for file upload
-    });
-    
-    const data = await response.json();
-    if (!response.ok) {
-      throw new Error(data.message || 'Signup failed');
-    }
-    return data;
+    const response = await api.get(`/posts?page=${page}&limit=${limit}`);
+    return response.data;
   } catch (error) {
     throw error;
   }
 };
 
-export const verifyOTP = async (email, otp) => {
+export const createPost = async (postData) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/users/verify-otp`, {
-      method: 'POST',
+    const response = await api.post('/posts', postData, {
       headers: {
-        'Content-Type': 'application/json',
+        'Content-Type': 'multipart/form-data',
       },
-      body: JSON.stringify({ email, otp }),
     });
-    
-    const data = await response.json();
-    if (!response.ok) {
-      throw new Error(data.message || 'OTP verification failed');
-    }
-    return data;
+    return response.data;
   } catch (error) {
     throw error;
   }
 };
 
-export const resendOTP = async (email) => {
+export const deletePost = async (postId) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/users/resend-otp`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ email }),
-    });
-    
-    const data = await response.json();
-    if (!response.ok) {
-      throw new Error(data.message || 'Failed to resend OTP');
-    }
-    return data;
+    const response = await api.delete(`/posts/${postId}`);
+    return response.data;
   } catch (error) {
     throw error;
   }
 };
 
-export const loginUser = async (credentials) => {
+// Comments API
+export const getComments = async (postId) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/users/login`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      credentials: 'include', // Include cookies
-      body: JSON.stringify(credentials),
-    });
-    
-    const data = await response.json();
-    if (!response.ok) {
-      throw new Error(data.message || 'Login failed');
-    }
-    return data;
+    const response = await api.get(`/comments/${postId}`);
+    return response.data;
   } catch (error) {
     throw error;
   }
 };
 
-export const updateProfilePicture = async (formData) => {
-  try{
-    const response = await fetch(`${API_BASE_URL}/users/update-profile-picture`,{
-      method: 'POST',
-      credentials: 'include',
-      body: formData
-    });
-
-    const data = await response.json();
-    if(!response.ok) {
-      throw new Error(data.message || 'Failed to update profile picture');
-    }
-    return data;
-  } catch(error){
-    throw error;
-  }
-}
-
-export const updateTextDetails = async (userData) => {
+export const createComment = async (commentData) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/users/update-text-details`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      credentials: 'include',
-      body: JSON.stringify(userData) // Send as JSON
-    });
-    
-    const data = await response.json();
-    if (!response.ok) {
-      throw new Error(data.message || 'Failed to update user details');
-    }
-    return data;
+    const response = await api.post('/comments', commentData);
+    return response.data;
   } catch (error) {
     throw error;
   }
 };
 
-export const updateBio = async (bioData) => {
+// Admin API
+export const checkAdminStatus = async () => {
   try {
-    const response = await fetch(`${API_BASE_URL}/users/update-bio`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      credentials: 'include',
-      body: JSON.stringify(bioData) // Send as JSON: { bio: "your bio text" }
-    });
-    
-    const data = await response.json();
-    if (!response.ok) {
-      throw new Error(data.message || 'Failed to update bio');
-    }
-    return data;
+    const response = await api.get('/admin/status');
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const getUsers = async (page = 1, limit = 10) => {
+  try {
+    const response = await api.get(`/admin/users?page=${page}&limit=${limit}`);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const verifyUser = async (userId) => {
+  try {
+    const response = await api.patch(`/admin/users/${userId}/verify`);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const unverifyUser = async (userId) => {
+  try {
+    const response = await api.patch(`/admin/users/${userId}/unverify`);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+// Profile API  
+export const getUser = async (username) => {
+  try {
+    const response = await api.post('/users/get-user', { username });
+    return response.data;
   } catch (error) {
     throw error;
   }

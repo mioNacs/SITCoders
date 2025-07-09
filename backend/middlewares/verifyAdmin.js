@@ -9,7 +9,7 @@ const verifyAdmin = async (req, res, next) => {
         if (!user) {
             return res.status(401).json({ message: "Unauthorized" });
         }
-        const admin = await Admin.findOne({ admin: user._id, role: "admin" });
+        const admin = await Admin.findOne({ admin: user._id});
         if (!admin) {
             return res.status(403).json({ message: "Access denied, not an admin" });
         }
