@@ -16,7 +16,7 @@ router.post(
 
 router.delete("/delete/:postId", verifyUser, isVarifiedByAdmin, deletePost);
 
-router.get("/get-posts", verifyUser, isVarifiedByAdmin, getALLPosts);
-router.get("/get-user-posts", verifyUser, isVarifiedByAdmin, getALLPostsOfUser);
+router.get("/get-posts", verifyUser, getALLPosts);
+router.get("/get-user-posts", verifyUser, getALLPostsOfUser);
 
 export default router;
