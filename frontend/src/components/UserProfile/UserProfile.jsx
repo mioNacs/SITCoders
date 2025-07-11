@@ -115,7 +115,7 @@ function UserProfile() {
     <>
       <div className="pt-20 bg-orange-50 min-h-screen select-none">
         <div className="flex flex-col md:flex-row gap-6 md:max-w-[90%] lg:max-w-[80%] mx-auto pb-8 px-4">
-          <div className="w-full md:w-[40%] order-2 md:order-1">
+          <div className="w-full h-full md:w-[40%] order-2 md:order-1">
             {/* Posts Section */}
             <PostsSection />
           </div>

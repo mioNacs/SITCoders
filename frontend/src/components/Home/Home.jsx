@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import {Link} from "react-router-dom";
 import { Navigate } from "react-router-dom";
 import {
   FaUserCircle,
@@ -54,6 +55,7 @@ function Home() {
 
   // Check admin status
   useEffect(() => {
+    console.log(user)
     const checkAdminStatus = async () => {
       if (!isAuthenticated || !user?.email) {
         setAdminLoading(false);
@@ -76,7 +78,7 @@ function Home() {
     }
     checkAdminStatus();
   }, [isAuthenticated, user]);
-
+  
   // Show loading screen while auth is being checked
   if (authLoading) {
     return (
@@ -342,22 +344,31 @@ function Home() {
   return (
     <>
       <div className="pt-20 min-h-screen bg-orange-50">
-        <div className="flex flex-col md:flex-row gap-6 md:max-w-[90%] lg:max-w-[80%] mx-auto pb-8 px-4 md:px-0">
+        <div className="flex flex-col md:flex-row gap-6 md:max-w-[90%] lg:max-w-[80%] mx-0 md:mx-auto md:pb-8 ">
           {/* Main Content Area */}
           <div className="md:w-2/3 h-full flex flex-col gap-4">
             {/* Create Post Button */}
-            <div className="bg-white rounded-2xl shadow-md border border-orange-100 p-4">
+            <div className="bg-white md:rounded-2xl shadow-md border border-orange-100 p-4">
               <button
+                disabled={!user.isAdminVerified}
                 onClick={() => setShowCreatePost(true)}
-                className="w-full flex items-center gap-3 p-4 text-black/50 bg-orange-400/10 outline outline-offset-2 outline-orange-400 rounded-lg font-medium hover:opacity-90 transition-all cursor-text"
+                className="w-full flex items-center gap-3 p-4 text-black/50 bg-orange-400/10 outline outline-offset-2 outline-orange-400 rounded-lg font-medium hover:opacity-90 transition-all cursor-text disabled:bg-red-100 disabled:text-red-700"
               >
-                <FaPlus />
-                <span>What's on your mind, {user?.username || user?.fullName || "User"}?</span>
+                {user.isAdminVerified ? (
+                <>  
+                  <FaPlus />
+                  <span>What's on your mind, {user?.username || user?.fullName || "User"}?
+                  </span>
+                </>  
+                )
+              : (
+                <span>ASK AN ADMIN TO VERIFY YOU!!</span>
+              )}
               </button>
             </div>
 
             {/* Posts Feed */}
-            <div className="bg-white rounded-2xl shadow-md border border-orange-100 p-6">
+            <div className="bg-white md:rounded-2xl shadow-md border border-orange-100 p-6">
               <h2 className="text-2xl font-semibold text-gray-800 border-b pb-3 border-orange-100 mb-4">
                 Feed
               </h2>
@@ -484,7 +495,7 @@ function Home() {
           </div>
 
           {/* Sidebar */}
-          <div className="md:w-1/3 h-full flex flex-col gap-6">
+          <div className="md:w-1/3 hidden h-full md:flex flex-col gap-6">
             {/* Profile Card */}
             <div className="bg-white rounded-2xl shadow-md border border-orange-100 p-6">
               <div className="flex flex-col items-center">
@@ -516,9 +527,9 @@ function Home() {
                     Administrator
                   </div>
                 )}
-                <button className="mt-4 w-full bg-gradient-to-r from-orange-400 to-amber-500 text-white py-2 rounded-lg font-medium hover:opacity-90 transition-all">
+                <Link to={"/user-profile"} className="text-center mt-4 w-full bg-gradient-to-r from-orange-400 to-amber-500 text-white py-2 rounded-lg font-medium hover:opacity-90 transition-all">
                   Your Profile
-                </button>
+                </Link>
               </div>
             </div>
 
@@ -535,12 +546,14 @@ function Home() {
                   ? `You have ${userPostsCount} post${userPostsCount === 1 ? '' : 's'}`
                   : "You haven't created any posts yet."}
               </div>
-              <button
+              {user.isAdminVerified && (
+                <button
                 onClick={() => setShowCreatePost(true)}
                 className="mt-4 w-full border border-orange-300 text-orange-500 py-2 rounded-lg font-medium hover:bg-orange-50 transition-all"
               >
                 Create New Post
               </button>
+              )}
             </div>
           </div>
         </div>

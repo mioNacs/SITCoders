@@ -332,6 +332,7 @@ const loginUser = async (req, res) => {
       message: "Login successful",
       user: {
         _id: user._id,
+        isAdminVerified: user.isAdminVerified,
         bio: user.bio,
         email: user.email,
         username: user.username,
@@ -420,6 +421,7 @@ const updateTextDetails = async (req, res) => {
       message: "User details updated successfully",
       user: {
         _id: user._id,
+        isAdminVerified: user.isAdminVerified,
         bio: user.bio,
         email: user.email,
         username: user.username,
@@ -522,6 +524,7 @@ const updateProfilePicture = async (req, res) => {
       message: "Profile picture updated successfully",
       user: {
         _id: user._id,
+        isAdminVerified: user.isAdminVerified,
         bio: user.bio,
         email: user.email,
         username: user.username,
@@ -565,6 +568,7 @@ const updateBio = async (req, res) => {
       message: "Bio updated successfully",
       user: {
         _id: user._id,
+        isAdminVerified: user.isAdminVerified,
         bio: user.bio,
         email: user.email,
         username: user.username,
@@ -601,7 +605,7 @@ const getUser = async (req, res) => {
     const regex = new RegExp(`^${cleanUsername}`, "i"); // Case-insensitive exact match
 
     const user = await User.findOne({ username: regex })
-      .select("_id username fullName profilePicture");
+      .select("_id username fullName profilePicture popularity bio");
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
