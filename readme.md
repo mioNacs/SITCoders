@@ -59,15 +59,8 @@ If you're interested, please:
 - Join discussions on requirements
 - Help plan the roadmap
 
----
-
-## 📜 License
-This project is open-source under the [MIT License](./LICENSE).
-
----
-
 ## ✨ Stay Tuned
 We’re just getting started!  
 Watch this repository for updates as we move toward our first release.
 
-> *“Code together. Learn together.” – The SitVerse Team*
+> *“Code together. Learn together.” – The SitCoders Team*
