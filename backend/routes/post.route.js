@@ -1,7 +1,12 @@
 import { Router } from "express";
 import verifyUser from "../middlewares/verifyUser.js";
 import isVarifiedByAdmin from "../middlewares/isVarifiedByAdmin.js";
-import { createPost, deletePost, getALLPosts, getALLPostsOfUser } from "../controllers/post.controller.js";
+import {
+  createPost,
+  deletePost,
+  getALLPosts,
+  getALLPostsOfUser,
+} from "../controllers/post.controller.js";
 import upload from "../middlewares/multer.middleware.js";
 
 const router = Router();

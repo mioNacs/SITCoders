@@ -31,14 +31,16 @@ const createAdmin = async (req, res) => {
   }
 };
 
-const removeFromAdmin = async (req,res) => {
+const removeFromAdmin = async (req, res) => {
   try {
     const { email } = req.body;
     if (!email) {
       return res.status(400).json({ message: "Email is required" });
     }
-    if(!req.isSuperAdmin) {
-      return res.status(403).json({ message: "Access denied, not a super admin" });
+    if (!req.isSuperAdmin) {
+      return res
+        .status(403)
+        .json({ message: "Access denied, not a super admin" });
     }
     const user = await User.findOne({ email });
     if (!user) {
@@ -52,14 +54,11 @@ const removeFromAdmin = async (req,res) => {
     await Admin.deleteOne({ _id: admin._id });
 
     return res.status(200).json({ message: "Admin removed successfully" });
-
-    
   } catch (error) {
     console.error("Error removing admin:", error);
     res.status(500).json({ message: "Internal server error" });
-    
   }
-}
+};
 
 const getAllUnverifiedUsers = async (req, res) => {
   try {
@@ -71,18 +70,15 @@ const getAllUnverifiedUsers = async (req, res) => {
       return res.status(200).json({ message: "All users are verified" });
     }
 
-    res
-      .status(200)
-      .json({
-        message: "Unverified users fetched successfully",
-        users: unverifiedUsers,
-      });
+    res.status(200).json({
+      message: "Unverified users fetched successfully",
+      users: unverifiedUsers,
+    });
   } catch (error) {
     console.error("Error fetching unverified users:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
-
 
 const getVerifiedUser = async (req, res) => {
   try {
@@ -116,7 +112,6 @@ const getVerifiedUser = async (req, res) => {
     return res.status(500).json({ message: "Internal server error" });
   }
 };
-
 
 const verifyUserFromAdmin = async (req, res) => {
   try {
