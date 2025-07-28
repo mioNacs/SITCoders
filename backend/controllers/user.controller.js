@@ -332,14 +332,17 @@ const loginUser = async (req, res) => {
       message: "Login successful",
       user: {
         _id: user._id,
+        isAdminVerified: user.isAdminVerified,
+        bio: user.bio,
         email: user.email,
         username: user.username,
         fullName: user.fullName,
-        profile: user.profilePicture.url,
+        profilePicture: user.profilePicture,
         rollNo: user.rollNo,
         gender: user.gender,
         popularity: user.popularity,
         createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
       },
     });
   } catch (error) {
@@ -418,10 +421,12 @@ const updateTextDetails = async (req, res) => {
       message: "User details updated successfully",
       user: {
         _id: user._id,
+        isAdminVerified: user.isAdminVerified,
+        bio: user.bio,
         email: user.email,
         username: user.username,
         fullName: user.fullName,
-        profile: user.profilePicture.url,
+        profilePicture: user.profilePicture,
         rollNo: user.rollNo,
         gender: user.gender,
         popularity: user.popularity,
@@ -519,10 +524,12 @@ const updateProfilePicture = async (req, res) => {
       message: "Profile picture updated successfully",
       user: {
         _id: user._id,
+        isAdminVerified: user.isAdminVerified,
+        bio: user.bio,
         email: user.email,
         username: user.username,
         fullName: user.fullName,
-        profile: user.profilePicture.url,
+        profilePicture: user.profilePicture,
         rollNo: user.rollNo,
         gender: user.gender,
         popularity: user.popularity,
@@ -561,13 +568,14 @@ const updateBio = async (req, res) => {
       message: "Bio updated successfully",
       user: {
         _id: user._id,
+        isAdminVerified: user.isAdminVerified,
+        bio: user.bio,
         email: user.email,
         username: user.username,
         fullName: user.fullName,
-        profile: user.profilePicture.url,
+        profilePicture: user.profilePicture,
         rollNo: user.rollNo,
         gender: user.gender,
-        bio: user.bio,
         popularity: user.popularity,
         createdAt: user.createdAt,
         updatedAt: user.updatedAt,
@@ -597,7 +605,7 @@ const getUser = async (req, res) => {
     const regex = new RegExp(`^${cleanUsername}`, "i"); // Case-insensitive exact match
 
     const user = await User.findOne({ username: regex })
-      .select("_id username fullName profilePicture");
+      .select("_id username fullName profilePicture popularity bio");
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });

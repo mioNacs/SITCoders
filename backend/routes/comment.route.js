@@ -14,7 +14,6 @@ router.post("/reply/:commentId", verifyUser, isVarifiedByAdmin, createReply);
 router.post(
   "/get-comments/:postId",
   verifyUser,
-  isVarifiedByAdmin,
   getParentComment
 );
 

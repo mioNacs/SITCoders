@@ -1,10 +1,9 @@
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { loginUser } from "../../services/api.js";
 import { useAuth } from "../../context/AuthContext.jsx";
 
 function Login() {
-  const { login } = useAuth();
+  const { login, isAuthenticated} = useAuth();
   const [isVisible, setIsVisible] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState("");
@@ -14,6 +13,13 @@ function Login() {
   });
   
   const navigate = useNavigate();
+
+  // Redirect if already authenticated
+  React.useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/');
+    }
+  }, [isAuthenticated, navigate]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -39,16 +45,17 @@ function Login() {
         ...(isEmail ? { email: formData.emailOrUsername } : { username: formData.emailOrUsername })
       };
 
-      const response = await loginUser(loginData);
+      const result = await login(loginData);
       
-      // Store user data in localStorage or context
-      await login(response.user)
-      
-      // Navigate to home page
-      navigate('/home');
+      if (result.success) {
+        // Navigate to home page
+        navigate('/');
+      } else {
+        setError(result.message);
+      }
       
     } catch (error) {
-      setError(error.message);
+      setError('An unexpected error occurred');
     } finally {
       setLoading(false);
     }
@@ -87,6 +94,7 @@ function Login() {
                 type="text"
                 placeholder="Enter your email or username"
                 required
+                disabled={loading}
               />
             </div>
             <div className="flex flex-col justify-between ">
@@ -103,6 +111,7 @@ function Login() {
                   type={isVisible ? "text" : "password"}
                   placeholder="Enter your password"
                   required
+                  disabled={loading}
                 />
                 <div
                   className="flex items-center"
