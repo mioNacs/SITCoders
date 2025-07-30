@@ -32,9 +32,14 @@ const createComment = async (req, res) => {
       parentComment: null, // Assuming this is a top-level comment
     });
 
+    // Populate user details
+    const populatedComment = await Comment.findById(newComment._id)
+      .select("-__v")
+      .populate("user", "fullName username profilePicture");
+
     res
       .status(201)
-      .json({ message: "Comment created successfully", comment: newComment });
+      .json({ message: "Comment created successfully", comment: populatedComment });
   } catch (error) {
     console.error("Error creating comment:", error.message);
     return res.status(500).json({ message: "Internal server error" });
@@ -70,9 +75,14 @@ const createReply = async (req, res) => {
       parentComment: commentId,
     });
 
+    // Populate user details
+    const populatedReply = await Comment.findById(newReply._id)
+      .select("-__v")
+      .populate("user", "fullName username profilePicture");
+
     res
       .status(201)
-      .json({ message: "Reply created successfully", comment: newReply });
+      .json({ message: "Reply created successfully", comment: populatedReply });
   } catch (error) {
     console.error("Error creating reply:", error.message);
     return res.status(500).json({ message: "Internal server error" });

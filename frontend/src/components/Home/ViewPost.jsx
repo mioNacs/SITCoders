@@ -66,8 +66,8 @@ function ViewPost({
     setSubmitting(true);
     try {
       const result = await createComment(showComments, newComment);
-
-      if (result.success) {
+      console.log(result);
+      // if (result.success) {
         // Update comments state
         setComments((prev) => ({
           ...prev,
@@ -76,9 +76,9 @@ function ViewPost({
 
         setNewComment("");
         toast.success("Comment added successfully!");
-      } else {
-        toast.error("Failed to add comment");
-      }
+      // } else {
+      //   toast.error("Failed to add comment");
+      // }
     } catch (error) {
       console.error("Error submitting comment:", error);
       toast.error("Failed to add comment. Please try again.");
@@ -99,8 +99,8 @@ function ViewPost({
     setSubmitting(true);
     try {
       const result = await createReply(replyTo, replyContent);
-
-      if (result.success) {
+      console.log(result);
+      // if (result.success) {
         // Update comments state with new reply
         setComments((prev) => {
           const updatedComments = [...(prev[showComments] || [])];
@@ -112,7 +112,7 @@ function ViewPost({
               ...updatedComments[commentIndex],
               replies: [
                 ...(updatedComments[commentIndex].replies || []),
-                result.reply,
+                result.comment,
               ],
             };
           }
@@ -125,9 +125,9 @@ function ViewPost({
         setReplyContent("");
         setReplyTo(null);
         toast.success("Reply added successfully!");
-      } else {
-        toast.error("Failed to add reply");
-      }
+      // } else {
+      //   toast.error("Failed to add reply");
+      // }
     } catch (error) {
       console.error("Error submitting reply:", error);
       toast.error("Failed to add reply. Please try again.");
@@ -167,7 +167,7 @@ function ViewPost({
             {currentPost.author?.profilePicture?.url ? (
               <img
                 src={currentPost.author.profilePicture.url}
-                alt="Author"
+                alt="user"
                 className="w-10 h-10 rounded-full object-cover"
               />
             ) : (
@@ -213,9 +213,9 @@ function ViewPost({
                   className="border border-gray-200 rounded-lg p-4"
                 >
                   <div className="flex items-center gap-3 mb-2">
-                    {comment.author?.profilePicture?.url ? (
+                    {comment.user?.profilePicture?.url ? (
                       <img
-                        src={comment.author.profilePicture.url}
+                        src={comment.user.profilePicture.url}
                         alt="Commenter"
                         className="w-8 h-8 rounded-full object-cover"
                       />
@@ -224,8 +224,8 @@ function ViewPost({
                     )}
                     <div>
                       <h5 className="font-medium text-gray-800">
-                        {comment.author?.fullName ||
-                          comment.author?.username ||
+                        {comment.user?.fullName ||
+                          comment.user?.username ||
                           "Unknown User"}
                       </h5>
                       <p className="text-xs text-gray-500">
@@ -266,9 +266,10 @@ function ViewPost({
                               className="bg-gray-50 rounded p-3"
                             >
                               <div className="flex items-center gap-2 mb-1">
-                                {reply.author?.profilePicture?.url ? (
+                                {console.log(reply)}
+                                {reply.user?.profilePicture?.url ? (
                                   <img
-                                    src={reply.author.profilePicture.url}
+                                    src={reply.user.profilePicture.url}
                                     alt="Replier"
                                     className="w-6 h-6 rounded-full object-cover"
                                   />
@@ -276,8 +277,8 @@ function ViewPost({
                                   <FaUser className="w-6 h-6 text-gray-400 bg-gray-200 rounded-full p-1" />
                                 )}
                                 <h6 className="font-medium text-gray-800 text-sm">
-                                  {reply.author?.fullName ||
-                                    reply.author?.username ||
+                                  {reply.user?.fullName ||
+                                    reply.user?.username ||
                                     "Unknown User"}
                                 </h6>
                                 <p className="text-xs text-gray-500">
