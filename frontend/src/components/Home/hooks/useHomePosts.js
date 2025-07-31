@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getAllPosts, createPost, deletePost } from '../../../services/postApi';
+import { getAllPosts, createPost, deletePost, editPost } from '../../../services/postApi';
 import { getComments } from '../../../services/commentApi';
 import { toast } from 'react-toastify';
 
@@ -79,6 +79,34 @@ export const useHomePosts = () => {
     }
   };
 
+  const handleEditPost = async (postId, postData) => {
+    try {
+      const response = await editPost(postId, postData);
+      
+      // Update the post in the local state while preserving author info
+      setPosts(prevPosts => 
+        prevPosts.map(post => 
+          post._id === postId 
+            ? { 
+                ...post, 
+                content: postData.content,
+                tag: postData.tag || post.tag,
+                beenEdited: true,
+                updatedAt: new Date().toISOString() 
+              }
+            : post
+        )
+      );
+      
+      toast.success("Post updated successfully!");
+      return { success: true, data: response };
+    } catch (error) {
+      console.error("Error editing post:", error);
+      toast.error("Failed to update post. Please try again.");
+      return { success: false };
+    }
+  };
+
   const handleShowComments = (postId) => {
     setShowComments((prev) => (prev === postId ? null : postId));
     if (!comments[postId]) {
@@ -112,6 +140,7 @@ export const useHomePosts = () => {
     fetchPosts,
     handleCreatePost,
     handleDeletePost,
+    handleEditPost,
     handleShowComments
   };
 };

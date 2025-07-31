@@ -9,8 +9,10 @@ const PostsFeed = ({
   showPostMenu, 
   setShowPostMenu,
   onDeleteConfirm,
+  onEditPost,
   onShowComments,
   canDeletePost,
+  canEditPost,
   formatDate,
   getTagStyle 
 }) => {
@@ -40,6 +42,8 @@ const PostsFeed = ({
               showPostMenu={showPostMenu}
               setShowPostMenu={setShowPostMenu}
               onDeleteConfirm={onDeleteConfirm}
+              onEditPost={onEditPost}
+              canEditPost={canEditPost}
               onShowComments={onShowComments}
               canDeletePost={canDeletePost}
               formatDate={formatDate}

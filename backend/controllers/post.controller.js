@@ -244,6 +244,7 @@ const editPost = async (req, res) => {
     // Update the post
     post.content = content.trim();;
     post.tag = tag || post.tag; // Keep existing tag if not provided
+    post.beenEdited = true;
 
     await post.save();
 

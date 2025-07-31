@@ -9,6 +9,8 @@ const PostCard = ({
   showPostMenu, 
   setShowPostMenu,
   onDeleteConfirm,
+  onEditPost,
+  canEditPost,
   onShowComments,
   canDeletePost,
   formatDate,
@@ -30,6 +32,8 @@ const PostCard = ({
         <div className="flex-1">
           <h4 className="font-semibold text-gray-800">
             {post.author?.fullName || post.author?.username || "Unknown User"}
+            {post.beenEdited && (
+              <span className="text-xs text-gray-500 ml-1">(Edited)</span>)}
           </h4>
           <p className="text-sm text-gray-500">
             {formatDate(post.createdAt)}
@@ -48,6 +52,8 @@ const PostCard = ({
           showPostMenu={showPostMenu}
           setShowPostMenu={setShowPostMenu}
           onDeleteConfirm={onDeleteConfirm}
+          onEditPost={onEditPost}
+          canEditPost={canEditPost}
           canDeletePost={canDeletePost}
         />
       </div>
