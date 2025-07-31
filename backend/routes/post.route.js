@@ -6,6 +6,7 @@ import {
   deletePost,
   getALLPosts,
   getALLPostsOfUser,
+  editPost,
 } from "../controllers/post.controller.js";
 import upload from "../middlewares/multer.middleware.js";
 
@@ -20,6 +21,8 @@ router.post(
 );
 
 router.delete("/delete/:postId", verifyUser, isVarifiedByAdmin, deletePost);
+
+router.put("/edit/:postId", verifyUser, isVarifiedByAdmin, editPost)
 
 router.get("/get-posts", verifyUser, getALLPosts);
 router.get("/get-user-posts", verifyUser, getALLPostsOfUser);

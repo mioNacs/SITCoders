@@ -25,6 +25,10 @@ const postSchema = new mongoose.Schema(
       enum: ["general", "query", "announcement", "event", "project"],
       default: "general",
     },
+    beenEdited: {
+      type: Boolean,
+      default: false,
+    }
   },
   { timestamps: true }
 );
