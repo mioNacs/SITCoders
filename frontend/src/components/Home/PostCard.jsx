@@ -1,5 +1,6 @@
 import React from 'react';
 import { FaUserCircle } from 'react-icons/fa';
+import { Link } from 'react-router-dom';
 import PostMenu from './PostMenu';
 import PostActions from './PostActions';
 
@@ -31,7 +32,12 @@ const PostCard = ({
         )}
         <div className="flex-1">
           <h4 className="font-semibold text-gray-800">
-            {post.author?.fullName || post.author?.username || "Unknown User"}
+            <Link 
+              to={`/profile/${post.author.username}`}
+              className="font-semibold text-gray-800 hover:text-orange-600 transition-colors"
+            >
+              {post.author?.fullName}
+            </Link>
             {post.beenEdited && (
               <span className="text-xs text-gray-500 ml-1">(Edited)</span>)}
           </h4>

@@ -3,7 +3,7 @@ import { FaClipboard } from 'react-icons/fa';
 
 const UserPostsCard = ({ user, userPostsCount, onCreatePost }) => {
   return (
-    <div className="bg-white rounded-2xl shadow-md border border-orange-100 p-6">
+    <div className="bg-white rounded-2xl  border border-orange-100 p-6">
       <div className="flex items-center gap-2 mb-4">
         <FaClipboard className="text-amber-500" />
         <h3 className="text-xl font-semibold text-gray-800">

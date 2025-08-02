@@ -116,7 +116,7 @@ function Header() {
             {isAuthenticated ? (
               <>
                 <NavLink
-                  to="/user-profile"
+                  to="/profile"
                   className={({ isActive }) =>
                     `${
                       isActive ? "fill-orange-400" : "fill-gray-600"
@@ -204,7 +204,7 @@ function Header() {
                   Contact Admin
                 </NavLink>
                 <NavLink
-                  to="/user-profile"
+                  to="/profile"
                   className="flex items-center gap-2 px-3 py-2"
                   onClick={toggleMenu}
                 >

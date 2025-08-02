@@ -108,3 +108,25 @@ export const getUserPosts = async (page = 1, limit = 10) => {
     throw error;
   }
 };
+
+export const getPostsByUserId = async (userId, page = 1, limit = 10) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/posts/user/${userId}?page=${page}&limit=${limit}`, {
+      method: 'GET',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Failed to fetch user posts');
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching user posts:', error);
+    throw error;
+  }
+};
