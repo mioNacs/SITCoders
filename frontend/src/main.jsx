@@ -17,7 +17,7 @@ const router = createBrowserRouter(
       <Route path="queries" element={<Queries/>}/>
       <Route path="projects" element={<Projects/>}/>
       <Route path="contact-admin" element={<ContactAdmin/>}/>
-      <Route path="user-profile" element={<UserProfile/>}/>
+      <Route path="profile/:username?" element={<UserProfile/>}/>
       <Route path="admin-dashboard" element={<AdminDashboard/>}/>
     </Route>
   )

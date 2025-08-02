@@ -33,7 +33,7 @@ const ProfileCard = ({ user, isAdmin, adminLoading }) => {
           </div>
         )}
         <Link 
-          to={"/user-profile"} 
+          to={"/profile"} 
           className="text-center mt-4 w-full bg-gradient-to-r from-orange-400 to-amber-500 text-white py-2 rounded-lg font-medium hover:opacity-90 transition-all"
         >
           Your Profile

@@ -592,7 +592,7 @@ const updateBio = async (req, res) => {
 
 const getUser = async (req, res) => {
   try {
-    const { username } = req.query;
+    const { username } = req.body;
 
     // Validate username input
     if (!username || typeof username !== "string" || !username.trim()) {
