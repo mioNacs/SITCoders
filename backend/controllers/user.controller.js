@@ -605,7 +605,7 @@ const getUser = async (req, res) => {
     const regex = new RegExp(`^${cleanUsername}`, "i"); // Case-insensitive exact match
 
     const user = await User.findOne({ username: regex })
-      .select("_id username fullName profilePicture popularity bio");
+      .select("_id username fullName profilePicture popularity bio createdAt");
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
