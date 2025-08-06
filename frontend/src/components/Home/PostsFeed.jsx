@@ -17,13 +17,9 @@ const PostsFeed = ({
   getTagStyle 
 }) => {
   return (
-    <div className="bg-white md:rounded-2xl shadow-md border border-orange-100 p-6">
-      <h2 className="text-2xl font-semibold text-gray-800 border-b pb-3 border-orange-100 mb-4">
-        Feed
-      </h2>
-
+    <div className="pt-4 border-t border-gray-400">
       {postsLoading ? (
-        <div className="flex justify-center items-center py-8">
+        <div className="flex justify-center items-center py-6">
           <FaSpinner className="animate-spin text-orange-500" size={24} />
           <span className="ml-2 text-gray-600">Loading posts...</span>
         </div>
@@ -33,7 +29,7 @@ const PostsFeed = ({
           <p>No posts yet. Be the first to share something!</p>
         </div>
       ) : (
-        <div className="space-y-6">
+        <div className="space-y-2">
           {posts.map((post) => (
             <PostCard
               key={post._id}

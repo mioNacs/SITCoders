@@ -266,6 +266,21 @@ const PostsSection = ({ user, isOwnProfile = true }) => {
     return isOwnProfile && post.author?._id === authUser?._id;
   };
 
+  const formatContentForDisplay = (content) => {
+    if (!content) return '';
+    
+    return content
+      // Bold text
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      // Italic text
+      .replace(/\*(.*?)\*/g, '<em>$1</em>')
+      // Auto-detect URLs (http, https, www) - with proper URL handling
+      .replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline break-all">$1</a>')
+      .replace(/(www\.[^\s]+)/g, '<a href="http://$1" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline break-all">$1</a>')
+      // Line breaks
+      .replace(/\n/g, '<br>');
+  };
+
   const PostCard = ({ post, showMenu = true }) => (
     <div className="border border-gray-200 rounded-lg p-4 hover:border-orange-200 transition-colors">
       {/* Post Header */}
@@ -333,10 +348,13 @@ const PostsSection = ({ user, isOwnProfile = true }) => {
         )}
       </div>
 
-      {/* Post Content */}
-      <p className="text-gray-700 mb-3 text-sm leading-relaxed">
-        {post.content}
-      </p>
+      {/* Post Content - Updated to handle rich text */}
+      <div 
+        className="text-gray-700 mb-3 text-sm leading-relaxed"
+        dangerouslySetInnerHTML={{ 
+          __html: formatContentForDisplay(post.content) 
+        }}
+      />
 
       {/* Post Image */}
       {post.postImage?.url && (
