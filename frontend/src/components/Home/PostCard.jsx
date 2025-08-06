@@ -17,8 +17,24 @@ const PostCard = ({
   formatDate,
   getTagStyle 
 }) => {
+  // Add or update the formatContentForDisplay function
+  const formatContentForDisplay = (content) => {
+    if (!content) return '';
+    
+    return content
+      // Bold text
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      // Italic text
+      .replace(/\*(.*?)\*/g, '<em>$1</em>')
+      // Auto-detect URLs (http, https, www) - with proper URL handling
+      .replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline break-all">$1</a>')
+      .replace(/(www\.[^\s]+)/g, '<a href="http://$1" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline break-all">$1</a>')
+      // Line breaks
+      .replace(/\n/g, '<br>');
+  };
+
   return (
-    <div className="border border-gray-200 rounded-lg p-4 hover:border-orange-200 transition-colors">
+    <div className="border bg-white border-gray-200 md:rounded-lg p-4 hover:border-orange-200 md:shadow-md transition-colors">
       {/* Post Header */}
       <div className="flex items-center gap-3 mb-3">
         {post.author?.profilePicture?.url ? (
@@ -65,7 +81,12 @@ const PostCard = ({
       </div>
 
       {/* Post Content */}
-      <p className="text-gray-700 mb-3">{post.content}</p>
+      <div 
+        className="text-gray-700 mb-3"
+        dangerouslySetInnerHTML={{ 
+          __html: formatContentForDisplay(post.content) 
+        }}
+      />
 
       {/* Post Image */}
       {post.postImage?.url && (
