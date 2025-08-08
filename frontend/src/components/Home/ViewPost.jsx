@@ -1,6 +1,7 @@
 import React from "react";
 import { FaTimes, FaUser } from "react-icons/fa";
 import CommentSection from "./CommentSection";
+import { renderSafeMarkdown } from '../../utils/sanitize';
 
 function ViewPost({
   posts,
@@ -42,22 +43,7 @@ function ViewPost({
   const formatContentForDisplay = (content) => {
     if (!content) return "";
 
-    return content
-      // Bold text
-      .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
-      // Italic text
-      .replace(/\*(.*?)\*/g, "<em>$1</em>")
-      // Auto-detect URLs (http, https, www)
-      .replace(
-        /(https?:\/\/[^\s]+)/g,
-        '<a href="$1" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline break-all">$1</a>'
-      )
-      .replace(
-        /(www\.[^\s]+)/g,
-        '<a href="http://$1" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline break-all">$1</a>'
-      )
-      // Line breaks
-      .replace(/\n/g, "<br>");
+    return renderSafeMarkdown(content);
   };
 
   if (!currentPost) {
@@ -104,9 +90,9 @@ function ViewPost({
           
           {/* Post Content with Rich Text Support */}
           <div
-            className="text-gray-700 mb-3"
+            className="text-gray-700 mb-3 whitespace-pre-wrap break-words"
             dangerouslySetInnerHTML={{
-              __html: formatContentForDisplay(currentPost.content),
+              __html: renderSafeMarkdown(currentPost.content),
             }}
           />
           

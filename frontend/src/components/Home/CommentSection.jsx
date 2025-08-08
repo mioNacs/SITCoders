@@ -13,6 +13,7 @@ import { createComment } from "../../services/commentApi";
 import { toast } from "react-toastify";
 import EmojiPicker from "emoji-picker-react";
 import CommentCard from "./CommentCard";
+import { renderSafeMarkdown } from '../../utils/sanitize';
 
 const CommentSection = ({ postId, comments, setComments, commentLoading }) => {
   const { user } = useAuth();
@@ -79,30 +80,6 @@ const CommentSection = ({ postId, comments, setComments, commentLoading }) => {
     }, 0);
   };
 
-  // Convert markdown-like syntax to HTML for preview with auto URL detection
-  const formatContentForDisplay = (content) => {
-    if (!content) return "";
-
-    return (
-      content
-        // Bold text
-        .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
-        // Italic text
-        .replace(/\*(.*?)\*/g, "<em>$1</em>")
-        // Auto-detect URLs (http, https, www)
-        .replace(
-          /(https?:\/\/[^\s]+)/g,
-          '<a href="$1" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline break-all">$1</a>'
-        )
-        .replace(
-          /(www\.[^\s]+)/g,
-          '<a href="http://$1" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline break-all">$1</a>'
-        )
-        // Line breaks
-        .replace(/\n/g, "<br>")
-    );
-  };
-
   // Handle comment submission
   const handleSubmitComment = async (e) => {
     e.preventDefault();
@@ -165,10 +142,10 @@ const CommentSection = ({ postId, comments, setComments, commentLoading }) => {
         {newComment && user?.isAdminVerified && (
           <div className="mb-3 p-2 bg-gray-50 rounded-lg border">
             <div className="text-xs text-gray-500 mb-1">Preview:</div>
-            <div
-              className="text-sm text-gray-700"
-              dangerouslySetInnerHTML={{
-                __html: formatContentForDisplay(newComment),
+            <div 
+              className="text-sm text-gray-700 whitespace-pre-wrap break-words"
+              dangerouslySetInnerHTML={{ 
+                __html: renderSafeMarkdown(newComment) 
               }}
             />
           </div>

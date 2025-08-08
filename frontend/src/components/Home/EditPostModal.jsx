@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { FaTimes, FaSpinner, FaBold, FaItalic, FaSmile } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 import EmojiPicker from 'emoji-picker-react';
+import { renderSafeMarkdown } from '../../utils/sanitize';
 
 function EditPostModal({ isOpen, onClose, onSubmit, post, isAdmin }) {
   const [content, setContent] = useState('');
@@ -213,9 +214,9 @@ function EditPostModal({ isOpen, onClose, onSubmit, post, isAdmin }) {
               <div className="mb-4 p-3 bg-gray-50 rounded-lg border">
                 <div className="text-xs text-gray-500 mb-2">Preview:</div>
                 <div 
-                  className="text-sm text-gray-700"
+                  className="text-sm text-gray-700 whitespace-pre-wrap break-words"
                   dangerouslySetInnerHTML={{ 
-                    __html: formatContentForDisplay(content) 
+                    __html: renderSafeMarkdown(content) 
                   }}
                 />
               </div>

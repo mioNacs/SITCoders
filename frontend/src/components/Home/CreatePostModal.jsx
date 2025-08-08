@@ -9,6 +9,7 @@ import {
 } from "react-icons/fa";
 import { toast } from "react-toastify";
 import EmojiPicker from "emoji-picker-react";
+import { renderSafeMarkdown } from '../../utils/sanitize';
 
 const CreatePostModal = ({ isOpen, onClose, onSubmit, isAdmin }) => {
   const [newPost, setNewPost] = useState({
@@ -112,30 +113,6 @@ const CreatePostModal = ({ isOpen, onClose, onSubmit, isAdmin }) => {
       textarea.setSelectionRange(newCursorPos, newCursorPos);
       textarea.focus();
     }, 0);
-  };
-
-  // Convert markdown-like syntax to HTML for preview with auto URL detection
-  const formatContentForDisplay = (content) => {
-    if (!content) return "";
-
-    return (
-      content
-        // Bold text
-        .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
-        // Italic text
-        .replace(/\*(.*?)\*/g, "<em>$1</em>")
-        // Auto-detect URLs (http, https, www)
-        .replace(
-          /(https?:\/\/[^\s]+)/g,
-          '<a href="$1" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline break-all">$1</a>'
-        )
-        .replace(
-          /(www\.[^\s]+)/g,
-          '<a href="http://$1" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline break-all">$1</a>'
-        )
-        // Line breaks
-        .replace(/\n/g, "<br>")
-    );
   };
 
   const handleSubmit = async (e) => {
@@ -255,10 +232,10 @@ const CreatePostModal = ({ isOpen, onClose, onSubmit, isAdmin }) => {
             {newPost.content && (
               <div className="mb-4 p-3 bg-gray-50 rounded-lg border">
                 <div className="text-xs text-gray-500 mb-2">Preview:</div>
-                <div
-                  className="text-sm text-gray-700"
-                  dangerouslySetInnerHTML={{
-                    __html: formatContentForDisplay(newPost.content),
+                <div 
+                  className="text-sm text-gray-700 whitespace-pre-wrap break-words"
+                  dangerouslySetInnerHTML={{ 
+                    __html: renderSafeMarkdown(newPost.content) 
                   }}
                 />
               </div>

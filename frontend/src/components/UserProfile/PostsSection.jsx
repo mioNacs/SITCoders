@@ -16,6 +16,7 @@ import { getUserPosts, deletePost, getPostsByUserId } from '../../services/postA
 import { getComments } from '../../services/commentApi';
 import { toast } from 'react-toastify';
 import ViewPost from '../Home/ViewPost';
+import { renderSafeMarkdown } from '../../utils/sanitize';
 
 const PostsSection = ({ user, isOwnProfile = true }) => {
   const { user: authUser } = useAuth();
@@ -266,21 +267,6 @@ const PostsSection = ({ user, isOwnProfile = true }) => {
     return isOwnProfile && post.author?._id === authUser?._id;
   };
 
-  const formatContentForDisplay = (content) => {
-    if (!content) return '';
-    
-    return content
-      // Bold text
-      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-      // Italic text
-      .replace(/\*(.*?)\*/g, '<em>$1</em>')
-      // Auto-detect URLs (http, https, www) - with proper URL handling
-      .replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline break-all">$1</a>')
-      .replace(/(www\.[^\s]+)/g, '<a href="http://$1" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline break-all">$1</a>')
-      // Line breaks
-      .replace(/\n/g, '<br>');
-  };
-
   const PostCard = ({ post, showMenu = true }) => (
     <div className="border border-gray-200 rounded-lg p-4 hover:border-orange-200 transition-colors">
       {/* Post Header */}
@@ -350,9 +336,9 @@ const PostsSection = ({ user, isOwnProfile = true }) => {
 
       {/* Post Content - Updated to handle rich text */}
       <div 
-        className="text-gray-700 mb-3 text-sm leading-relaxed"
+        className="text-gray-700 mb-3 text-sm whitespace-pre-wrap break-words"
         dangerouslySetInnerHTML={{ 
-          __html: formatContentForDisplay(post.content) 
+          __html: renderSafeMarkdown(post.content) 
         }}
       />
 
