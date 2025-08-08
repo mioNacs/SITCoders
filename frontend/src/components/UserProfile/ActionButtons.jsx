@@ -2,8 +2,9 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { FaSignOutAlt } from 'react-icons/fa';
 import { MdOutlineAdminPanelSettings } from 'react-icons/md';
+import ShareButton from './ShareButton';
 
-const ActionButtons = ({ isAdmin, onLogout, showDialog }) => {
+const ActionButtons = ({ user, isAdmin, onLogout, showDialog }) => {
   
   const handleLogoutClick = () => {
     showDialog(
@@ -17,6 +18,12 @@ const ActionButtons = ({ isAdmin, onLogout, showDialog }) => {
 
   return (
     <div className="absolute right-4 top-4 flex flex-col gap-2 items-end">
+      {/* Share Button */}
+      <ShareButton 
+        user={user} 
+        isOwnProfile={true}
+      />
+      
       {isAdmin && (
         <Link
           to="/admin-dashboard"
