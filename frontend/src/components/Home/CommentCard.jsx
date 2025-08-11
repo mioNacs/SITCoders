@@ -4,6 +4,7 @@ import { createReply } from '../../services/commentApi';
 import { toast } from 'react-toastify';
 import { useAuth } from '../../context/AuthContext';
 import EmojiPicker from 'emoji-picker-react';
+import { renderSafeMarkdown } from '../../utils/sanitize';
 
 const CommentCard = ({ comment, postId, setComments }) => {
   const { user } = useAuth();
@@ -93,28 +94,6 @@ const CommentCard = ({ comment, postId, setComments }) => {
 
     const diffInDays = Math.floor(diffInHours / 24);
     return `${diffInDays} day${diffInDays === 1 ? "" : "s"} ago`;
-  };
-
-  // Format content for display with rich text support
-  const formatContentForDisplay = (content) => {
-    if (!content) return "";
-
-    return content
-      // Bold text
-      .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
-      // Italic text
-      .replace(/\*(.*?)\*/g, "<em>$1</em>")
-      // Auto-detect URLs (http, https, www)
-      .replace(
-        /(https?:\/\/[^\s]+)/g,
-        '<a href="$1" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline break-all">$1</a>'
-      )
-      .replace(
-        /(www\.[^\s]+)/g,
-        '<a href="http://$1" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline break-all">$1</a>'
-      )
-      // Line breaks
-      .replace(/\n/g, "<br>");
   };
 
   // Handle reply submission (works for both comment replies and reply-to-reply)
@@ -213,9 +192,9 @@ const CommentCard = ({ comment, postId, setComments }) => {
         
         {/* Comment Content with Rich Text Support */}
         <div 
-          className="text-gray-700 mb-2"
+          className="text-gray-700 mb-2 whitespace-pre-wrap break-words"
           dangerouslySetInnerHTML={{ 
-            __html: formatContentForDisplay(comment.content) 
+            __html: renderSafeMarkdown(comment.content) 
           }}
         />
 
@@ -271,9 +250,9 @@ const CommentCard = ({ comment, postId, setComments }) => {
                     
                     {/* Reply Content with Rich Text Support */}
                     <div 
-                      className="text-gray-700 text-sm mb-2"
+                      className="text-gray-700 text-sm mb-2 whitespace-pre-wrap break-words"
                       dangerouslySetInnerHTML={{ 
-                        __html: formatContentForDisplay(reply.content) 
+                        __html: renderSafeMarkdown(reply.content) 
                       }}
                     />
 
@@ -305,7 +284,7 @@ const CommentCard = ({ comment, postId, setComments }) => {
                 <div 
                   className="text-sm text-gray-700"
                   dangerouslySetInnerHTML={{ 
-                    __html: formatContentForDisplay(replyContent) 
+                    __html: renderSafeMarkdown(replyContent) 
                   }}
                 />
               </div>
@@ -381,7 +360,7 @@ const CommentCard = ({ comment, postId, setComments }) => {
                 <div 
                   className="text-sm text-gray-700"
                   dangerouslySetInnerHTML={{ 
-                    __html: formatContentForDisplay(replyContent) 
+                    __html: renderSafeMarkdown(replyContent) 
                   }}
                 />
               </div>

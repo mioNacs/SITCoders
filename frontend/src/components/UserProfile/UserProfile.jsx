@@ -11,6 +11,7 @@ import ProfilePicture from "./ProfilePicture";
 import ProfileInfo from "./ProfileInfo";
 import PostsSection from "./PostsSection";
 import ActionButtons from "./ActionButtons";
+import ShareButton from "./ShareButton";
 
 function UserProfile() {
   const { user: currentUser, isAuthenticated, isLoading: authLoading, updateUser, logout } = useAuth();
@@ -184,7 +185,13 @@ function UserProfile() {
               />
             ) : (
               <div className="relative w-full bg-gradient-to-r from-orange-400 to-orange-500 h-48 rounded-t-lg">
-                {/* Static header for other users */}
+                {/* Share Button for other users' profiles */}
+                <div className="absolute right-4 bottom-4">
+                  <ShareButton 
+                    user={profileUser} 
+                    isOwnProfile={false}
+                  />
+                </div>
               </div>
             )}
 
