@@ -11,8 +11,8 @@ import ReactCrop from "react-image-crop";
 import "react-image-crop/dist/ReactCrop.css";
 import { useAuth } from "../../context/AuthContext";
 
-const ProfilePicture = ({ showDialog }) => {
-  const { user, updateUser } = useAuth();
+const ProfilePicture = ({ user: profileUser, updateUser, showDialog, isOwnProfile = true }) => {
+  const { user: currentUser } = useAuth();
   const [uploading, setUploading] = useState(false);
   const [openPicture, setOpenPicture] = useState(false);
   const [showCropModal, setShowCropModal] = useState(false);
@@ -31,8 +31,11 @@ const ProfilePicture = ({ showDialog }) => {
   const fileInputRef = useRef(null);
   const [selectedFile, setSelectedFile] = useState(null);
 
+  // Use profileUser (passed as prop) instead of currentUser from auth
+  const displayUser = profileUser || currentUser;
+
   const viewProfilePicture = () => {
-    if (user?.profilePicture?.url) {
+    if (displayUser?.profilePicture?.url) {
       setOpenPicture(true);
     }
   };
@@ -52,6 +55,9 @@ const ProfilePicture = ({ showDialog }) => {
   };
 
   const handleFileSelect = (event) => {
+    // Only allow file selection for own profile
+    if (!isOwnProfile) return;
+
     const file = event.target.files[0];
     if (file) {
       // Validate file type
@@ -173,6 +179,9 @@ const ProfilePicture = ({ showDialog }) => {
   };
 
   const uploadProfilePicture = async (file) => {
+    // Only allow upload for own profile
+    if (!isOwnProfile) return;
+
     setUploading(true);
     try {
       // Create FormData for file upload
@@ -208,6 +217,9 @@ const ProfilePicture = ({ showDialog }) => {
   };
 
   const triggerFileInput = () => {
+    // Only allow triggering file input for own profile
+    if (!isOwnProfile) return;
+    
     if (fileInputRef.current) {
       fileInputRef.current.click();
     }
@@ -217,10 +229,10 @@ const ProfilePicture = ({ showDialog }) => {
     <>
       <div className="absolute -top-16 left-4 w-32 h-32 rounded-full bg-white p-1 shadow-md">
         <div className="relative w-full h-full">
-          {user?.profilePicture?.url ? (
+          {displayUser?.profilePicture?.url ? (
             <img
-              key={user.profilePicture.url} // Add key to force re-render when URL changes
-              src={user.profilePicture.url}
+              key={displayUser.profilePicture.url} // Add key to force re-render when URL changes
+              src={displayUser.profilePicture.url}
               alt="profile"
               className="w-full h-full rounded-full object-cover cursor-pointer hover:opacity-90 transition-opacity"
               onClick={viewProfilePicture}
@@ -231,38 +243,51 @@ const ProfilePicture = ({ showDialog }) => {
               }}
             />
           ) : (
-            <div className="w-full h-full rounded-full bg-orange-100 flex items-center justify-center">
-              <FaUser className="text-orange-400" size={50} />
+            <div 
+              className="w-full h-full rounded-full bg-orange-100 flex items-center justify-center cursor-pointer"
+              onClick={viewProfilePicture}
+            >
+              {displayUser?.fullName ? (
+                <span className="text-orange-400 text-2xl font-semibold">
+                  {displayUser.fullName.charAt(0).toUpperCase()}
+                </span>
+              ) : (
+                <FaUser className="text-orange-400" size={50} />
+              )}
             </div>
           )}
 
-          {/* Camera/Upload Button */}
-          <button
-            onClick={triggerFileInput}
-            disabled={uploading}
-            className="absolute bottom-2 right-2 bg-orange-500 hover:bg-orange-600 text-white p-2 rounded-full shadow-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            title="Update profile picture"
-          >
-            {uploading ? (
-              <FaSpinner className="animate-spin" size={14} />
-            ) : (
-              <FaCamera size={14} />
-            )}
-          </button>
+          {/* Camera/Upload Button - Only show for own profile */}
+          {isOwnProfile && (
+            <button
+              onClick={triggerFileInput}
+              disabled={uploading}
+              className="absolute bottom-2 right-2 bg-orange-500 hover:bg-orange-600 text-white p-2 rounded-full shadow-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              title="Update profile picture"
+            >
+              {uploading ? (
+                <FaSpinner className="animate-spin" size={14} />
+              ) : (
+                <FaCamera size={14} />
+              )}
+            </button>
+          )}
 
-          {/* Hidden file input */}
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/jpeg,image/jpg,image/png,image/webp"
-            onChange={handleFileSelect}
-            className="hidden"
-          />
+          {/* Hidden file input - Only for own profile */}
+          {isOwnProfile && (
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/jpeg,image/jpg,image/png,image/webp"
+              onChange={handleFileSelect}
+              className="hidden"
+            />
+          )}
         </div>
       </div>
 
       {/* Profile Picture View Modal */}
-      {openPicture && user?.profilePicture?.url && (
+      {openPicture && displayUser?.profilePicture?.url && (
         <div className="fixed inset-0 flex justify-center items-center bg-black/60 z-50">
           <div onClick={closePictureModal} className="fixed inset-0"></div>
           <div className="relative">
@@ -274,17 +299,17 @@ const ProfilePicture = ({ showDialog }) => {
               <FaTimes size={20} />
             </button>
             <img
-              key={user.profilePicture.url} // Add key here too
+              key={displayUser.profilePicture.url} // Add key here too
               className="h-fit w-[75vw] sm:w-[60vw] md:w-[50vw] lg:w-[40vw] z-10 rounded-lg shadow-md outline-2 outline-orange-500 outline-offset-2"
-              src={user.profilePicture.url}
+              src={displayUser.profilePicture.url}
               alt="profile"
             />
           </div>
         </div>
       )}
 
-      {/* Image Crop Modal */}
-      {showCropModal && imageSrc && (
+      {/* Image Crop Modal - Only show for own profile */}
+      {isOwnProfile && showCropModal && imageSrc && (
         <div className="fixed inset-0 flex justify-center items-center bg-black/80 z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
             {/* Header */}

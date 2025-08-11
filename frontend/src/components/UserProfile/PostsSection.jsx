@@ -12,13 +12,14 @@ import {
   FaExpand
 } from 'react-icons/fa';
 import { useAuth } from '../../context/AuthContext';
-import { getUserPosts, deletePost } from '../../services/postApi';
+import { getUserPosts, deletePost, getPostsByUserId } from '../../services/postApi';
 import { getComments } from '../../services/commentApi';
 import { toast } from 'react-toastify';
 import ViewPost from '../Home/ViewPost';
+import { renderSafeMarkdown } from '../../utils/sanitize';
 
-const PostsSection = () => {
-  const { user } = useAuth();
+const PostsSection = ({ user, isOwnProfile = true }) => {
+  const { user: authUser } = useAuth();
   const [posts, setPosts] = useState([]);
   const [allPosts, setAllPosts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -35,15 +36,27 @@ const PostsSection = () => {
   const [allPostsLoading, setAllPostsLoading] = useState(false);
 
   useEffect(() => {
-    fetchUserPosts();
-  }, [user]);
+    if (user?._id) {
+      fetchUserPosts();
+    }
+  }, [user, isOwnProfile]);
 
   const fetchUserPosts = async () => {
     if (!user?._id) return;
 
     try {
       setLoading(true);
-      const data = await getUserPosts(1, 1); // Get only the latest post
+      
+      let data;
+      if (isOwnProfile) {
+        // Use existing API for own profile
+        data = await getUserPosts(1, 1); // Get only the latest post
+      } else {
+        // For other users' profiles, we need a new API endpoint
+        // For now, we'll use a workaround - you should create a new API endpoint
+        data = await fetchPostsByUserId(user._id, 1, 1);
+      }
+      
       setPosts(data.posts || []);
       setTotalPosts(data.totalPosts || 0);
       
@@ -53,10 +66,14 @@ const PostsSection = () => {
       }
     } catch (error) {
       console.error('Error fetching user posts:', error);
-      toast.error('Failed to load your posts');
+      toast.error('Failed to load posts');
     } finally {
       setLoading(false);
     }
+  };
+
+  const fetchPostsByUserId = async (userId, page = 1, limit = 10) => {
+    return await getPostsByUserId(userId, page, limit);
   };
 
   const fetchAllUserPosts = async (page = 1) => {
@@ -64,7 +81,13 @@ const PostsSection = () => {
 
     try {
       setAllPostsLoading(true);
-      const data = await getUserPosts(page, 10); // Get all posts with pagination
+      
+      let data;
+      if (isOwnProfile) {
+        data = await getUserPosts(page, 10); // Get all posts with pagination
+      } else {
+        data = await fetchPostsByUserId(user._id, page, 10);
+      }
       
       if (page === 1) {
         setAllPosts(data.posts || []);
@@ -108,6 +131,12 @@ const PostsSection = () => {
   };
 
   const handleDeletePost = async (postId) => {
+    // Only allow deletion for own posts
+    if (!isOwnProfile) {
+      toast.error("You can only delete your own posts");
+      return;
+    }
+
     setDeleteLoading(postId);
 
     try {
@@ -233,6 +262,11 @@ const PostsSection = () => {
     return () => document.removeEventListener("click", handleClickOutside);
   }, []);
 
+  // Check if current user can delete a specific post
+  const canDeletePost = (post) => {
+    return isOwnProfile && post.author?._id === authUser?._id;
+  };
+
   const PostCard = ({ post, showMenu = true }) => (
     <div className="border border-gray-200 rounded-lg p-4 hover:border-orange-200 transition-colors">
       {/* Post Header */}
@@ -248,10 +282,11 @@ const PostsSection = () => {
         )}
         <div className="flex-1">
           <h4 className="font-medium text-gray-800 text-sm">
-            {post.author?.fullName || post.author?.username || "You"}
+            {post.author?.fullName || post.author?.username || "User"}
           </h4>
           <p className="text-xs text-gray-500">
             {formatDate(post.createdAt)}
+            {post.beenEdited && <span className="ml-1">(Edited)</span>}
           </p>
         </div>
         {post.tag !== "general" && (
@@ -264,8 +299,8 @@ const PostsSection = () => {
           </span>
         )}
 
-        {/* Post Menu */}
-        {showMenu && (
+        {/* Post Menu - only show for own posts */}
+        {showMenu && canDeletePost(post) && (
           <div className="relative">
             <button
               onClick={(e) => {
@@ -299,10 +334,13 @@ const PostsSection = () => {
         )}
       </div>
 
-      {/* Post Content */}
-      <p className="text-gray-700 mb-3 text-sm leading-relaxed">
-        {post.content}
-      </p>
+      {/* Post Content - Updated to handle rich text */}
+      <div 
+        className="text-gray-700 mb-3 text-sm whitespace-pre-wrap break-words"
+        dangerouslySetInnerHTML={{ 
+          __html: renderSafeMarkdown(post.content) 
+        }}
+      />
 
       {/* Post Image */}
       {post.postImage?.url && (
@@ -333,11 +371,11 @@ const PostsSection = () => {
     return (
       <div className="w-full bg-white rounded-lg shadow-md border border-orange-100 p-4">
         <h2 className="text-2xl font-bold text-orange-600 mb-4 border-b border-orange-200 pb-2">
-          Your Posts
+          {isOwnProfile ? 'Your Posts' : `${user?.fullName}'s Posts`}
         </h2>
         <div className="flex items-center justify-center h-64">
           <FaSpinner className="animate-spin text-orange-500 mr-2" size={24} />
-          <span className="text-gray-600">Loading your posts...</span>
+          <span className="text-gray-600">Loading posts...</span>
         </div>
       </div>
     );
@@ -349,7 +387,7 @@ const PostsSection = () => {
         <div className="flex items-center justify-between mb-4 border-b border-orange-200 pb-2">
           <h2 className="text-2xl font-bold text-orange-600 flex items-center gap-2">
             <FaClipboard />
-            Your Posts
+            {isOwnProfile ? 'Your Posts' : `${user?.fullName}'s Posts`}
           </h2>
           <div className="flex items-center gap-3">
             <span className="text-sm text-gray-500">
@@ -371,7 +409,12 @@ const PostsSection = () => {
           <div className="flex flex-col items-center justify-center h-64 text-gray-400">
             <FaClipboard size={48} className="mb-4" />
             <p className="text-lg font-medium">No posts yet</p>
-            <p className="text-sm">Share your thoughts with the community!</p>
+            <p className="text-sm">
+              {isOwnProfile 
+                ? "Share your thoughts with the community!" 
+                : "This user hasn't posted anything yet."
+              }
+            </p>
           </div>
         ) : (
           <div className="space-y-4">
@@ -397,7 +440,7 @@ const PostsSection = () => {
             <div className="flex items-center justify-between p-6 border-b border-gray-200">
               <h3 className="text-xl font-bold text-gray-800 flex items-center gap-2">
                 <FaClipboard className="text-orange-500" />
-                All Your Posts ({totalPosts})
+                {isOwnProfile ? `All Your Posts (${totalPosts})` : `All ${user?.fullName}'s Posts (${totalPosts})`}
               </h3>
               <button
                 onClick={() => setShowAllPostsModal(false)}
@@ -446,8 +489,8 @@ const PostsSection = () => {
         </div>
       )}
 
-      {/* Delete Confirmation Modal */}
-      {showDeleteConfirm && (
+      {/* Delete Confirmation Modal - Only show for own posts */}
+      {showDeleteConfirm && isOwnProfile && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[70] p-4">
           <div className="bg-white rounded-xl shadow-2xl w-full max-w-sm">
             <div className="p-6">

@@ -1,7 +1,9 @@
 import React from 'react';
 import { FaUserCircle } from 'react-icons/fa';
+import { Link } from 'react-router-dom';
 import PostMenu from './PostMenu';
 import PostActions from './PostActions';
+import { renderSafeMarkdown } from '../../utils/sanitize';
 
 const PostCard = ({ 
   post, 
@@ -9,13 +11,15 @@ const PostCard = ({
   showPostMenu, 
   setShowPostMenu,
   onDeleteConfirm,
+  onEditPost,
+  canEditPost,
   onShowComments,
   canDeletePost,
   formatDate,
   getTagStyle 
 }) => {
   return (
-    <div className="border border-gray-200 rounded-lg p-4 hover:border-orange-200 transition-colors">
+    <div className="border bg-white border-gray-200 md:rounded-lg p-4 hover:border-orange-200 md:shadow-md transition-colors">
       {/* Post Header */}
       <div className="flex items-center gap-3 mb-3">
         {post.author?.profilePicture?.url ? (
@@ -29,7 +33,14 @@ const PostCard = ({
         )}
         <div className="flex-1">
           <h4 className="font-semibold text-gray-800">
-            {post.author?.fullName || post.author?.username || "Unknown User"}
+            <Link 
+              to={`/profile/${post.author.username}`}
+              className="font-semibold text-gray-800 hover:text-orange-600 transition-colors"
+            >
+              {post.author?.fullName}
+            </Link>
+            {post.beenEdited && (
+              <span className="text-xs text-gray-500 ml-1">(Edited)</span>)}
           </h4>
           <p className="text-sm text-gray-500">
             {formatDate(post.createdAt)}
@@ -48,12 +59,19 @@ const PostCard = ({
           showPostMenu={showPostMenu}
           setShowPostMenu={setShowPostMenu}
           onDeleteConfirm={onDeleteConfirm}
+          onEditPost={onEditPost}
+          canEditPost={canEditPost}
           canDeletePost={canDeletePost}
         />
       </div>
 
       {/* Post Content */}
-      <p className="text-gray-700 mb-3">{post.content}</p>
+      <div 
+        className="text-gray-700 mb-3 whitespace-pre-wrap break-words"
+        dangerouslySetInnerHTML={{ 
+          __html: renderSafeMarkdown(post.content) 
+        }}
+      />
 
       {/* Post Image */}
       {post.postImage?.url && (

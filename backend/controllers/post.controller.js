@@ -1,5 +1,6 @@
 import Post from "../models/post.model.js";
 import Admin from "../models/admin.model.js"; // Import Admin model
+import User from "../models/user.model.js"; // Import User model
 import { uploadPostImageOnCloudinary, deleteFromCloudinary } from "../middlewares/cloudinary.js";
 import fs from "fs";
 
@@ -244,6 +245,7 @@ const editPost = async (req, res) => {
     // Update the post
     post.content = content.trim();;
     post.tag = tag || post.tag; // Keep existing tag if not provided
+    post.beenEdited = true;
 
     await post.save();
 
@@ -254,4 +256,43 @@ const editPost = async (req, res) => {
   }
 };
 
-export { createPost, deletePost, getALLPosts, getALLPostsOfUser, editPost };
+// Add this controller function
+const getPostsByUserId = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    // Check if user exists
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Get user's posts
+    const posts = await Post.find({ author: userId })
+      .populate("author", "fullName username profilePicture rollNo")
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    // Get total count for pagination
+    const totalPosts = await Post.countDocuments({ author: userId });
+    const totalPages = Math.ceil(totalPosts / limit);
+
+    res.status(200).json({
+      message: "Posts fetched successfully",
+      posts,
+      currentPage: page,
+      totalPages,
+      totalPosts,
+      hasMore: page < totalPages,
+    });
+  } catch (error) {
+    console.error("Error fetching user posts:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export { createPost, deletePost, getALLPosts, getALLPostsOfUser, editPost, getPostsByUserId };

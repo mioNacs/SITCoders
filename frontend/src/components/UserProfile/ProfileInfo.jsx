@@ -3,7 +3,7 @@ import { FaEnvelope, FaCalendarAlt, FaPen, FaCheck, FaTimes, FaSpinner } from "r
 import { FaCrown } from "react-icons/fa6";
 import { useAuth } from "../../context/AuthContext";
 
-const ProfileInfo = ({ user, isAdmin, adminRole, showDialog }) => {
+const ProfileInfo = ({ user, isAdmin, adminRole, showDialog, isOwnProfile = true }) => {
   const { updateUser } = useAuth();
   const [isEditingBio, setIsEditingBio] = useState(false);
   const [bioText, setBioText] = useState(user?.bio || "");
@@ -30,7 +30,6 @@ const ProfileInfo = ({ user, isAdmin, adminRole, showDialog }) => {
 
   const handleBioChange = (e) => {
     const newBio = e.target.value;
-    // Check character limit (200 bytes)
     const size = new Blob([newBio]).size;
     if (size <= 200) {
       setBioText(newBio);
@@ -49,7 +48,6 @@ const ProfileInfo = ({ user, isAdmin, adminRole, showDialog }) => {
 
     setLoading(true);
     try {
-      // Use the updateUser function from AuthContext
       const result = await updateUser({
         bio: bioText.trim()
       });
@@ -91,7 +89,7 @@ const ProfileInfo = ({ user, isAdmin, adminRole, showDialog }) => {
   return (
     <div className="pt-20 pb-6 w-full">
       <h1 className="flex items-center gap-2 text-2xl font-bold text-gray-800">
-        {user?.fullName || "Your Name"}
+        {user?.fullName || "Unknown User"}
         {/* only for admins */}
         {isAdmin && (adminRole === "superadmin") && (
           <FaCrown className="text-orange-400" />
@@ -105,10 +103,13 @@ const ProfileInfo = ({ user, isAdmin, adminRole, showDialog }) => {
       </p>
 
       <div className="mt-6 space-y-3 text-gray-600">
-        <div className="flex items-center gap-3">
-          <FaEnvelope className="text-orange-400" />
-          <span>{user?.email || "email@example.com"}</span>
-        </div>
+        {/* Only show email for own profile */}
+        {isOwnProfile && (
+          <div className="flex items-center gap-3">
+            <FaEnvelope className="text-orange-400" />
+            <span>{user?.email || "email@example.com"}</span>
+          </div>
+        )}
         <div className="flex items-center gap-3">
           <FaCalendarAlt className="text-orange-400" />
           <span>Joined {formatJoinDate(user?.createdAt)}</span>
@@ -118,7 +119,8 @@ const ProfileInfo = ({ user, isAdmin, adminRole, showDialog }) => {
       <div className="mt-6 pt-4 border-t border-orange-100">
         <div className="flex justify-between items-start mb-2">
           <h3 className="font-medium text-gray-700">Bio</h3>
-          {!isEditingBio && (
+          {/* Only show edit button for own profile */}
+          {isOwnProfile && !isEditingBio && (
             <button 
               onClick={handleEditBio}
               className="flex items-center gap-2 bg-orange-500 text-white p-2 px-3 rounded-lg cursor-pointer hover:bg-orange-600 transition-colors"
@@ -135,62 +137,64 @@ const ProfileInfo = ({ user, isAdmin, adminRole, showDialog }) => {
             {user?.bio || "No bio available"}
           </p>
         ) : (
-          // Edit Mode
-          <div className="space-y-3">
-            <div className="relative">
-              <textarea
-                value={bioText}
-                onChange={handleBioChange}
-                placeholder="Write something about yourself..."
-                className="w-full p-3 border border-gray-300 rounded-lg resize-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                rows={4}
-                disabled={loading}
-              />
-              
-              {/* Character Counter */}
-              <div className="absolute bottom-2 right-2 text-xs text-gray-500 bg-white px-1">
-                <span className={getRemainingBytes() < 0 ? 'text-red-500' : ''}>
-                  {getBioByteSize()}/200 bytes
-                </span>
+          // Edit Mode (only for own profile)
+          isOwnProfile && (
+            <div className="space-y-3">
+              <div className="relative">
+                <textarea
+                  value={bioText}
+                  onChange={handleBioChange}
+                  placeholder="Write something about yourself..."
+                  className="w-full p-3 border border-gray-300 rounded-lg resize-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                  rows={4}
+                  disabled={loading}
+                />
+                
+                {/* Character Counter */}
+                <div className="absolute bottom-2 right-2 text-xs text-gray-500 bg-white px-1">
+                  <span className={getRemainingBytes() < 0 ? 'text-red-500' : ''}>
+                    {getBioByteSize()}/200 bytes
+                  </span>
+                </div>
+              </div>
+
+              {/* Validation Message */}
+              {getRemainingBytes() < 0 && (
+                <p className="text-red-500 text-sm">
+                  Bio exceeds maximum length by {Math.abs(getRemainingBytes())} bytes
+                </p>
+              )}
+
+              {/* Action Buttons */}
+              <div className="flex justify-end space-x-2">
+                <button
+                  onClick={handleCancelEdit}
+                  disabled={loading}
+                  className="px-4 py-2 text-gray-600 hover:text-gray-800 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 flex items-center gap-1"
+                >
+                  <FaTimes size={12} />
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSaveBio}
+                  disabled={loading || getRemainingBytes() < 0 || !bioText.trim()}
+                  className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+                >
+                  {loading ? (
+                    <>
+                      <FaSpinner className="animate-spin" size={12} />
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <FaCheck size={12} />
+                      Save Bio
+                    </>
+                  )}
+                </button>
               </div>
             </div>
-
-            {/* Validation Message */}
-            {getRemainingBytes() < 0 && (
-              <p className="text-red-500 text-sm">
-                Bio exceeds maximum length by {Math.abs(getRemainingBytes())} bytes
-              </p>
-            )}
-
-            {/* Action Buttons */}
-            <div className="flex justify-end space-x-2">
-              <button
-                onClick={handleCancelEdit}
-                disabled={loading}
-                className="px-4 py-2 text-gray-600 hover:text-gray-800 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 flex items-center gap-1"
-              >
-                <FaTimes size={12} />
-                Cancel
-              </button>
-              <button
-                onClick={handleSaveBio}
-                disabled={loading || getRemainingBytes() < 0 || !bioText.trim()}
-                className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
-              >
-                {loading ? (
-                  <>
-                    <FaSpinner className="animate-spin" size={12} />
-                    Saving...
-                  </>
-                ) : (
-                  <>
-                    <FaCheck size={12} />
-                    Save Bio
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
+          )
         )}
       </div>
     </div>

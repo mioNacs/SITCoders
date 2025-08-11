@@ -6,6 +6,7 @@ import { verifyIsAdmin } from "../../services/adminApi";
 import { useHomePosts } from "./hooks/useHomePosts";
 import CreatePostButton from "./CreatePostButton";
 import CreatePostModal from "./CreatePostModal";
+import EditPostModal from "./EditPostModal";
 import PostsFeed from "./PostsFeed";
 import Sidebar from "./Sidebar";
 import DeleteConfirmModal from "./DeleteConfirmModal";
@@ -25,6 +26,7 @@ function Home() {
     fetchPosts,
     handleCreatePost,
     handleDeletePost,
+    handleEditPost,
     handleShowComments
   } = useHomePosts();
 
@@ -34,6 +36,7 @@ function Home() {
 
   // Modal states
   const [showCreatePost, setShowCreatePost] = useState(false);
+  const [showEditPost, setShowEditPost] = useState(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(null);
   const [showPostMenu, setShowPostMenu] = useState(null);
   const [deleteLoading, setDeleteLoading] = useState(null);
@@ -80,6 +83,12 @@ function Home() {
     return isAuthor || isAdminUser;
   };
 
+  const canEditPost = (post) => {
+    if (!user) return false;
+    const isAuthor = post.author?._id === user._id
+    return isAuthor
+  }
+
   const handleDeleteConfirm = async (postId) => {
     setDeleteLoading(postId);
     const result = await handleDeletePost(postId);
@@ -88,6 +97,15 @@ function Home() {
       setShowPostMenu(null);
     }
     setDeleteLoading(null);
+  };
+
+  const handleEditConfirm = async (postId, postData) => {
+    const result = await handleEditPost(postId, postData);
+    if (result.success) {
+      setShowEditPost(null);
+      setShowPostMenu(null);
+    }
+    return result;
   };
 
   const formatDate = (dateString) => {
@@ -157,8 +175,10 @@ function Home() {
               showPostMenu={showPostMenu}
               setShowPostMenu={setShowPostMenu}
               onDeleteConfirm={setShowDeleteConfirm}
+              onEditPost={setShowEditPost}
               onShowComments={handleShowComments}
               canDeletePost={canDeletePost}
+              canEditPost={canEditPost}
               formatDate={formatDate}
               getTagStyle={getTagStyle}
             />
@@ -178,6 +198,14 @@ function Home() {
         isOpen={showCreatePost}
         onClose={() => setShowCreatePost(false)}
         onSubmit={handleCreatePost}
+        isAdmin={isAdmin}
+      />
+
+      <EditPostModal
+        isOpen={!!showEditPost}
+        onClose={() => setShowEditPost(null)}
+        onSubmit={handleEditConfirm}
+        post={showEditPost}
         isAdmin={isAdmin}
       />
 

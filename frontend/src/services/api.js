@@ -91,7 +91,7 @@ export const unverifyUser = async (userId) => {
 // Profile API  
 export const getUser = async (username) => {
   try {
-    const response = await api.post('/users/get-user', { username });
+    const response = await api.post('/users/get-user', {username});
     return response.data;
   } catch (error) {
     throw error;

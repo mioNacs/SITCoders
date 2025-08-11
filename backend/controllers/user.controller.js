@@ -591,7 +591,7 @@ const updateBio = async (req, res) => {
 
 const getUser = async (req, res) => {
   try {
-    const { username } = req.query;
+    const { username } = req.body;
 
     // Validate username input
     if (!username || typeof username !== "string" || !username.trim()) {
@@ -603,9 +603,8 @@ const getUser = async (req, res) => {
 
     const regex = new RegExp(`^${cleanUsername}`, "i"); // Case-insensitive exact match
 
-    const user = await User.findOne({ username: regex }).select(
-      "_id username fullName profilePicture popularity bio"
-    );
+    const user = await User.findOne({ username: regex })
+      .select("_id username fullName profilePicture popularity bio createdAt");
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
