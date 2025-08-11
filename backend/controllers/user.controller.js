@@ -9,7 +9,6 @@ import fs from "fs";
 import { promisify } from "util";
 import generateOtp from "../utilities/generateOtp.js";
 import mongoose from "mongoose";
-import { execSync } from "child_process";
 
 const unlinkAsync = promisify(fs.unlink);
 
@@ -700,6 +699,7 @@ const sendOtpForResetPassword = async (req, res) => {
 };
 
 const verifyOtpForResetPassword = async (req, res) => {
+
 try {
   const {email , otp} = req.body;
   if(!email || !otp){
