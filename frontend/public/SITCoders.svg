@@ -1,0 +1,7 @@
+<svg width="100" height="60" viewBox="0 0 90 40" xmlns="http://www.w3.org/2000/svg">
+  <!-- S in dark grey -->
+  <text x="10" y="45" font-family="Arial, sans-serif" font-size="60" font-weight="bold" fill="#374151">S</text>
+  
+  <!-- C in orange -->
+  <text x="50" y="45" font-family="Arial, sans-serif" font-size="60" font-weight="bold" fill="#f97316">C</text>
+</svg>

@@ -162,25 +162,41 @@ const getALLPosts = async (req, res) => {
     // Default values if not provided
     const page = Math.max(1, parseInt(req.query.page)) || 1;
     const limit = Math.max(1, parseInt(req.query.limit)) || 10;
+    const tag = (req.query.tag || "").toString().trim().toLowerCase();
 
     const skip = (page - 1) * limit;
 
+    // Build query with optional tag filter
+    const findQuery = {};
+    const allowedTags = ["general", "query", "announcement", "event", "project"];
+    if (tag && allowedTags.includes(tag)) {
+      findQuery.tag = tag;
+    }
+
     // Fetch posts with pagination
-    const posts = await Post.find()
+    const posts = await Post.find(findQuery)
       .populate("author", "fullName username rollNo profilePicture") // Fixed field name
       .sort({ createdAt: -1 }) // Sort by creation date, newest first
       .skip(skip)
       .limit(limit);
 
     // Count total posts for pagination
-    const totalPosts = await Post.countDocuments();
+    const totalPosts = await Post.countDocuments(findQuery);
+    const totalPages = Math.ceil(totalPosts / limit) || 1;
 
     res.status(200).json({
       message: "Posts fetched successfully",
       posts,
       totalPosts,
       currentPage: page,
-      totalPages: Math.ceil(totalPosts / limit),
+      totalPages,
+      hasMore: page < totalPages,
+      pagination: {
+        totalPosts,
+        currentPage: page,
+        totalPages,
+        hasMore: page < totalPages,
+      },
     });
     
   } catch (error) {
@@ -194,25 +210,40 @@ const getALLPostsOfUser = async (req,res) => {
     const userId = req.user._id; // Assuming user ID is stored in req.user
     const limit = parseInt(req.query.limit) || 10; // Default limit
     const page = parseInt(req.query.page) || 1; // Default page number
+    const tag = (req.query.tag || "").toString().trim().toLowerCase();
     const skip = (page - 1) * limit;
     if (!userId) {
       return res.status(400).json({ message: "User ID is required." });
     }
 
-    const posts = await Post.find({ author: userId })
+    const findQuery = { author: userId };
+    const allowedTags = ["general", "query", "announcement", "event", "project"];
+    if (tag && allowedTags.includes(tag)) {
+      findQuery.tag = tag;
+    }
+
+    const posts = await Post.find(findQuery)
       .populate("author", "fullName username rollNo profilePicture")
       .sort({ createdAt: -1 }) // Sort by creation date, newest first
       .skip(skip)
       .limit(limit);
     // Count total posts for pagination
-    const totalPosts = await Post.countDocuments({ author: userId });
+    const totalPosts = await Post.countDocuments(findQuery);
+    const totalPages = Math.ceil(totalPosts / limit) || 1;
     
     res.status(200).json({
       message: "User's posts fetched successfully",
       posts,
       totalPosts,
       currentPage: page,
-      totalPages: Math.ceil(totalPosts / limit),
+      totalPages,
+      hasMore: page < totalPages,
+      pagination: {
+        totalPosts,
+        currentPage: page,
+        totalPages,
+        hasMore: page < totalPages,
+      },
     });
 
   } catch (error) {

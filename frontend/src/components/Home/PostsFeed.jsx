@@ -17,7 +17,7 @@ const PostsFeed = ({
   getTagStyle 
 }) => {
   return (
-    <div className="pt-4 border-t border-gray-400">
+    <div className=" border-gray-400">
       {postsLoading ? (
         <div className="flex justify-center items-center py-6">
           <FaSpinner className="animate-spin text-orange-500" size={24} />
