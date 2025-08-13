@@ -11,6 +11,9 @@ import {
   updateProfilePicture,
   updateBio,
   getUser,
+  resetPassword,
+  verifyOtpForResetPassword,
+  sendOtpForResetPassword,
 } from "../controllers/user.controller.js";
 import upload from "../middlewares/multer.middleware.js";
 import verifyUser from "../middlewares/verifyUser.js";
@@ -45,6 +48,14 @@ router.post("/verify-otp", verifyOtp);
 router.post("/resend-otp", resendOtp);
 router.post("/login", loginUser);
 router.get("/logout", logOutUser);
+// Route for sending OTP for password reset
+router.post("/send-otp-for-reset-password", sendOtpForResetPassword);
+
+// Route for verifying OTP for password reset
+router.post("/verify-otp-for-reset-password", verifyOtpForResetPassword);
+
+// Route for resetting password
+router.post("/reset-password", resetPassword);
 
 // protected routes
 router.get("/current-user", verifyUser, getCurrentUser);

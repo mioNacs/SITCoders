@@ -9,6 +9,7 @@ import fs from "fs";
 import { promisify } from "util";
 import generateOtp from "../utilities/generateOtp.js";
 import mongoose from "mongoose";
+import jwt from "jsonwebtoken";
 
 const unlinkAsync = promisify(fs.unlink);
 
@@ -698,28 +699,90 @@ const sendOtpForResetPassword = async (req, res) => {
 };
 
 const verifyOtpForResetPassword = async (req, res) => {
+  try {
+    const { email, otp } = req.body;
 
-try {
-  const {email , otp} = req.body;
-  if(!email || !otp){
-    return res.status(403).json({message : "Email and otp is required"})
+    if (!email || !otp) {
+      return res.status(403).json({ message: "Email and OTP are required" });
+    }
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const userOtp = await Otp.findOne({ userId: user._id, purpose: "password-reset" });
+    if (!userOtp) {
+      return res.status(404).json({ message: "OTP not found" });
+    }
+
+    const isValid = await userOtp.isOtpValid(otp);
+    if (!isValid) {
+      return res.status(403).json({ message: "Invalid OTP" });
+    }
+
+    // Remove OTP after verification
+    await userOtp.removeInstance();
+
+    // Create a short-lived JWT token for reset password
+    const resetToken = jwt.sign(
+      { userId: user._id, purpose: "reset_password" },
+      process.env.JWT_SECRET,
+      { expiresIn: "5m" } // Valid for 5 minutes
+    );
+
+    // Set secure cookie with token
+    res.cookie("resetPasswordToken", resetToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      maxAge: 5 * 60 * 1000, // 5 minutes
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+    });
+
+    return res.status(200).json({ message: "OTP verified successfully" });
+
+  } catch (error) {
+    console.error("ERR in verifyOtpForResetPassword:", error.message);
+    return res.status(500).json({ message: "Internal server error" });
   }
-  const user = await User.findOne({email});
-  if(!user){
-    return res.status(404).json({message : "User not found"});
-  }
+};
 
-  const userOtp =await Otp.findOne({userId : user._id , purpose : "password-reset"});
+const resetPassword =async (req , res) => {
+    try {
+      const token = req.cookies.resetPasswordToken;
+      if(!token){
+        return res.status(403).json({ message: "Unauthorized" });
+      }
+       let decoded;
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET);
+    } catch (err) {
+      return res.status(401).json({ message: "Token expired or invalid" });
+    }
 
-  if(!userOtp){
-    return res.status(404).json({message :"Otp not found"});
-  }
-  const isValid =  await userOtp.isOtpValid(otp);
+    if(decoded.purpose !== "reset_password"){
+      return res.status(403).json({ message: "Unauthorized" });
+    }
+     const user = await User.findById(decoded.userId);
+     if(!user){
+      return res.status(404).json({message:"User not found"});
+     }
+     const {newPassword , confirmPassword} = req.body;
+     if(!newPassword || !confirmPassword){
+       return res.status(400).json({message:"New password and confirm password are required"});
+     }
+     if(newPassword !== confirmPassword){
+       return res.status(400).json({message:"Passwords do not match"});
+     }
+     user.password = newPassword;
+     await user.save();
+     return res.status(200).json({message:"Password reset successfully"});
+    } catch (error) {
+      console.error("ERR: while resetPassword",error.message);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+};
 
-} catch (error) {
-  
-}
-}
 
 
 export {
@@ -734,5 +797,6 @@ export {
   updateBio,
   getUser,
   sendOtpForResetPassword,
-  verifyOtpForResetPassword
+  verifyOtpForResetPassword,
+  resetPassword
 };
