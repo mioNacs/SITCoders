@@ -473,7 +473,7 @@ const updateProfilePicture = async (req, res) => {
       const uploadResult = await uploadOnCloudinary(file.path);
       url = uploadResult.url;
       public_id = uploadResult.public_id;
-      
+
       if (file.path) {
         try {
           await unlinkAsync(file.path);
@@ -589,7 +589,6 @@ const updateBio = async (req, res) => {
   }
 };
 
-
 const getUser = async (req, res) => {
   try {
     const { username } = req.body;
@@ -614,9 +613,113 @@ const getUser = async (req, res) => {
     return res.status(200).json({ user });
   } catch (error) {
     console.error("Error in getUser:", error.message);
-    return res.status(500).json({ message: "Internal server error in getUser" });
+    return res
+      .status(500)
+      .json({ message: "Internal server error in getUser" });
   }
 };
+
+const sendOtpForResetPassword = async (req, res) => {
+  const session = await mongoose.startSession();
+  try {
+     session.startTransaction();
+     const {email} = req.body
+  
+    if (!email) {
+      await session.abortTransaction();
+      return res.status(400).json({ message: "Email is required" });
+    }
+
+    const existedUser = await User.findOne({email});
+    if (!existedUser) {
+      await session.abortTransaction();
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const otp = generateOtp();
+
+    const otpInstance = await Otp.create(
+      [
+        {
+          userId: existedUser._id,
+          purpose: "password-reset",
+          otpExpiresAt: Date.now() + 5 * 60 * 1000,
+          otp: otp,
+          otpAttempts: 0,
+          resendAfter: Date.now() + 2 * 60 * 1000,
+        }
+      ],
+      { session }
+    );
+
+    if (!otpInstance[0]) {
+      await session.abortTransaction();
+      return res.status(400).json({ message: "OTP not created" });
+    }
+
+    try {
+      await sendEmail(
+        existedUser.email,
+        "Your OTP for Re-set Password",
+        `
+        <!DOCTYPE html>
+        <html>
+        <body style="font-family: Arial, sans-serif; background-color: #f9f9f9; padding: 20px; color: #333;">
+          <div style="max-width: 500px; margin: auto; background: #fff; padding: 20px; border-radius: 6px; box-shadow: 0 2px 6px rgba(0,0,0,0.05);">
+            <h2 style="color: #007bff;">SITCoders Verification Code</h2>
+            <p>Hi ${existedUser.name || "User"},</p>
+            <p>Your One-Time Password (OTP) is:</p>
+            <div style="font-size: 24px; font-weight: bold; letter-spacing: 2px; margin: 20px 0; color: #2c3e50;">
+              ${otp}
+            </div>
+            <p>This OTP is valid for the next 10 minutes. Do not share it with anyone.</p>
+            <p>Thanks,<br/>Team SITCoders</p>
+          </div>
+        </body>
+        </html>
+        `
+      );
+    } catch (error) {
+      console.error("ERR while sending OTP in resetPassword:", error.message);
+      await session.abortTransaction();
+      return res.status(500).json({ message: "Failed to send OTP" });
+    }
+
+    await session.commitTransaction();
+    return res.status(201).json({ message: "OTP sent successfully" });
+
+  } catch (error) {
+    console.error("ERR in resetPassword:", error.message);
+    await session.abortTransaction();
+    return res.status(500).json({ message: "Internal server error" });
+  } finally {
+    session.endSession();
+  }
+};
+
+const verifyOtpForResetPassword = async (req, res) => {
+
+try {
+  const {email , otp} = req.body;
+  if(!email || !otp){
+    return res.status(403).json({message : "Email and otp is required"})
+  }
+  const user = await User.findOne({email});
+  if(!user){
+    return res.status(404).json({message : "User not found"});
+  }
+
+  const userOtp =await Otp.findOne({userId : user._id , purpose : "password-reset"});
+
+  if(!userOtp){
+    return res.status(404).json({message :"Otp not found"});
+  }
+  const isValid =  await userOtp.isOtpValid(otp);
+
+} catch (error) {
+  
+}
+}
 
 
 export {
@@ -630,4 +733,6 @@ export {
   updateProfilePicture,
   updateBio,
   getUser,
+  sendOtpForResetPassword,
+  verifyOtpForResetPassword
 };
