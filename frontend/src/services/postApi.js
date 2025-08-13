@@ -136,3 +136,24 @@ export const getPostsByUserId = async (userId, page = 1, limit = 10, tag) => {
     throw error;
   }
 };
+
+export const getPostById = async (postId) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/posts/${postId}`, {
+      method: 'GET',
+      credentials: 'include',
+        headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Failed to fetch post.');
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching post by ID:', error);
+    throw error;
+  }
+};

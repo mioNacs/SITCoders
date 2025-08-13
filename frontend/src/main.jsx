@@ -3,7 +3,7 @@ import { createRoot } from 'react-dom/client'
 import { createBrowserRouter, Route, RouterProvider, createRoutesFromElements} from 'react-router-dom'
 import './index.css'
 import App from './App.jsx'
-import {Login, Signup, VerifyOTP, Landing, Home, Queries, ContactAdmin, Projects, UserProfile, AdminDashboard} from './components'
+import {Login, Signup, VerifyOTP, Landing, Home, Queries, ContactAdmin, Projects, UserProfile, AdminDashboard, PostView} from './components'
 import { AuthProvider } from './context/AuthContext.jsx'
 
 const router = createBrowserRouter(
@@ -17,6 +17,7 @@ const router = createBrowserRouter(
       <Route path="queries" element={<Queries/>}/>
       <Route path="projects" element={<Projects/>}/>
       <Route path="contact-admin" element={<ContactAdmin/>}/>
+      <Route path="post/:postId" element={<PostView/>}/>
       <Route path="profile/:username?" element={<UserProfile/>}/>
       <Route path="admin-dashboard" element={<AdminDashboard/>}/>
     </Route>

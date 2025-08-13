@@ -326,4 +326,31 @@ const getPostsByUserId = async (req, res) => {
   }
 };
 
-export { createPost, deletePost, getALLPosts, getALLPostsOfUser, editPost, getPostsByUserId };
+// Add this controller function
+const getPostById = async (req, res) => {
+  try {
+    const { postId } = req.params;
+
+    if (!postId) {
+      return res.status(400).json({ message: "Post ID is required" });
+    }
+
+    // Find the post by ID and populate author
+    const post = await Post.findById(postId)
+      .populate("author", "fullName username profilePicture rollNo");
+
+    if (!post) {
+      return res.status(404).json({ message: "Post not found" });
+    }
+
+    res.status(200).json({
+      message: "Post fetched successfully",
+      post,
+    });
+  } catch (error) {
+    console.error("Error fetching post:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export { createPost, deletePost, getALLPosts, getALLPostsOfUser, editPost, getPostsByUserId, getPostById };
