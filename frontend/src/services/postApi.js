@@ -65,9 +65,11 @@ export const editPost = async (postId, postData) => {
   }
 }
 
-export const getAllPosts = async (page = 1, limit = 10) => {
+export const getAllPosts = async (page = 1, limit = 10, tag) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/posts/get-posts?page=${page}&limit=${limit}`, {
+  const params = new URLSearchParams({ page: String(page), limit: String(limit) });
+  if (tag) params.set('tag', tag);
+  const response = await fetch(`${API_BASE_URL}/posts/get-posts?${params.toString()}`, {
       method: 'GET',
       credentials: 'include',
       headers: {
@@ -87,9 +89,11 @@ export const getAllPosts = async (page = 1, limit = 10) => {
   }
 };
 
-export const getUserPosts = async (page = 1, limit = 10) => {
+export const getUserPosts = async (page = 1, limit = 10, tag) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/posts/get-user-posts?page=${page}&limit=${limit}`, {
+  const params = new URLSearchParams({ page: String(page), limit: String(limit) });
+  if (tag) params.set('tag', tag);
+  const response = await fetch(`${API_BASE_URL}/posts/get-user-posts?${params.toString()}`, {
       method: 'GET',
       credentials: 'include',
       headers: {
@@ -109,9 +113,11 @@ export const getUserPosts = async (page = 1, limit = 10) => {
   }
 };
 
-export const getPostsByUserId = async (userId, page = 1, limit = 10) => {
+export const getPostsByUserId = async (userId, page = 1, limit = 10, tag) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/posts/user/${userId}?page=${page}&limit=${limit}`, {
+  const params = new URLSearchParams({ page: String(page), limit: String(limit) });
+  if (tag) params.set('tag', tag);
+  const response = await fetch(`${API_BASE_URL}/posts/user/${userId}?${params.toString()}`, {
       method: 'GET',
       credentials: 'include',
       headers: {

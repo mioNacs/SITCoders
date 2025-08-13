@@ -11,6 +11,7 @@ import PostsFeed from "./PostsFeed";
 import Sidebar from "./Sidebar";
 import DeleteConfirmModal from "./DeleteConfirmModal";
 import ViewPost from "./ViewPost";
+import Pagination from "../UI/Pagination";
 
 function Home() {
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
@@ -27,7 +28,13 @@ function Home() {
     handleCreatePost,
     handleDeletePost,
     handleEditPost,
-    handleShowComments
+    handleShowComments,
+    pagination,
+    currentPage,
+  goToPage,
+  tag,
+  changeTag,
+  allowedTags
   } = useHomePosts();
 
   // Admin status state
@@ -61,7 +68,7 @@ function Home() {
     };
     
     if (isAuthenticated) {
-      fetchPosts();
+      // No need to call fetchPosts here since useHomePosts handles it via useEffect
     }
     checkAdminStatus();
   }, [isAuthenticated, user]);
@@ -168,6 +175,25 @@ function Home() {
               user={user} 
               onCreatePost={() => setShowCreatePost(true)} 
             />
+
+            {/* Tag Filter */}
+            <div className="flex flex-wrap px-3 py-3 md:py-0 border-y md:border-none border-gray-300  bg-white md:bg-white/0 items-center gap-2">
+              <button
+                className={`px-3 py-1 rounded-full text-md border transition ${!tag ? 'bg-orange-500 text-white border-orange-500' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'}`}
+                onClick={() => changeTag('')}
+              >
+                All
+              </button>
+              {allowedTags.map(t => (
+                <button
+                  key={t}
+                  className={`px-3 py-1 rounded-full text-md capitalize border transition ${tag === t ? 'bg-orange-500 text-white border-orange-500' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'}`}
+                  onClick={() => changeTag(t)}
+                >
+                  {t}
+                </button>
+              ))}
+            </div>
             <PostsFeed
               posts={posts}
               postsLoading={postsLoading}
@@ -181,6 +207,16 @@ function Home() {
               canEditPost={canEditPost}
               formatDate={formatDate}
               getTagStyle={getTagStyle}
+            />
+
+            {/* Pagination Component */}
+            <Pagination
+              currentPage={currentPage}
+              totalPages={pagination.totalPages}
+              hasMore={pagination.hasMore}
+              onPageChange={goToPage}
+              loading={postsLoading}
+              className="mb-6"
             />
           </div>
 
