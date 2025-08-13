@@ -606,8 +606,9 @@ const getUser = async (req, res) => {
 
     const regex = new RegExp(`^${cleanUsername}`, "i"); // Case-insensitive exact match
 
-    const user = await User.findOne({ username: regex })
-      .select("_id username fullName profilePicture popularity bio createdAt");
+    const user = await User.findOne({ username: regex }).select(
+      "_id username fullName profilePicture popularity bio createdAt"
+    );
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
@@ -625,15 +626,15 @@ const getUser = async (req, res) => {
 const sendOtpForResetPassword = async (req, res) => {
   const session = await mongoose.startSession();
   try {
-     session.startTransaction();
-     const {email} = req.body
-  
+    session.startTransaction();
+    const { email } = req.body;
+
     if (!email) {
       await session.abortTransaction();
       return res.status(400).json({ message: "Email is required" });
     }
 
-    const existedUser = await User.findOne({email});
+    const existedUser = await User.findOne({ email });
     if (!existedUser) {
       await session.abortTransaction();
       return res.status(404).json({ message: "User not found" });
@@ -650,7 +651,7 @@ const sendOtpForResetPassword = async (req, res) => {
           otp: otp,
           otpAttempts: 0,
           resendAfter: Date.now() + 2 * 60 * 1000,
-        }
+        },
       ],
       { session }
     );
@@ -690,7 +691,6 @@ const sendOtpForResetPassword = async (req, res) => {
 
     await session.commitTransaction();
     return res.status(201).json({ message: "OTP sent successfully" });
-
   } catch (error) {
     console.error("ERR in resetPassword:", error.message);
     await session.abortTransaction();
@@ -713,7 +713,10 @@ const verifyOtpForResetPassword = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    const userOtp = await Otp.findOne({ userId: user._id, purpose: "password-reset" });
+    const userOtp = await Otp.findOne({
+      userId: user._id,
+      purpose: "password-reset",
+    });
     if (!userOtp) {
       return res.status(404).json({ message: "OTP not found" });
     }
@@ -742,47 +745,48 @@ const verifyOtpForResetPassword = async (req, res) => {
     });
 
     return res.status(200).json({ message: "OTP verified successfully" });
-
   } catch (error) {
     console.error("ERR in verifyOtpForResetPassword:", error.message);
     return res.status(500).json({ message: "Internal server error" });
   }
 };
 
-const resetPassword =async (req , res) => {
-    try {
-      const token = req.cookies.resetPasswordToken;
-      if(!token){
-        return res.status(403).json({ message: "Unauthorized" });
-      }
-       let decoded;
+const resetPassword = async (req, res) => {
+  try {
+    const token = req.cookies.resetPasswordToken;
+    if (!token) {
+      return res.status(403).json({ message: "Unauthorized" });
+    }
+    let decoded;
     try {
       decoded = jwt.verify(token, process.env.JWT_SECRET);
     } catch (err) {
       return res.status(401).json({ message: "Token expired or invalid" });
     }
 
-    if(decoded.purpose !== "reset_password"){
+    if (decoded.purpose !== "reset_password") {
       return res.status(403).json({ message: "Unauthorized" });
     }
-     const user = await User.findById(decoded.userId);
-     if(!user){
-      return res.status(404).json({message:"User not found"});
-     }
-     const {newPassword , confirmPassword} = req.body;
-     if(!newPassword || !confirmPassword){
-       return res.status(400).json({message:"New password and confirm password are required"});
-     }
-     if(newPassword !== confirmPassword){
-       return res.status(400).json({message:"Passwords do not match"});
-     }
-     user.password = newPassword;
-     await user.save();
-     return res.status(200).json({message:"Password reset successfully"});
-    } catch (error) {
-      console.error("ERR: while resetPassword",error.message);
-      return res.status(500).json({ message: "Internal server error" });
+    const user = await User.findById(decoded.userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
     }
+    const { newPassword, confirmPassword } = req.body;
+    if (!newPassword || !confirmPassword) {
+      return res
+        .status(400)
+        .json({ message: "New password and confirm password are required" });
+    }
+    if (newPassword !== confirmPassword) {
+      return res.status(400).json({ message: "Passwords do not match" });
+    }
+    user.password = newPassword;
+    await user.save();
+    return res.status(200).json({ message: "Password reset successfully" });
+  } catch (error) {
+    console.error("ERR: while resetPassword", error.message);
+    return res.status(500).json({ message: "Internal server error" });
+  }
 };
 
 const deleteAccount = async (req, res) => {
@@ -795,7 +799,7 @@ const deleteAccount = async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
-    const {password} = req.body;
+    const { password } = req.body;
     if (!password) {
       return res.status(400).json({ message: "Password is required" });
     }
@@ -807,16 +811,37 @@ const deleteAccount = async (req, res) => {
     if (user.profilePicture?.public_id) {
       await deleteFromCloudinary(user.profilePicture.public_id);
     }
-   // Delete all post images in parallel
+    // Delete all post images in parallel
     const posts = await Post.find({ author: userId });
     const imageIds = posts
-      .map(post => post.postImage?.public_id)
+      .map((post) => post.postImage?.public_id)
       .filter(Boolean);
 
-    await Promise.all(imageIds.map(id => deleteFromCloudinary(id)));
+    await Promise.all(imageIds.map((id) => deleteFromCloudinary(id)));
 
     await Post.deleteMany({ author: userId });
     await Comment.deleteMany({ user: userId });
+    await sendEmail(
+      user.email,
+      "Account Deleted",
+      `
+  <div style="font-family: Arial, sans-serif; max-width: 500px; margin: auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 10px; background-color: #fafafa;">
+    <h2 style="color: #1e88e5; text-align: center; margin-bottom: 20px;">Account Deleted</h2>
+    <p style="font-size: 15px; color: #333;">Dear <strong>${user.fullName}</strong>,</p>
+    <p style="font-size: 15px; color: #555; line-height: 1.6;">
+      Your account has been successfully deleted. We’re truly sorry to see you go.
+    </p>
+    <p style="font-size: 15px; color: #555; line-height: 1.6;">
+      Thank you for being part of our journey. If you ever decide to return, we’ll be here to welcome you back. 👋
+    </p>
+    <p style="margin-top: 25px; font-size: 14px; color: #777;">
+      Best wishes,<br>
+      <strong>The Team</strong>
+    </p>
+  </div>
+  `
+    );
+
     await user.deleteOne();
     res.clearCookie("accessToken");
     return res.status(200).json({ message: "Account deleted successfully" });
@@ -825,8 +850,6 @@ const deleteAccount = async (req, res) => {
     return res.status(500).json({ message: "Internal server error" });
   }
 };
-
-
 
 export {
   sendOtpViaEmail,
