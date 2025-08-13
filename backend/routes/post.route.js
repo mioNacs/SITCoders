@@ -8,6 +8,7 @@ import {
   getALLPostsOfUser,
   editPost,
   getPostsByUserId,
+  getPostById,
 } from "../controllers/post.controller.js";
 import upload from "../middlewares/multer.middleware.js";
 
@@ -28,5 +29,6 @@ router.put("/edit/:postId", verifyUser, isVarifiedByAdmin, editPost);
 router.get("/get-posts", verifyUser, getALLPosts);
 router.get("/get-user-posts", verifyUser, getALLPostsOfUser);
 router.get("/user/:userId", verifyUser, getPostsByUserId);
+router.get("/:postId", verifyUser, getPostById);
 
 export default router;

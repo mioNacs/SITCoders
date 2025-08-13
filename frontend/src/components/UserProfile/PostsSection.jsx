@@ -16,6 +16,7 @@ import { getUserPosts, deletePost, getPostsByUserId } from '../../services/postA
 import { getComments } from '../../services/commentApi';
 import { toast } from 'react-toastify';
 import ViewPost from '../Home/ViewPost';
+import SharePostButton from '../Home/SharePostButton';
 import { renderSafeMarkdown } from '../../utils/sanitize';
 
 const PostsSection = ({ user, isOwnProfile = true }) => {
@@ -355,6 +356,7 @@ const PostsSection = ({ user, isOwnProfile = true }) => {
 
       {/* Post Actions */}
       <div className="flex items-center justify-end gap-4 text-xs text-gray-500 border-t pt-2">
+        <SharePostButton post={post} />
         <button 
           onClick={() => handleShowComments(post._id)}
           className="flex items-center gap-2 hover:text-orange-500 transition-colors cursor-pointer bg-gray-50 p-1 px-3 rounded-lg"
