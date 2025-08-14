@@ -732,7 +732,7 @@ const verifyOtpForResetPassword = async (req, res) => {
     // Create a short-lived JWT token for reset password
     const resetToken = jwt.sign(
       { userId: user._id, purpose: "reset_password" },
-      process.env.JWT_SECRET,
+      process.env.ACCESS_TOKEN_SECRET,
       { expiresIn: "5m" } // Valid for 5 minutes
     );
 
@@ -759,7 +759,7 @@ const resetPassword = async (req, res) => {
     }
     let decoded;
     try {
-      decoded = jwt.verify(token, process.env.JWT_SECRET);
+      decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
     } catch (err) {
       return res.status(401).json({ message: "Token expired or invalid" });
     }

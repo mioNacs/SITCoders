@@ -4,12 +4,13 @@ import Home from "./Home/Home";
 import PostView from "./Home/SinglePostView";
 import Footer from "./Footer/Footer";
 import Login from "./Login/Login";
+import ForgotPassword from "./Login/ForgotPassword";
 import Signup from "./Login/Signup";
 import VerifyOTP from "./Login/VerifyOTP";
-import Queries from "./Queries/Queries";
-import Projects from "./Projects/Projects";
+import Resources from "./Resources/Resources";
+import Collaborate from "./Collaborate/Collaborate";
 import ContactAdmin from "./ContactAdmin/ContactAdmin"
 import UserProfile from "./UserProfile/UserProfile"
 import AdminDashboard from "./AdminDashboard/AdminDashboard";
 
-export {Header, Landing, Home, PostView, Footer, Login, Signup, VerifyOTP, Queries, Projects, ContactAdmin, UserProfile, AdminDashboard};
+export {Header, Landing, Home, PostView, Footer, Login, ForgotPassword, Signup, VerifyOTP, Resources, Collaborate, ContactAdmin, UserProfile, AdminDashboard};
