@@ -1,5 +1,4 @@
 import { Router } from "express";
-import verifyUser from "../middlewares/verifyUser.js";
 import isVarifiedByAdmin from "../middlewares/isVarifiedByAdmin.js";
 import {
   createPost,

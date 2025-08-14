@@ -1,5 +1,4 @@
 import { Router } from "express";
-import verifyUser from "../middlewares/verifyUser.js";
 import isVarifiedByAdmin from "../middlewares/isVarifiedByAdmin.js";
 import {
   createComment,
@@ -9,12 +8,8 @@ import {
 
 const router = Router();
 
-router.post("/create/:postId", verifyUser, isVarifiedByAdmin, createComment);
-router.post("/reply/:commentId", verifyUser, isVarifiedByAdmin, createReply);
-router.post(
-  "/get-comments/:postId",
-  verifyUser,
-  getParentComment
-);
+router.post("/create/:postId", isVarifiedByAdmin, createComment);
+router.post("/reply/:commentId", isVarifiedByAdmin, createReply);
+router.post("/get-comments/:postId", getParentComment);
 
 export default router;
