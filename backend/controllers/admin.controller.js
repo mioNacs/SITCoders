@@ -229,8 +229,14 @@ const suspendAccount = async (req, res) => {
       return res.status(400).json({message : "Email and duration are required"})
     }
     const user = await User.findOne({ email });
+
     if(!user){
       return res.status(404).json({message  : "User not found"})
+    }
+
+    const admin = await Admin.findById({ admin: user._id });
+    if(admin){
+      return res.status(403).json({message : "You cannot suspend an admin account"})
     }
 
     if(durationIn === 'hours'){

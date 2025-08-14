@@ -18,7 +18,6 @@ import {
 } from "../controllers/user.controller.js";
 import upload from "../middlewares/multer.middleware.js";
 import verifyUser from "../middlewares/verifyUser.js";
-import isSuspended from "../middlewares/isSuspended.js";
 
 const router = Router();
 

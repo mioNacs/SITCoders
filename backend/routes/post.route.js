@@ -15,7 +15,6 @@ const router = Router();
 
 router.post(
   "/create",
-  verifyUser,
   isVarifiedByAdmin,
   upload.single("postImage"),
   createPost

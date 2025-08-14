@@ -1,5 +1,4 @@
 import verifyAdmin from "../middlewares/verifyAdmin.js";
-import verifyUser from "../middlewares/verifyUser.js";
 
 import { Router } from "express";
 
@@ -13,19 +12,25 @@ import {
   isAdmin,
   getVerifiedUser,
   removeFromAdmin,
+  suspendAccount,
 } from "../controllers/admin.controller.js";
 import verifySuperAdmin from "../middlewares/verifySuperAdmin.js";
-router.post("/isAdmin", verifyUser, isAdmin);
+
+
+router.post("/isAdmin", isAdmin);
+
+
 
 // these routes are protected by verifyUser and verifyAdmin middlewares
-router.post("/create", verifyUser, verifyAdmin, createAdmin);
-router.get("/unverified-users", verifyUser, verifyAdmin, getAllUnverifiedUsers);
-router.post("/verify-user", verifyUser, verifyAdmin, verifyUserFromAdmin);
-router.post("/reject-user", verifyUser, verifyAdmin, rejectUserFromAdmin);
-router.get("/get-verified-user", verifyUser, verifyAdmin, getVerifiedUser);
+
+router.post("/suspend-account", verifyAdmin, suspendAccount);
+router.post("/create", verifyAdmin, createAdmin);
+router.get("/unverified-users", verifyAdmin, getAllUnverifiedUsers);
+router.post("/verify-user", verifyAdmin, verifyUserFromAdmin);
+router.post("/reject-user", verifyAdmin, rejectUserFromAdmin);
+router.get("/get-verified-user", verifyAdmin, getVerifiedUser);
 router.post(
   "/remove-from-admin",
-  verifyUser,
   verifySuperAdmin,
   removeFromAdmin
 );
