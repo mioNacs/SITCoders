@@ -133,9 +133,9 @@ function Login() {
                   </svg>
                 </div>
               </div>
-              <div className="text-sm text-orange-400 text-end py-3 cursor-pointer hover:text-orange-500 transition-all duration-200">
+              <Link to="/forgot-password" className="text-sm text-orange-400 text-end py-3 cursor-pointer hover:text-orange-500 transition-all duration-200 block">
                 Forgot Password?
-              </div>
+              </Link>
             </div>
             <button type="submit" disabled={loading}>
               <div className={`${loading ? 'bg-gray-400' : 'bg-orange-400 hover:bg-orange-500'} shadow-md hover:shadow-lg font-Saira text-lg sm:text-xl text-white px-4 py-2 rounded-md mt-2 transition-all duration-200 ease-in-out cursor-pointer`}>

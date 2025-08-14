@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { FiArrowRight } from 'react-icons/fi';
 
-function ContactAdmin() {
+function Collaborate() {
   return (
     <div className='pt-20 h-screen bg-orange-50'>
       <div className=' md:max-w-[90%] h-full lg:max-w-[80%] mx-auto'>
@@ -22,7 +22,7 @@ function ContactAdmin() {
         </div>
       </div>
     </div>
-  )
+  );
 }
 
-export default ContactAdmin
+export default Collaborate
