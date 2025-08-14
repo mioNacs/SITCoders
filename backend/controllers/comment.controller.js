@@ -133,10 +133,40 @@ const getParentComment = async (req, res) => {
   }
 };
 
-const deleteComment = async (req, res) => {};
+const deleteComment = async (req, res) => {
+  try {
+    const { commentId } = req.params;
+    const user = req.user;
+
+    if (!commentId) {
+      return res.status(400).json({ message: "Comment ID is required." });
+    }
+
+    const comment = await Comment.findById(commentId);
+    if (!comment) {
+      return res.status(404).json({ message: "Comment not found." });
+    }
+
+    if (!comment.user.equals(user._id)) {
+      return res.status(403).json({ message: "You can only delete your own comments." });
+    }
+
+    const repliesDeleted = await Comment.deleteMany({ parentComment: comment._id });
+    await Comment.deleteOne({ _id: comment._id });
+
+    res.status(200).json({
+      message: "Comment and replies deleted successfully.",
+      repliesDeleted: repliesDeleted.deletedCount
+    });
+  } catch (error) {
+    console.error("Error deleting comment:", error.message);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
 
 const updateComment = async (req, res) => {};
  
 
 
-export { createComment, createReply, getParentComment };
+export { createComment, createReply, getParentComment, deleteComment };

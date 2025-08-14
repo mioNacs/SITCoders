@@ -234,10 +234,10 @@ const suspendAccount = async (req, res) => {
       return res.status(404).json({message  : "User not found"})
     }
 
-    // const admin = await Admin.findById({ admin: user._id });
-    // if(admin){
-    //   return res.status(403).json({message : "You cannot suspend an admin account"})
-    // }
+    const admin = await Admin.findById(user._id);
+    if(admin){
+      return res.status(403).json({message : "You cannot suspend an admin account"})
+    }
 
     if(durationIn === 'hours'){
         user.suspensionEnd = new Date(Date.now() + duration * 60 * 60 * 1000);
