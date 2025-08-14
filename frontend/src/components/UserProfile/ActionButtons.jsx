@@ -1,7 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { FaSignOutAlt } from 'react-icons/fa';
-import { MdOutlineAdminPanelSettings } from 'react-icons/md';
+import { FiSettings, FiLogOut, FiShield, FiShare2 } from 'react-icons/fi';
 import ShareButton from './ShareButton';
 
 const ActionButtons = ({ user, isAdmin, onLogout, showDialog }) => {
@@ -17,30 +16,25 @@ const ActionButtons = ({ user, isAdmin, onLogout, showDialog }) => {
   };
 
   return (
-    <div className="absolute right-4 top-4 flex flex-col gap-2 items-end">
-      {/* Share Button */}
-      <ShareButton 
-        user={user} 
-        isOwnProfile={true}
-      />
-      
-      {isAdmin && (
-        <Link
-          to="/admin-dashboard"
-          className="flex gap-2 items-center bg-orange-500 text-white px-3 py-2 rounded-md shadow-sm hover:bg-orange-600 transition-colors cursor-pointer"
+      <div className="flex gap-2">
+        {isAdmin && (
+          <Link
+            to="/admin-dashboard"
+            className="flex-1 flex items-center justify-center gap-2 bg-orange-400 text-white px-3 py-2.5 rounded-lg text-sm font-medium hover:bg-orange-500 transition-all duration-200 shadow-sm"
+          >
+            <FiShield size={14} />
+            <span>Admin Panel</span>
+          </Link>
+        )}
+        
+        <button
+          className={`${isAdmin ? 'flex-1' : 'w-full'} flex items-center justify-center gap-2 bg-gray-500 text-white px-3 py-2.5 rounded-lg text-sm font-medium hover:bg-gray-600 transition-all duration-200 shadow-sm cursor-pointer`}
+          onClick={handleLogoutClick}
         >
-          <MdOutlineAdminPanelSettings size={20} />
-          <span className="font-medium">Admin Dashboard</span>
-        </Link>
-      )}
-      <button
-        className="flex gap-2 items-center bg-red-500 text-white px-3 py-2 rounded-md shadow-sm hover:bg-red-600 transition-colors cursor-pointer"
-        onClick={handleLogoutClick}
-      >
-        <FaSignOutAlt size={14} />
-        <span className="font-medium">Log out</span>
-      </button>
-    </div>
+          <FiLogOut size={14} />
+          <span>Logout</span>
+        </button>
+      </div>
   );
 };
 

@@ -3,7 +3,7 @@ import { createRoot } from 'react-dom/client'
 import { createBrowserRouter, Route, RouterProvider, createRoutesFromElements} from 'react-router-dom'
 import './index.css'
 import App from './App.jsx'
-import {Login, Signup, VerifyOTP, Landing, Home, Resources, ContactAdmin, Collaborate, UserProfile, AdminDashboard, PostView, ForgotPassword} from './components'
+import {Login, Signup, VerifyOTP, Landing, Home, Resources, ContactAdmin, Collaborate, UserProfile, AdminDashboard, PostView, ForgotPassword, Settings} from './components'
 import { AuthProvider } from './context/AuthContext.jsx'
 
 const router = createBrowserRouter(
@@ -20,6 +20,7 @@ const router = createBrowserRouter(
       <Route path="contact-admin" element={<ContactAdmin/>}/>
       <Route path="post/:postId" element={<PostView/>}/>
       <Route path="profile/:username?" element={<UserProfile/>}/>
+      <Route path="settings" element={<Settings/>}/>
       <Route path="admin-dashboard" element={<AdminDashboard/>}/>
     </Route>
   )

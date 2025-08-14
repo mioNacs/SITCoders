@@ -134,11 +134,8 @@ const ShareProfileModal = ({ isOpen, onClose, user, isOwnProfile }) => {
             </div>
             <div>
               <h3 className="text-lg font-semibold text-gray-800">
-                Share Profile
-              </h3>
-              <p className="text-sm text-gray-500">
                 {isOwnProfile ? 'Share your profile' : `Share ${user?.fullName}'s profile`}
-              </p>
+              </h3>
             </div>
           </div>
           <button

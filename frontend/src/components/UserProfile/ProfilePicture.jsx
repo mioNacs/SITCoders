@@ -1,12 +1,5 @@
 import React, { useRef, useState, useCallback } from "react";
-import {
-  FaUser,
-  FaCamera,
-  FaSpinner,
-  FaTimes,
-  FaCheck,
-  FaCrop,
-} from "react-icons/fa";
+import { FaUser, FaCamera, FaSpinner, FaTimes, FaCheck } from "react-icons/fa";
 import ReactCrop from "react-image-crop";
 import "react-image-crop/dist/ReactCrop.css";
 import { useAuth } from "../../context/AuthContext";
@@ -23,7 +16,7 @@ const ProfilePicture = ({ user: profileUser, updateUser, showDialog, isOwnProfil
     height: 200,
     x: 5,
     y: 5,
-    aspect: 1, // Square aspect ratio
+    aspect: 1,
   });
   const [completedCrop, setCompletedCrop] = useState(null);
   const imgRef = useRef(null);
@@ -31,7 +24,6 @@ const ProfilePicture = ({ user: profileUser, updateUser, showDialog, isOwnProfil
   const fileInputRef = useRef(null);
   const [selectedFile, setSelectedFile] = useState(null);
 
-  // Use profileUser (passed as prop) instead of currentUser from auth
   const displayUser = profileUser || currentUser;
 
   const viewProfilePicture = () => {
@@ -54,71 +46,75 @@ const ProfilePicture = ({ user: profileUser, updateUser, showDialog, isOwnProfil
     }
   };
 
-  const handleFileSelect = (event) => {
-    // Only allow file selection for own profile
-    if (!isOwnProfile) return;
-
-    const file = event.target.files[0];
-    if (file) {
-      // Validate file type
-      const allowedTypes = [
-        "image/jpeg",
-        "image/jpg",
-        "image/png",
-        "image/webp",
-      ];
-      if (!allowedTypes.includes(file.type)) {
-        showDialog(
-          "Invalid File Type",
-          "Please select a valid image file (JPEG, JPG, PNG, or WebP).",
-          "error"
-        );
-        return;
-      }
-
-      // Validate file size (10MB for cropping)
-      const maxSize = 10 * 1024 * 1024;
-      if (file.size > maxSize) {
-        showDialog(
-          "File Too Large",
-          "Please select an image smaller than 10MB.",
-          "error"
-        );
-        return;
-      }
-
-      setSelectedFile(file);
-
-      // Read file as data URL for cropping
-      const reader = new FileReader();
-      reader.onload = () => {
-        setImageSrc(reader.result);
-        setShowCropModal(true);
-      };
-      reader.readAsDataURL(file);
-    }
+  const resetCrop = () => {
+    setCrop({
+      unit: "px",
+      width: 200,
+      height: 200,
+      x: 5,
+      y: 5,
+      aspect: 1,
+    });
+    setCompletedCrop(null);
   };
 
-  const onImageLoad = useCallback((img) => {
-    imgRef.current = img;
-  }, []);
+  const handleFileSelect = (e) => {
+    if (!e.target.files || e.target.files.length === 0) return;
 
-  const generateCroppedImage = useCallback(async () => {
-    if (!completedCrop || !imgRef.current || !previewCanvasRef.current) {
+    const file = e.target.files[0];
+    const validTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
+
+    if (!validTypes.includes(file.type)) {
+      showDialog(
+        "Invalid File Type",
+        "Please select a valid image file (JPEG, PNG, or WebP).",
+        "error"
+      );
       return;
     }
 
-    const image = imgRef.current;
+    const maxSize = 10 * 1024 * 1024;
+    if (file.size > maxSize) {
+      showDialog(
+        "File Too Large",
+        "Please select an image smaller than 10MB.",
+        "error"
+      );
+      return;
+    }
+
+    setSelectedFile(file);
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      setImageSrc(reader.result);
+      setShowCropModal(true);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const getCroppedImg = useCallback((image, crop) => {
     const canvas = previewCanvasRef.current;
-    const crop = completedCrop;
+    if (!canvas || !crop || !image) {
+      console.error("Missing required parameters for cropping");
+      return null;
+    }
+
+    const ctx = canvas.getContext("2d");
+    if (!ctx) {
+      console.error("Unable to get 2D context from canvas");
+      return null;
+    }
 
     const scaleX = image.naturalWidth / image.width;
     const scaleY = image.naturalHeight / image.height;
-    const ctx = canvas.getContext("2d");
+    const pixelRatio = window.devicePixelRatio || 1;
 
-    // Set canvas size to crop size
-    canvas.width = crop.width;
-    canvas.height = crop.height;
+    canvas.width = crop.width * pixelRatio;
+    canvas.height = crop.height * pixelRatio;
+
+    ctx.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+    ctx.imageSmoothingQuality = "high";
 
     ctx.drawImage(
       image,
@@ -138,61 +134,43 @@ const ProfilePicture = ({ user: profileUser, updateUser, showDialog, isOwnProfil
           resolve(blob);
         },
         "image/jpeg",
-        0.9
+        0.95
       );
     });
-  }, [completedCrop]);
-
-  const resetCrop = () => {
-    setCrop({
-      unit: "px",
-      width: 200,
-      height: 200,
-      x: 5,
-      y: 5,
-      aspect: 1, // Square aspect ratio
-    });
-  };
+  }, []);
 
   const handleCropConfirm = async () => {
-    try {
-      const croppedBlob = await generateCroppedImage();
-      if (croppedBlob) {
-        // Create File object from blob
-        const croppedFile = new File([croppedBlob], selectedFile.name, {
-          type: "image/jpeg",
-          lastModified: Date.now(),
-        });
-
-        closeCropModal();
-        resetCrop();
-        uploadProfilePicture(croppedFile);
-      }
-    } catch (error) {
-      console.error("Error cropping image:", error);
-      showDialog(
-        "Crop Failed",
-        "Failed to crop image. Please try again.",
-        "error"
-      );
+    if (!completedCrop || !imgRef.current) {
+      console.error("No crop area selected or image reference not found");
+      return;
     }
-  };
 
-  const uploadProfilePicture = async (file) => {
-    // Only allow upload for own profile
-    if (!isOwnProfile) return;
-
-    setUploading(true);
     try {
-      // Create FormData for file upload
-      const formData = new FormData();
-      formData.append('profilePicture', file);
+      setUploading(true);
+      const croppedImageBlob = await getCroppedImg(imgRef.current, completedCrop);
 
-      // Pass FormData directly to updateUser
+      if (!croppedImageBlob) {
+        throw new Error("Failed to generate cropped image");
+      }
+
+      const formData = new FormData();
+      formData.append("profilePicture", croppedImageBlob, "profile.jpg");
+
       const result = await updateUser(formData);
 
       if (result.success) {
-        showDialog("Success", "Profile picture updated successfully!", "success");
+        setShowCropModal(false);
+        resetCrop();
+        setImageSrc(null);
+        setSelectedFile(null);
+        showDialog(
+          "Profile Picture Updated",
+          "Your profile picture has been updated successfully!",
+          "success"
+        );
+        if (fileInputRef.current) {
+          fileInputRef.current.value = "";
+        }
       } else {
         showDialog(
           "Upload Failed",
@@ -209,7 +187,6 @@ const ProfilePicture = ({ user: profileUser, updateUser, showDialog, isOwnProfil
       );
     } finally {
       setUploading(false);
-      // Reset file input
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
       }
@@ -217,9 +194,7 @@ const ProfilePicture = ({ user: profileUser, updateUser, showDialog, isOwnProfil
   };
 
   const triggerFileInput = () => {
-    // Only allow triggering file input for own profile
     if (!isOwnProfile) return;
-    
     if (fileInputRef.current) {
       fileInputRef.current.click();
     }
@@ -227,159 +202,149 @@ const ProfilePicture = ({ user: profileUser, updateUser, showDialog, isOwnProfil
 
   return (
     <>
-      <div className="absolute -top-16 left-4 w-32 h-32 rounded-full bg-white p-1 shadow-md">
+      <div className="relative w-32 h-32 mx-auto">
         <div className="relative w-full h-full">
           {displayUser?.profilePicture?.url ? (
             <img
-              key={displayUser.profilePicture.url} // Add key to force re-render when URL changes
+              key={displayUser.profilePicture.url}
               src={displayUser.profilePicture.url}
               alt="profile"
-              className="w-full h-full rounded-full object-cover cursor-pointer hover:opacity-90 transition-opacity"
+              className="w-full h-full rounded-full object-cover cursor-pointer hover:scale-105 transition-transform duration-300 shadow-lg ring-4 ring-white"
               onClick={viewProfilePicture}
               title="Click to view full size"
               onError={(e) => {
-                // If image fails to load, you can add a fallback here
                 console.log("Image failed to load:", e.target.src);
               }}
             />
           ) : (
             <div 
-              className="w-full h-full rounded-full bg-orange-100 flex items-center justify-center cursor-pointer"
+              className="w-full h-full rounded-full bg-gradient-to-br from-orange-100 to-orange-200 flex items-center justify-center cursor-pointer hover:scale-105 transition-transform duration-300 shadow-lg ring-4 ring-white"
               onClick={viewProfilePicture}
             >
               {displayUser?.fullName ? (
-                <span className="text-orange-400 text-2xl font-semibold">
+                <span className="text-3xl font-bold text-orange-600">
                   {displayUser.fullName.charAt(0).toUpperCase()}
                 </span>
               ) : (
-                <FaUser className="text-orange-400" size={50} />
+                <FaUser size={32} className="text-orange-600" />
               )}
             </div>
           )}
 
-          {/* Camera/Upload Button - Only show for own profile */}
           {isOwnProfile && (
             <button
               onClick={triggerFileInput}
               disabled={uploading}
-              className="absolute bottom-2 right-2 bg-orange-500 hover:bg-orange-600 text-white p-2 rounded-full shadow-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              title="Update profile picture"
+              className="absolute bottom-0 right-0 w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center text-white shadow-lg hover:bg-orange-600 transition-colors disabled:opacity-50"
+              title="Change profile picture"
             >
               {uploading ? (
-                <FaSpinner className="animate-spin" size={14} />
+                <FaSpinner className="animate-spin" size={16} />
               ) : (
-                <FaCamera size={14} />
+                <FaCamera size={16} />
               )}
             </button>
           )}
-
-          {/* Hidden file input - Only for own profile */}
-          {isOwnProfile && (
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/jpeg,image/jpg,image/png,image/webp"
-              onChange={handleFileSelect}
-              className="hidden"
-            />
-          )}
         </div>
+
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/jpeg,image/jpg,image/png,image/webp"
+          onChange={handleFileSelect}
+          className="hidden"
+        />
       </div>
 
-      {/* Profile Picture View Modal */}
-      {openPicture && displayUser?.profilePicture?.url && (
-        <div className="fixed inset-0 flex justify-center items-center bg-black/60 z-50">
-          <div onClick={closePictureModal} className="fixed inset-0"></div>
-          <div className="relative">
+      {/* Full Size Image Modal */}
+      {openPicture && (
+        <div 
+          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4"
+          onClick={closePictureModal}
+        >
+          <div className="relative max-w-2xl max-h-[80vh] bg-white rounded-2xl shadow-2xl overflow-hidden">
             <button
               onClick={closePictureModal}
-              className="absolute top-4 right-4 bg-white hover:bg-white/30 text-black p-2 rounded-full transition-colors z-10 cursor-pointer"
-              title="Close"
+              className="absolute top-4 right-4 z-10 w-10 h-10 bg-black/50 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-black/70 transition-colors"
             >
-              <FaTimes size={20} />
+              <FaTimes size={16} />
             </button>
             <img
-              key={displayUser.profilePicture.url} // Add key here too
-              className="h-fit w-[75vw] sm:w-[60vw] md:w-[50vw] lg:w-[40vw] z-10 rounded-lg shadow-md outline-2 outline-orange-500 outline-offset-2"
-              src={displayUser.profilePicture.url}
-              alt="profile"
+              src={displayUser?.profilePicture?.url}
+              alt="Profile"
+              className="w-full h-full object-contain"
+              onClick={(e) => e.stopPropagation()}
             />
           </div>
         </div>
       )}
 
-      {/* Image Crop Modal - Only show for own profile */}
-      {isOwnProfile && showCropModal && imageSrc && (
-        <div className="fixed inset-0 flex justify-center items-center bg-black/80 z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
-            {/* Header */}
-            <div className="flex items-center justify-between p-4 border-b border-gray-200">
-              <div className="flex items-center space-x-2">
-                <FaCrop className="text-orange-500" size={20} />
-                <h2 className="text-lg font-semibold text-gray-800">
-                  Crop Profile Picture
-                </h2>
+      {/* Crop Modal */}
+      {showCropModal && (
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[80vh] overflow-hidden">
+            <div className="p-4 border-b border-gray-200">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold text-gray-900">Crop Profile Picture</h3>
+                <button
+                  onClick={closeCropModal}
+                  className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
+                >
+                  <FaTimes size={16} />
+                </button>
               </div>
-              <button
-                onClick={closeCropModal}
-                className="text-gray-400 hover:text-gray-600 transition-colors"
-              >
-                <FaTimes size={20} />
-              </button>
             </div>
 
-            {/* Crop Area */}
-            <div className="p-4 max-h-[70vh] overflow-auto">
+            <div className="p-6 max-h-96 overflow-auto">
               <div className="flex justify-center">
                 <ReactCrop
                   crop={crop}
-                  onChange={(c) => setCrop(c)}
-                  onComplete={(c) => setCompletedCrop(c)}
+                  onChange={(newCrop) => setCrop(newCrop)}
+                  onComplete={(newCrop) => setCompletedCrop(newCrop)}
                   aspect={1}
-                  minWidth={100}
-                  minHeight={100}
-                  keepSelection
-                  ruleOfThirds
+                  className="max-w-full"
                 >
                   <img
                     ref={imgRef}
-                    alt="Crop me"
                     src={imageSrc}
-                    style={{ maxHeight: "60vh", maxWidth: "100%" }}
-                    onLoad={(e) => onImageLoad(e.currentTarget)}
+                    alt="Crop preview"
+                    className="max-w-full h-auto"
                   />
                 </ReactCrop>
               </div>
 
-              {/* Instructions */}
               <div className="mt-4 text-center text-sm text-gray-600">
-                <p>
-                  Drag the corners to adjust the crop area. The image will be
-                  cropped to a square.
-                </p>
+                <p>Drag the corners to adjust the crop area. The image will be cropped to a square.</p>
               </div>
             </div>
 
-            {/* Footer */}
             <div className="flex items-center justify-end space-x-3 p-4 border-t border-gray-200 bg-gray-50">
               <button
                 onClick={closeCropModal}
-                className="px-4 py-2 text-gray-600 hover:text-gray-800 border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors"
+                className="px-4 py-2 text-gray-600 hover:text-gray-800 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={handleCropConfirm}
-                disabled={!completedCrop}
+                disabled={!completedCrop || uploading}
                 className="flex items-center space-x-2 px-6 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
-                <FaCheck size={14} />
-                <span>Crop & Upload</span>
+                {uploading ? (
+                  <>
+                    <FaSpinner className="animate-spin" size={14} />
+                    <span>Uploading...</span>
+                  </>
+                ) : (
+                  <>
+                    <FaCheck size={14} />
+                    <span>Crop & Upload</span>
+                  </>
+                )}
               </button>
             </div>
           </div>
 
-          {/* Hidden canvas for generating cropped image */}
           <canvas ref={previewCanvasRef} style={{ display: "none" }} />
         </div>
       )}

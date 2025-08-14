@@ -269,7 +269,7 @@ const PostsSection = ({ user, isOwnProfile = true }) => {
   };
 
   const PostCard = ({ post, showMenu = true }) => (
-    <div className="border border-gray-200 rounded-lg p-4 hover:border-orange-200 transition-colors">
+    <div className="bg-white border border-gray-200 rounded-lg p-4 hover:border-orange-200 transition-colors">
       {/* Post Header */}
       <div className="flex items-center gap-3 mb-3">
         {post.author?.profilePicture?.url ? (
@@ -371,7 +371,7 @@ const PostsSection = ({ user, isOwnProfile = true }) => {
 
   if (loading) {
     return (
-      <div className="w-full bg-white rounded-lg shadow-md border border-orange-100 p-4">
+      <div className="w-full bg-white rounded-lg border border-orange-100 p-4">
         <h2 className="text-2xl font-bold text-orange-600 mb-4 border-b border-orange-200 pb-2">
           {isOwnProfile ? 'Your Posts' : `${user?.fullName}'s Posts`}
         </h2>
@@ -385,7 +385,7 @@ const PostsSection = ({ user, isOwnProfile = true }) => {
 
   return (
     <>
-      <div className="w-full bg-white rounded-lg shadow-md border border-orange-100 p-4">
+      <div className="w-full">
         <div className="flex items-center justify-between mb-4 border-b border-orange-200 pb-2">
           <h2 className="text-2xl font-bold text-orange-600 flex items-center gap-2">
             <FaClipboard />
@@ -398,7 +398,7 @@ const PostsSection = ({ user, isOwnProfile = true }) => {
             {totalPosts > 1 && (
               <button
                 onClick={handleShowAllPosts}
-                className="flex items-center gap-2 px-3 py-1 text-sm bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors"
+                className="flex items-center gap-2 px-3 py-1 text-md bg-orange-400 text-white rounded-lg hover:bg-orange-500 transition-colors cursor-pointer"
               >
                 <FaExpand size={12} />
                 <span>Show All</span>
