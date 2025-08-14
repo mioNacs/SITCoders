@@ -1,8 +1,10 @@
 import React, { useState } from "react";
-import { FaPen, FaCheck, FaTimes, FaSpinner } from "react-icons/fa";
+import { FaSpinner } from "react-icons/fa";
+import { FiEdit2, FiSave, FiX } from "react-icons/fi";
 import { useAuth } from "../../context/AuthContext";
+import ShareButton from "./ShareButton";
 
-const ProfileHeader = ({ showDialog }) => {
+const ProfileHeader = ({ showDialog, profileUser }) => {
   const { user, updateUser } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -55,8 +57,9 @@ const ProfileHeader = ({ showDialog }) => {
       return;
     }
 
-    const usernameRegex = /^[a-zA-Z0-9_]+$/; // Regex to allow only letters, numbers, and underscores
-    if (!usernameRegex.test(formData.username)) {
+    // Username validation (alphanumeric + underscore only)
+    const usernamePattern = /^[a-zA-Z0-9_]+$/;
+    if (!usernamePattern.test(formData.username)) {
       showDialog(
         "Invalid Username",
         "Username can only contain letters, numbers, and underscores.",
@@ -65,7 +68,7 @@ const ProfileHeader = ({ showDialog }) => {
       return;
     }
 
-    if (formData.username.length < 3) {
+    if (formData.username.trim().length < 3) {
       showDialog(
         "Username too short",
         "Username must be at least 3 characters long.",
@@ -109,21 +112,42 @@ const ProfileHeader = ({ showDialog }) => {
   };
 
   return (
-    <div className="relative w-full bg-gradient-to-r from-orange-400 to-orange-500 h-48 rounded-t-lg">
+    <div className="relative h-32 bg-gradient-to-br from-orange-400 via-orange-500 to-orange-600 overflow-hidden">
+      {/* Decorative elements */}
+      <div className="absolute inset-0 bg-black/10"></div>
+      <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full bg-white/10"></div>
+      <div className="absolute -bottom-4 -left-4 w-24 h-24 rounded-full bg-orange-300/30"></div>
+      
       {!isEditing ? (
         // View Mode
+        <div className="z-50 relative top-4 right-4 flex flex-col gap-2 items-end">
         <button
           onClick={handleEditClick}
-          className="absolute right-4 bottom-4 flex gap-2 items-center bg-white text-orange-500 px-3 py-2 rounded-md shadow-sm hover:bg-orange-50 transition-colors cursor-pointer"
+          className="flex items-center gap-2 bg-white/20 backdrop-blur-sm text-white px-3 py-2 rounded-lg shadow-sm hover:bg-white/30 transition-all duration-200 border border-white/20 cursor-pointer"
         >
-          <FaPen size={14} />
-          <span className="font-medium">Edit profile</span>
+          <FiEdit2 size={16} />
+          <span className="text-sm font-medium">Edit Profile</span>
         </button>
+        <ShareButton 
+          user={profileUser}
+          isOwnProfile={true}
+        />
+        </div>
       ) : (
-        // Edit Mode
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="bg-white bg-opacity-95 rounded-lg p-6 shadow-lg w-full max-w-md mx-4">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">Edit Profile</h3>
+        // Edit Mode Overlay
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-md mx-4 shadow-2xl">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">Edit Profile</h3>
+              <button
+                onClick={handleCancel}
+                disabled={loading}
+                className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
+              >
+                <FiX size={20} />
+              </button>
+            </div>
+
             <div className="space-y-4">
               {/* Full Name Input */}
               <div>
@@ -136,7 +160,7 @@ const ProfileHeader = ({ showDialog }) => {
                   name="fullName"
                   value={formData.fullName}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none"
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all duration-200"
                   placeholder="Enter your full name"
                   disabled={loading}
                 />
@@ -153,7 +177,7 @@ const ProfileHeader = ({ showDialog }) => {
                   name="username"
                   value={formData.username}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none"
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all duration-200"
                   placeholder="Enter your username"
                   disabled={loading}
                 />
@@ -164,29 +188,28 @@ const ProfileHeader = ({ showDialog }) => {
             </div>
 
             {/* Action Buttons */}
-            <div className="flex justify-end space-x-2 mt-6">
+            <div className="flex justify-end space-x-3 mt-6">
               <button
                 onClick={handleCancel}
                 disabled={loading}
-                className="px-4 py-2 text-gray-600 hover:text-gray-800 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors disabled:opacity-50 cursor-pointer"
+                className="px-4 py-2 text-gray-600 hover:text-gray-800 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
               >
-                <FaTimes size={14} className="inline mr-1" />
                 Cancel
               </button>
               <button
                 onClick={handleSave}
                 disabled={loading}
-                className="px-4 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600 transition-colors disabled:opacity-50 flex items-center cursor-pointer"
+                className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors disabled:opacity-50 flex items-center gap-2 min-w-[80px] justify-center"
               >
                 {loading ? (
                   <>
-                    <FaSpinner className="animate-spin mr-2" size={14} />
-                    Saving...
+                    <FaSpinner className="animate-spin" size={14} />
+                    <span>Saving...</span>
                   </>
                 ) : (
                   <>
-                    <FaCheck size={14} className="mr-1" />
-                    Save
+                    <FiSave size={16} />
+                    <span>Save</span>
                   </>
                 )}
               </button>

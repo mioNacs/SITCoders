@@ -87,115 +87,113 @@ const ProfileInfo = ({ user, isAdmin, adminRole, showDialog, isOwnProfile = true
   };
 
   return (
-    <div className="pt-20 pb-6 w-full">
-      <h1 className="flex items-center gap-2 text-2xl font-bold text-gray-800">
-        {user?.fullName || "Unknown User"}
-        {/* only for admins */}
-        {isAdmin && (adminRole === "superadmin") && (
-          <FaCrown className="text-orange-400" />
-        )}
-        {isAdmin && (adminRole === "admin") && (
-          <FaCrown className="text-blue-400" />
-        )}
-      </h1>
-      <p className="text-orange-500 font-medium">
-        @{user?.username || "username"}
-      </p>
-
-      <div className="mt-6 space-y-3 text-gray-600">
-        {/* Only show email for own profile */}
-        {isOwnProfile && (
-          <div className="flex items-center gap-3">
-            <FaEnvelope className="text-orange-400" />
-            <span>{user?.email || "email@example.com"}</span>
+    <div className="text-center">
+      {/* User Name with Admin Badge */}
+      <div className="flex items-center justify-center gap-2 mb-2">
+        <h1 className="text-2xl font-bold text-gray-900">
+          {user?.fullName || "Unknown User"}
+        </h1>
+        {isAdmin && adminRole && (
+          <div className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${
+            adminRole === "superadmin" 
+              ? "bg-gradient-to-r from-orange-100 to-orange-200 text-orange-700 border border-orange-300" 
+              : "bg-gradient-to-r from-blue-100 to-blue-200 text-blue-700 border border-blue-300"
+          }`}>
+            <FaCrown className={adminRole === "superadmin" ? "text-orange-500" : "text-blue-500"} size={12} />
+            <span className="capitalize">{adminRole}</span>
           </div>
         )}
-        <div className="flex items-center gap-3">
-          <FaCalendarAlt className="text-orange-400" />
-          <span>Joined {formatJoinDate(user?.createdAt)}</span>
-        </div>
       </div>
 
-      <div className="mt-6 pt-4 border-t border-orange-100">
-        <div className="flex justify-between items-start mb-2">
-          <h3 className="font-medium text-gray-700">Bio</h3>
-          {/* Only show edit button for own profile */}
-          {isOwnProfile && !isEditingBio && (
-            <button 
-              onClick={handleEditBio}
-              className="flex items-center gap-2 bg-orange-500 text-white p-2 px-3 rounded-lg cursor-pointer hover:bg-orange-600 transition-colors"
-            >
-              <FaPen size={12} /> 
-              Update Bio
-            </button>
-          )}
-        </div>
+      {/* Username */}
+      <p className="text-gray-600 mb-4">@{user?.username || "username"}</p>
 
-        {!isEditingBio ? (
-          // Display Mode
-          <p className="text-gray-600 leading-relaxed">
-            {user?.bio || "No bio available"}
-          </p>
-        ) : (
-          // Edit Mode (only for own profile)
-          isOwnProfile && (
-            <div className="space-y-3">
-              <div className="relative">
-                <textarea
-                  value={bioText}
-                  onChange={handleBioChange}
-                  placeholder="Write something about yourself..."
-                  className="w-full p-3 border border-gray-300 rounded-lg resize-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                  rows={4}
-                  disabled={loading}
-                />
-                
-                {/* Character Counter */}
-                <div className="absolute bottom-2 right-2 text-xs text-gray-500 bg-white px-1">
-                  <span className={getRemainingBytes() < 0 ? 'text-red-500' : ''}>
-                    {getBioByteSize()}/200 bytes
-                  </span>
-                </div>
-              </div>
-
-              {/* Validation Message */}
-              {getRemainingBytes() < 0 && (
-                <p className="text-red-500 text-sm">
-                  Bio exceeds maximum length by {Math.abs(getRemainingBytes())} bytes
-                </p>
-              )}
-
-              {/* Action Buttons */}
-              <div className="flex justify-end space-x-2">
-                <button
-                  onClick={handleCancelEdit}
-                  disabled={loading}
-                  className="px-4 py-2 text-gray-600 hover:text-gray-800 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 flex items-center gap-1"
-                >
-                  <FaTimes size={12} />
-                  Cancel
-                </button>
-                <button
-                  onClick={handleSaveBio}
-                  disabled={loading || getRemainingBytes() < 0 || !bioText.trim()}
-                  className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
-                >
-                  {loading ? (
-                    <>
-                      <FaSpinner className="animate-spin" size={12} />
-                      Saving...
-                    </>
-                  ) : (
-                    <>
-                      <FaCheck size={12} />
-                      Save Bio
-                    </>
-                  )}
-                </button>
+      {/* Bio Section */}
+      <div className="mb-6">
+        {isEditingBio ? (
+          <div className="space-y-3">
+            <div className="relative">
+              <textarea
+                value={bioText}
+                onChange={handleBioChange}
+                placeholder="Tell us about yourself..."
+                className="w-full p-3 border border-gray-200 rounded-xl resize-none focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all duration-200"
+                rows={3}
+                disabled={loading}
+              />
+              <div className={`absolute bottom-2 right-3 text-xs ${
+                getRemainingBytes() < 20 ? 'text-red-500' : 'text-gray-400'
+              }`}>
+                {getRemainingBytes()} bytes remaining
               </div>
             </div>
-          )
+            
+            {getRemainingBytes() < 0 && (
+              <p className="text-red-500 text-sm">
+                Bio exceeds maximum length by {Math.abs(getRemainingBytes())} bytes
+              </p>
+            )}
+            
+            <div className="flex justify-center space-x-2">
+              <button
+                onClick={handleCancelEdit}
+                disabled={loading}
+                className="flex items-center gap-1 px-3 py-2 text-gray-600 hover:text-gray-800 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
+              >
+                <FaTimes size={12} />
+                Cancel
+              </button>
+              <button
+                onClick={handleSaveBio}
+                disabled={loading || getRemainingBytes() < 0 || !bioText.trim()}
+                className="flex items-center gap-2 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 disabled:opacity-50 transition-colors min-w-[100px] justify-center"
+              >
+                {loading ? (
+                  <>
+                    <FaSpinner className="animate-spin" size={12} />
+                    <span>Saving...</span>
+                  </>
+                ) : (
+                  <>
+                    <FaCheck size={12} />
+                    <span>Save Bio</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="group relative">
+            <p className="text-gray-700 leading-relaxed mb-2 min-h-[1.5rem]">
+              {user?.bio || "No bio available"}
+            </p>
+            {isOwnProfile && (
+              <button
+                onClick={handleEditBio}
+                className="opacity-0 group-hover:opacity-100 flex items-center gap-1 text-sm text-orange-600 hover:text-orange-700 transition-all duration-200 mx-auto"
+              >
+                <FaPen size={12} />
+                Edit bio
+              </button>
+            )}
+          </div>
         )}
+      </div>
+
+      {/* User Details */}
+      <div className="space-y-3 text-sm">
+        {/* Only show email for own profile */}
+        {isOwnProfile && (
+          <div className="flex items-center justify-center gap-2 text-gray-600">
+            <FaEnvelope className="text-orange-500" size={16} />
+            <span>{user?.email || "No email"}</span>
+          </div>
+        )}
+        
+        <div className="flex items-center justify-center gap-2 text-gray-600">
+          <FaCalendarAlt className="text-orange-500" size={16} />
+          <span>Joined {formatJoinDate(user?.createdAt)}</span>
+        </div>
       </div>
     </div>
   );

@@ -104,7 +104,7 @@ function UserProfile() {
     }
   }, [username, isOwnProfile, currentUser]);
 
-  // Check admin status (only for own profile)
+  // Check admin status for both own and other profiles
   useEffect(() => {
     if (authLoading) return;
 
@@ -114,9 +114,9 @@ function UserProfile() {
     }
 
     const checkAdminStatus = async () => {
-      if (isOwnProfile && currentUser?.email) {
+      if (profileUser?.email) {
         try {
-          const adminStatus = await verifyIsAdmin(currentUser.email);
+          const adminStatus = await verifyIsAdmin(profileUser.email);
           setIsAdmin(adminStatus.isAdmin);
           setAdminRole(adminStatus.role);
         } catch (error) {
@@ -130,8 +130,10 @@ function UserProfile() {
       }
     };
 
-    checkAdminStatus();
-  }, [currentUser, isAuthenticated, authLoading, navigate, isOwnProfile]);
+    if (profileUser) {
+      checkAdminStatus();
+    }
+  }, [profileUser, isAuthenticated, authLoading, navigate]);
 
   if (authLoading || loading) {
     return (
@@ -164,65 +166,76 @@ function UserProfile() {
 
   return (
     <>
-      <div className="pt-20 bg-orange-50 min-h-screen select-none">
-        <div className="flex flex-col md:flex-row gap-6 md:max-w-[90%] lg:max-w-[80%] mx-auto pb-8 px-4">
-          <div className="w-full h-full md:w-[40%] order-2 md:order-1">
-            {/* Posts Section */}
-            <PostsSection 
-              user={profileUser}
-              isOwnProfile={isOwnProfile}
-            />
-          </div>
+      <div className="pt-4 min-h-screen bg-orange-50">
+        <div className="pt-16 pb-8">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              {/* Profile Card - Takes up 1 column on large screens */}
+              <div className="lg:col-span-1 order-1 lg:order-1">
+                <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden sticky top-6">
+                  {/* Profile Header Background */}
+                  {isOwnProfile ? (
+                    <ProfileHeader 
+                      user={profileUser} 
+                      updateUser={updateUser}
+                      showDialog={showDialog}
+                    />
+                  ) : (
+                    <div className="relative h-32 bg-gradient-to-br from-orange-400 via-orange-500 to-orange-600">
+                      <div className="absolute inset-0 bg-black/10"></div>
+                      <div className="absolute top-4 right-4">
+                        <ShareButton 
+                          user={profileUser} 
+                          isOwnProfile={false}
+                        />
+                      </div>
+                    </div>
+                  )}
 
-          {/* Profile Section */}
-          <div className="w-full md:w-[60%] bg-white rounded-lg shadow-md border border-orange-100 overflow-hidden order-1 md:order-2">
-            {/* Profile Header - Only show edit for own profile */}
-            {isOwnProfile ? (
-              <ProfileHeader 
-                user={profileUser} 
-                updateUser={updateUser}
-                showDialog={showDialog}
-              />
-            ) : (
-              <div className="relative w-full bg-gradient-to-r from-orange-400 to-orange-500 h-48 rounded-t-lg">
-                {/* Share Button for other users' profiles */}
-                <div className="absolute right-4 bottom-4">
-                  <ShareButton 
-                    user={profileUser} 
-                    isOwnProfile={false}
-                  />
+                  {/* Profile Content */}
+                  <div className="relative px-6 pb-6">
+                    {/* Profile Picture */}
+                    <div className="flex justify-center -mt-16 mb-4">
+                      <ProfilePicture 
+                        user={profileUser} 
+                        updateUser={updateUser}
+                        showDialog={showDialog}
+                        isOwnProfile={isOwnProfile}
+                      />
+                    </div>
+
+                    {/* Profile Information */}
+                    <ProfileInfo 
+                      user={profileUser} 
+                      isAdmin={isAdmin}
+                      adminRole={adminRole}
+                      updateUser={updateUser}
+                      showDialog={showDialog}
+                      isOwnProfile={isOwnProfile}
+                    />
+
+                    {/* Action Buttons - Moved to bottom of profile card for better UX */}
+                    {isOwnProfile && (
+                      <div className="mt-6 pt-6 border-t border-gray-100">
+                        <ActionButtons 
+                          user={profileUser}
+                          isAdmin={isAdmin}
+                          showDialog={showDialog}
+                          onLogout={handleLogout}
+                        />
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
-            )}
 
-            <div className="flex px-6 relative">
-              {/* Action Buttons - Only show for own profile */}
-              {isOwnProfile && (
-                <ActionButtons 
+              {/* Posts Section - Takes up 2 columns on large screens */}
+              <div className="lg:col-span-2 order-2 lg:order-2">
+                <PostsSection 
                   user={profileUser}
-                  isAdmin={isAdmin}
-                  showDialog={showDialog}
-                  onLogout={handleLogout}
+                  isOwnProfile={isOwnProfile}
                 />
-              )}
-
-              {/* Profile Picture - Always use ProfilePicture component */}
-              <ProfilePicture 
-                user={profileUser} 
-                updateUser={updateUser}
-                showDialog={showDialog}
-                isOwnProfile={isOwnProfile}
-              />
-
-              {/* Profile Information */}
-              <ProfileInfo 
-                user={profileUser} 
-                isAdmin={isAdmin}
-                adminRole={adminRole}
-                updateUser={updateUser}
-                showDialog={showDialog}
-                isOwnProfile={isOwnProfile}
-              />
+              </div>
             </div>
           </div>
         </div>

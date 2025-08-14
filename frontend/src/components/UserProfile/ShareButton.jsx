@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FaShare } from 'react-icons/fa';
+import { FiShare2 } from 'react-icons/fi';
 import ShareProfileModal from './ShareProfileModal';
 
 const ShareButton = ({ user, isOwnProfile, className = '' }) => {
@@ -17,11 +17,10 @@ const ShareButton = ({ user, isOwnProfile, className = '' }) => {
     <>
       <button
         onClick={handleShareClick}
-        className={`flex items-center cursor-pointer gap-2 bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition-all duration-200 shadow-sm hover:shadow-md transform ${className}`}
+        className={`flex items-center gap-2 bg-white/20 backdrop-blur-sm text-white px-4 py-2 rounded-xl shadow-sm hover:bg-white/30 transition-all duration-200 border border-white/20 cursor-pointer ${className}`}
         title={isOwnProfile ? 'Share your profile' : `Share ${user?.fullName}'s profile`}
       >
-        <FaShare size={14} />
-        <span className="font-medium">Share</span>
+        <FiShare2 size={24} />
       </button>
 
       <ShareProfileModal

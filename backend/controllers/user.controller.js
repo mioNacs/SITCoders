@@ -607,7 +607,7 @@ const getUser = async (req, res) => {
     const regex = new RegExp(`^${cleanUsername}`, "i"); // Case-insensitive exact match
 
     const user = await User.findOne({ username: regex }).select(
-      "_id username fullName profilePicture popularity bio createdAt"
+      "_id username fullName profilePicture popularity bio createdAt email"
     );
 
     if (!user) {
