@@ -234,10 +234,10 @@ const suspendAccount = async (req, res) => {
       return res.status(404).json({message  : "User not found"})
     }
 
-    const admin = await Admin.findById({ admin: user._id });
-    if(admin){
-      return res.status(403).json({message : "You cannot suspend an admin account"})
-    }
+    // const admin = await Admin.findById({ admin: user._id });
+    // if(admin){
+    //   return res.status(403).json({message : "You cannot suspend an admin account"})
+    // }
 
     if(durationIn === 'hours'){
         user.suspensionEnd = new Date(Date.now() + duration * 60 * 60 * 1000);
@@ -259,7 +259,7 @@ const suspendAccount = async (req, res) => {
     }
     user.isSuspended = true;
     await user.save();
-
+    return res.status(200).json({message : "User suspended successfully"})
   } catch (error) {
     console.error("Error suspending account:", error.message);
     return res.status(500).json({message : "Internal server error"})
