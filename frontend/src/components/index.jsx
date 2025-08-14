@@ -12,5 +12,6 @@ import Collaborate from "./Collaborate/Collaborate";
 import ContactAdmin from "./ContactAdmin/ContactAdmin"
 import UserProfile from "./UserProfile/UserProfile"
 import AdminDashboard from "./AdminDashboard/AdminDashboard";
+import Settings from "./Settings/Settings";
 
-export {Header, Landing, Home, PostView, Footer, Login, ForgotPassword, Signup, VerifyOTP, Resources, Collaborate, ContactAdmin, UserProfile, AdminDashboard};
+export {Header, Landing, Home, PostView, Footer, Login, ForgotPassword, Signup, VerifyOTP, Resources, Collaborate, ContactAdmin, UserProfile, AdminDashboard, Settings};

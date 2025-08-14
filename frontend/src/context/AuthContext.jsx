@@ -221,6 +221,27 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const deleteAccount = async (password) => {
+    try {
+      const response = await api.delete('/users/delete-account', {
+        data: { password }
+      });
+      
+      if (response.data) {
+        // Clear user data and redirect
+        setUser(null);
+        setIsAuthenticated(false);
+        return { success: true, message: response.data.message };
+      }
+      
+      return { success: false, message: 'Account deletion failed' };
+    } catch (error) {
+      const message = error.response?.data?.message || 'Account deletion failed';
+      console.error('Delete account error:', error);
+      return { success: false, message };
+    }
+  };
+
   const value = {
     user,
     isAuthenticated,
@@ -235,6 +256,7 @@ export const AuthProvider = ({ children }) => {
     sendResetPasswordOtp,
     verifyResetPasswordOtp,
     resetPassword,
+    deleteAccount,
     isLoggedIn: isAuthenticated, // For backward compatibility
   };
 

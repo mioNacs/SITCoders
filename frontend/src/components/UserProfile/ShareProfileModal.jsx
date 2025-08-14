@@ -134,11 +134,8 @@ const ShareProfileModal = ({ isOpen, onClose, user, isOwnProfile }) => {
             </div>
             <div>
               <h3 className="text-lg font-semibold text-gray-800">
-                Share Profile
-              </h3>
-              <p className="text-sm text-gray-500">
                 {isOwnProfile ? 'Share your profile' : `Share ${user?.fullName}'s profile`}
-              </p>
+              </h3>
             </div>
           </div>
           <button
@@ -152,6 +149,7 @@ const ShareProfileModal = ({ isOpen, onClose, user, isOwnProfile }) => {
         {/* Profile Preview */}
         <div className="p-6 bg-gradient-to-r from-orange-50 to-amber-50">
           <div className="flex items-center gap-4 p-4 bg-white rounded-xl shadow-sm">
+            {console.log(user)}
             {user?.profilePicture?.url ? (
               <img
                 src={user.profilePicture.url}

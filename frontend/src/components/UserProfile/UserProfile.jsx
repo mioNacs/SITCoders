@@ -176,7 +176,7 @@ function UserProfile() {
                   {/* Profile Header Background */}
                   {isOwnProfile ? (
                     <ProfileHeader 
-                      user={profileUser} 
+                      profileUser={profileUser} 
                       updateUser={updateUser}
                       showDialog={showDialog}
                     />
