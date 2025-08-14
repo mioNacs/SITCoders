@@ -79,24 +79,24 @@ function Header() {
                 Home
               </NavLink>
               <NavLink
-                to="/queries"
+                to="/Resources"
                 className={({ isActive }) =>
                   `${
                     isActive ? "text-orange-400" : "text-gray-600"
                   } hover:text-orange-400 transition-colors duration-300 ease-in-out`
                 }
               >
-                Queries
+                Resources
               </NavLink>
               <NavLink
-                to="/projects"
+                to="/Collaborate"
                 className={({ isActive }) =>
                   `${
                     isActive ? "text-orange-400" : "text-gray-600"
                   } hover:text-orange-400 transition-colors duration-300 ease-in-out`
                 }
               >
-                Projects
+                Collaborate
               </NavLink>
               <NavLink
                 to="/contact-admin"
@@ -171,7 +171,7 @@ function Header() {
                   Home
                 </NavLink>
                 <NavLink
-                  to="/queries"
+                  to="/Resources"
                   className={({ isActive }) =>
                     `block px-3 py-2 ${
                       isActive ? "text-orange-400" : "text-gray-600"
@@ -179,10 +179,10 @@ function Header() {
                   }
                   onClick={toggleMenu}
                 >
-                  Queries
+                  Resources
                 </NavLink>
                 <NavLink
-                  to="/projects"
+                  to="/Collaborate"
                   className={({ isActive }) =>
                     `block px-3 py-2 ${
                       isActive ? "text-orange-400" : "text-gray-600"
@@ -190,7 +190,7 @@ function Header() {
                   }
                   onClick={toggleMenu}
                 >
-                  Projects
+                  Collaborate
                 </NavLink>
                 <NavLink
                   to="/contact-admin"

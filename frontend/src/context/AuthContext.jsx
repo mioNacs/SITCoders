@@ -173,6 +173,54 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const sendResetPasswordOtp = async (email) => {
+    try {
+      const response = await api.post('/users/send-otp-for-reset-password', { email });
+      
+      if (response.data) {
+        return { success: true, message: response.data.message };
+      }
+      
+      return { success: false, message: 'Failed to send OTP' };
+    } catch (error) {
+      const message = error.response?.data?.message || 'Failed to send OTP';
+      console.error('Send reset password OTP error:', error);
+      return { success: false, message };
+    }
+  };
+
+  const verifyResetPasswordOtp = async (email, otp) => {
+    try {
+      const response = await api.post('/users/verify-otp-for-reset-password', { email, otp });
+      
+      if (response.data) {
+        return { success: true, message: response.data.message };
+      }
+      
+      return { success: false, message: 'OTP verification failed' };
+    } catch (error) {
+      const message = error.response?.data?.message || 'OTP verification failed';
+      console.error('Verify reset password OTP error:', error);
+      return { success: false, message };
+    }
+  };
+
+  const resetPassword = async (newPassword, confirmPassword) => {
+    try {
+      const response = await api.post('/users/reset-password', { newPassword, confirmPassword });
+      
+      if (response.data) {
+        return { success: true, message: response.data.message };
+      }
+      
+      return { success: false, message: 'Password reset failed' };
+    } catch (error) {
+      const message = error.response?.data?.message || 'Password reset failed';
+      console.error('Reset password error:', error);
+      return { success: false, message };
+    }
+  };
+
   const value = {
     user,
     isAuthenticated,
@@ -184,6 +232,9 @@ export const AuthProvider = ({ children }) => {
     resendOtp,
     updateUser,
     checkAuthStatus,
+    sendResetPasswordOtp,
+    verifyResetPasswordOtp,
+    resetPassword,
     isLoggedIn: isAuthenticated, // For backward compatibility
   };
 

@@ -18,7 +18,7 @@ function App() {
     // Redirect logic
     if (isLoggedIn && (location.pathname === '/' || location.pathname === '/login' || location.pathname === '/signup' || location.pathname === '/verify-otp')) {
       navigate('/home');
-    } else if (!isLoggedIn && (location.pathname === '/home' || location.pathname === '/queries' || location.pathname === '/projects' || location.pathname === '/contact-admin' || location.pathname === '/profile' || location.pathname === '/admin-dashboard')) {
+    } else if (!isLoggedIn && (location.pathname === '/home' || location.pathname === '/Resources' || location.pathname === '/Collaborate' || location.pathname === '/contact-admin' || location.pathname === '/profile' || location.pathname === '/admin-dashboard')) {
       navigate('/');
     }
   }, [isLoggedIn, location.pathname, navigate, isLoading]); // Added isLoading to dependencies
