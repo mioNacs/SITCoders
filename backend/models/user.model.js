@@ -64,6 +64,15 @@ const userSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    isSuspended: {
+      type: Boolean,
+      default: false,
+    },
+    suspensionEnd: {
+      type: Date,
+      default: null, // Default to epoch time
+    },
+
   },
   { timestamps: true }
 );

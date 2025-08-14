@@ -222,6 +222,45 @@ const isAdmin = async (req, res) => {
   }
 };
 
+const suspendAccount = async (req, res) => {
+  try {
+    const { email, duration , durationIn} = req.body;
+    if(!email || !duration){
+      return res.status(400).json({message : "Email and duration are required"})
+    }
+    const user = await User.findOne({ email });
+    if(!user){
+      return res.status(404).json({message  : "User not found"})
+    }
+
+    if(durationIn === 'hours'){
+        user.suspensionEnd = new Date(Date.now() + duration * 60 * 60 * 1000);
+    }
+    if(durationIn === 'days'){
+        user.suspensionEnd = new Date(Date.now() + duration * 24 * 60 * 60 * 1000);
+    }
+    if(durationIn === 'weeks'){
+        user.suspensionEnd = new Date(Date.now() + duration * 7 * 24 * 60 * 60 * 1000);
+    }
+    if(durationIn === 'months'){
+        user.suspensionEnd = new Date(Date.now() + duration * 30 * 24 * 60 * 60 * 1000);
+    }
+    if(durationIn === 'years'){
+        user.suspensionEnd = new Date(Date.now() + duration * 365 * 24 * 60 * 60 * 1000);
+    }
+    if(durationIn === 'forever'){
+        user.suspensionEnd = null;
+    }
+    user.isSuspended = true;
+    await user.save();
+
+  } catch (error) {
+    console.error("Error suspending account:", error.message);
+    return res.status(500).json({message : "Internal server error"})
+  }
+
+}
+
 export {
   createAdmin,
   getAllUnverifiedUsers,
@@ -230,4 +269,5 @@ export {
   isAdmin,
   getVerifiedUser,
   removeFromAdmin,
+  suspendAccount,
 };

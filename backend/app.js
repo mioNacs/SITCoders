@@ -5,6 +5,8 @@ import express from 'express';
 import connectDB from './db/index.js';
 import cookieParser from 'cookie-parser';
 import { scheduleCleanup } from './utilities/fileCleanup.js';
+import isSuspended from './middlewares/isSuspended.js';
+import verifyUser from './middlewares/verifyUser.js';
 
 
 const app = express();
@@ -44,11 +46,11 @@ import userRoutes from './routes/user.route.js';
 app.use('/api/users', userRoutes);
 
 import adminRoutes from './routes/admin.route.js';
-app.use('/api/admin', adminRoutes);
+app.use('/api/admin', verifyUser, isSuspended, adminRoutes);
 
 
 import postRoutes from './routes/post.route.js';
-app.use('/api/posts', postRoutes);
+app.use('/api/posts', verifyUser, isSuspended, postRoutes);
 
 import commentRoutes from './routes/comment.route.js';
-app.use('/api/comments', commentRoutes);
+app.use('/api/comments', verifyUser, isSuspended, commentRoutes);
