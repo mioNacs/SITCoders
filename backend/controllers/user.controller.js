@@ -212,7 +212,7 @@ const verifyOtp = async (req, res) => {
       <p>Your email has been <strong>successfully verified</strong>.</p>
       <p>It has been forwarded to the admin for final account verification.</p>
       <p>You will receive another confirmation once your account is fully verified.</p>
-      <p style="margin-top: 30px;">Thank you,<br>The Team</p>
+      <p style="margin-top: 30px;">Thank you,<br>SITCoders Team</p>
     </div>
   `
     );
@@ -836,7 +836,7 @@ const deleteAccount = async (req, res) => {
     </p>
     <p style="margin-top: 25px; font-size: 14px; color: #777;">
       Best wishes,<br>
-      <strong>The Team</strong>
+      <strong>SITCoders Team</strong>
     </p>
   </div>
   `

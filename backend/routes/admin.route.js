@@ -23,7 +23,7 @@ router.post("/isAdmin", isAdmin);
 
 // these routes are protected by verifyUser and verifyAdmin middlewares
 
-router.post("/suspend-account", verifyAdmin, suspendAccount);
+router.post("/suspend-user", verifyAdmin, suspendAccount);
 router.post("/create", verifyAdmin, createAdmin);
 router.get("/unverified-users", verifyAdmin, getAllUnverifiedUsers);
 router.post("/verify-user", verifyAdmin, verifyUserFromAdmin);

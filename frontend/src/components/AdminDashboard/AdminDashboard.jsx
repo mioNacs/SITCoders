@@ -172,7 +172,6 @@ function AdminDashboard() {
         navigate("/");
       } else {
         setAdminStatus(res);
-        console.log(res)
         fetchUnverifiedUsers();
         fetchVerifiedUsers();
       }

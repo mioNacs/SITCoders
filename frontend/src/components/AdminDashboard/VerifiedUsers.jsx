@@ -6,10 +6,12 @@ import {
   FaUsers, 
   FaCalendarAlt,
   FaCrown,
-  FaTimes 
+  FaTimes,
+  FaBan
 } from 'react-icons/fa';
 import { MdVerifiedUser, MdAdminPanelSettings } from 'react-icons/md';
-import { createAdmin, verifyIsAdmin } from '../../services/adminApi';
+import { createAdmin, verifyIsAdmin, suspendUser } from '../../services/adminApi';
+import { useAuth } from '../../context/AuthContext';
 
 const VerifiedUsers = ({ 
   verifiedUsers, 
@@ -20,9 +22,14 @@ const VerifiedUsers = ({
   showDialog,
   adminStatus
 }) => {
+  const { user: currentUser } = useAuth();
   const [createAdminModal, setCreateAdminModal] = useState(false);
+  const [suspendModal, setSuspendModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [creatingAdmin, setCreatingAdmin] = useState(false);
+  const [suspendingUser, setSuspendingUser] = useState(false);
+  const [suspendDuration, setSuspendDuration] = useState('');
+  const [suspendDurationIn, setSuspendDurationIn] = useState('days');
   const [userAdminStatus, setUserAdminStatus] = useState({}); // Store admin status for each user
   const [checkingAdminStatus, setCheckingAdminStatus] = useState(false);
 
@@ -79,6 +86,49 @@ const VerifiedUsers = ({
   const closeCreateAdminModal = () => {
     setCreateAdminModal(false);
     setSelectedUser(null);
+  };
+
+  const openSuspendModal = (user) => {
+    setSelectedUser(user);
+    setSuspendModal(true);
+    setSuspendDuration('');
+    setSuspendDurationIn('days');
+  };
+
+  const closeSuspendModal = () => {
+    setSuspendModal(false);
+    setSelectedUser(null);
+    setSuspendDuration('');
+    setSuspendDurationIn('days');
+  };
+
+  const handleSuspendUser = async () => {
+    if (!selectedUser || (!suspendDuration && suspendDurationIn !== 'forever')) return;
+
+    setSuspendingUser(true);
+    try {
+      await suspendUser(
+        selectedUser.email, 
+        suspendDuration === 'forever' ? 0 : parseInt(suspendDuration), 
+        suspendDurationIn
+      );
+      
+      closeSuspendModal();
+      showDialog(
+        'Success',
+        `${selectedUser.fullName} has been suspended successfully!`,
+        'success'
+      );
+    } catch (error) {
+      console.error('Error suspending user:', error);
+      showDialog(
+        'Error',
+        error.message || 'Failed to suspend user. Please try again.',
+        'error'
+      );
+    } finally {
+      setSuspendingUser(false);
+    }
   };
 
   const handleCreateAdmin = async (role) => {
@@ -240,6 +290,31 @@ const VerifiedUsers = ({
                               </span>
                               )
                               }
+                              
+                              {/* Suspended Status */}
+                              {userItem.isSuspended && (
+                                <span className="bg-red-100 text-red-800 px-2 py-1 rounded-full text-xs font-medium flex items-center space-x-1">
+                                  <FaBan size={10} md:size={12} />
+                                  <span>
+                                    Suspended
+                                    {userItem.suspensionEnd ? (
+                                      <span className="ml-1 font-normal">
+                                        until {new Date(userItem.suspensionEnd).toLocaleDateString('en-US', {
+                                          year: 'numeric',
+                                          month: 'short',
+                                          day: 'numeric',
+                                          hour: '2-digit',
+                                          minute: '2-digit'
+                                        })}
+                                      </span>
+                                    ) : (
+                                      <span className="ml-1 font-normal">
+                                        permanently
+                                      </span>
+                                    )}
+                                  </span>
+                                </span>
+                              )}
                             </div>
                             {userItem.bio && (
                               <div className="mt-2">
@@ -256,21 +331,35 @@ const VerifiedUsers = ({
                             <div className="text-xs md:text-sm text-gray-500">
                               User ID: {userItem._id.slice(-6).toUpperCase()}
                             </div>
-                            <div className="text-xs text-gray-400 mt-1">
-                              Verified Account
-                            </div>
+                            
                           </div>
                           
-                          {/* Create Admin Button - Only show if user is not already an admin and current user has permission */}
-                          {!(currentUserAdminStatus.role === 'superadmin') && (adminStatus?.role=== 'superadmin')  && (
-                            <button
-                              onClick={() => openCreateAdminModal(userItem)}
-                              className="flex items-center justify-center space-x-2 bg-blue-500 text-white px-3 py-2 md:px-4 md:py-2 rounded-lg hover:bg-blue-600 transition-colors transform hover:scale-105 cursor-pointer text-xs md:text-sm w-full sm:w-auto"
-                            >
-                              <MdAdminPanelSettings size={14} md:size={16} />
-                              <span>Make Admin</span>
-                            </button>
-                          )}
+                          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                            {/* Suspend User Button - Show if user is not suspended, not a superadmin, not current user, and current user has admin permission */}
+                            {!userItem.isSuspended && 
+                             (adminStatus?.isAdmin) && 
+                             (!currentUserAdminStatus.isAdmin) &&
+                             (userItem.email !== currentUser?.email) && (
+                              <button
+                                onClick={() => openSuspendModal(userItem)}
+                                className="flex items-center justify-center space-x-2 bg-red-500 text-white px-3 py-2 md:px-4 md:py-2 rounded-lg hover:bg-red-600 transition-colors transform hover:scale-105 cursor-pointer text-xs md:text-sm"
+                              >
+                                <FaBan size={14} md:size={16} />
+                                <span>Suspend</span>
+                              </button>
+                            )}
+                            
+                            {/* Create Admin Button - Only show if user is not already an admin and current user has permission */}
+                            {!(currentUserAdminStatus.role === 'superadmin') && (adminStatus?.role=== 'superadmin')  && (
+                              <button
+                                onClick={() => openCreateAdminModal(userItem)}
+                                className="flex items-center justify-center space-x-2 bg-blue-500 text-white px-3 py-2 md:px-4 md:py-2 rounded-lg hover:bg-blue-600 transition-colors transform hover:scale-105 cursor-pointer text-xs md:text-sm"
+                              >
+                                <MdAdminPanelSettings size={14} md:size={16} />
+                                <span>Make Admin</span>
+                              </button>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -456,6 +545,117 @@ const VerifiedUsers = ({
                   className="px-3 py-2 md:px-4 md:py-2 text-gray-600 hover:text-gray-800 border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors disabled:opacity-50 text-sm md:text-base"
                 >
                   Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Suspend User Modal */}
+      {suspendModal && selectedUser && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+            {/* Modal Header */}
+            <div className="p-4 md:p-6 border-b border-gray-200">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg md:text-xl font-bold text-red-600">
+                  Suspend User Account
+                </h3>
+                <button
+                  onClick={closeSuspendModal}
+                  disabled={suspendingUser}
+                  className="text-gray-400 hover:text-gray-600 p-1 disabled:opacity-50"
+                >
+                  <FaTimes size={16} md:size={20} />
+                </button>
+              </div>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-4 md:p-6">
+              {/* User Info */}
+              <div className="flex items-center space-x-3 mb-4 md:mb-6 p-3 bg-red-50 border border-red-200 rounded-lg">
+                <img
+                  src={
+                    selectedUser.profilePicture?.url ||
+                    selectedUser.profile ||
+                    "https://www.iconpacks.net/icons/2/free-user-icon-3296-thumb.png"
+                  }
+                  alt="Profile"
+                  className="w-10 h-10 md:w-12 md:h-12 rounded-full object-cover border-2 border-white shadow-sm flex-shrink-0"
+                />
+                <div className="min-w-0 flex-1">
+                  <h4 className="font-semibold text-gray-800 text-sm md:text-base truncate">
+                    {selectedUser.fullName}
+                  </h4>
+                  <p className="text-xs md:text-sm text-gray-600 truncate">
+                    @{selectedUser.username} • {selectedUser.email}
+                  </p>
+                </div>
+              </div>
+
+              <p className="text-red-600 mb-4 md:mb-6 text-center text-sm md:text-base font-medium">
+                ⚠️ This action will suspend the user's account and prevent them from posting, commenting, or replying.
+              </p>
+
+              {/* Suspension Duration */}
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Suspension Duration
+                  </label>
+                  <select
+                    value={suspendDurationIn}
+                    onChange={(e) => setSuspendDurationIn(e.target.value)}
+                    disabled={suspendingUser}
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 disabled:bg-gray-100 disabled:opacity-50"
+                  >
+                    <option value="hours">Hours</option>
+                    <option value="days">Days</option>
+                    <option value="weeks">Weeks</option>
+                    <option value="months">Months</option>
+                    <option value="years">Years</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Duration Amount
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    value={suspendDuration}
+                    onChange={(e) => setSuspendDuration(e.target.value)}
+                    disabled={suspendingUser}
+                    placeholder={`Enter number of ${suspendDurationIn}`}
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 disabled:bg-gray-100 disabled:opacity-50"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-4 md:p-6 border-t border-gray-200 bg-gray-50 rounded-b-xl">
+              <div className="flex justify-end space-x-3">
+                <button
+                  onClick={closeSuspendModal}
+                  disabled={suspendingUser}
+                  className="px-3 py-2 md:px-4 md:py-2 text-gray-600 hover:text-gray-800 border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors disabled:opacity-50 text-sm md:text-base"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSuspendUser}
+                  disabled={suspendingUser || (!suspendDuration && suspendDurationIn !== 'forever')}
+                  className="px-3 py-2 md:px-4 md:py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm md:text-base flex items-center space-x-2"
+                >
+                  {suspendingUser && (
+                    <FaSpinner className="animate-spin" size={14} md:size={16} />
+                  )}
+                  <FaBan size={14} md:size={16} />
+                  <span>Suspend User</span>
                 </button>
               </div>
             </div>

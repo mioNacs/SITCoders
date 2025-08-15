@@ -258,6 +258,8 @@ export const AuthProvider = ({ children }) => {
     resetPassword,
     deleteAccount,
     isLoggedIn: isAuthenticated, // For backward compatibility
+    isSuspended: user?.isSuspended || false, // Add suspension status check
+    suspensionEnd: user?.suspensionEnd || null,
   };
 
   return (

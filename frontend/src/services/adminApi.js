@@ -133,3 +133,27 @@ export const rejectUser = async (email) => {
     throw error;
   }
 };
+
+export const suspendUser = async (email, duration, durationIn) => {
+  try {
+    console.log(email, duration, durationIn)
+    const response = await fetch(`${API_BASE_URL}/admin/suspend-user`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email, duration, durationIn })
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Failed to suspend user');
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error suspending user:', error);
+    throw error;
+  }
+};
