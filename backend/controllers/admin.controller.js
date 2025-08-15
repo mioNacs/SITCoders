@@ -88,6 +88,20 @@ const getVerifiedUser = async (req, res) => {
 
     const skip = (page - 1) * limit;
 
+    // First, clean up expired suspensions
+    await User.updateMany(
+      {
+        isSuspended: true,
+        suspensionEnd: { $ne: null, $lt: new Date() }
+      },
+      {
+        $set: { 
+          isSuspended: false,
+          suspensionEnd: null 
+        }
+      }
+    );
+
     const [users, total] = await Promise.all([
       User.find({ isAdminVerified: true })
         .select("-password -__v")
@@ -225,16 +239,19 @@ const isAdmin = async (req, res) => {
 const suspendAccount = async (req, res) => {
   try {
     const { email, duration , durationIn} = req.body;
-    if(!email || !duration){
+    
+    // Validate required fields - duration is not required for 'forever' suspension
+    if(!email || (!duration && durationIn !== 'forever')){
       return res.status(400).json({message : "Email and duration are required"})
     }
+    
     const user = await User.findOne({ email });
 
     if(!user){
       return res.status(404).json({message  : "User not found"})
     }
 
-    const admin = await Admin.findById(user._id);
+    const admin = await Admin.findOne({ admin: user._id });
     if(admin){
       return res.status(403).json({message : "You cannot suspend an admin account"})
     }

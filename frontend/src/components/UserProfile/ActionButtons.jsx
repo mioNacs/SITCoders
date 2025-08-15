@@ -1,7 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { FiSettings, FiLogOut, FiShield, FiShare2 } from 'react-icons/fi';
-import ShareButton from './ShareButton';
 
 const ActionButtons = ({ user, isAdmin, onLogout, showDialog }) => {
   

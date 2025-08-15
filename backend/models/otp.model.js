@@ -84,7 +84,7 @@ otpSchema.methods.sendOtpViaEmail = async function (email, otp) {
       <h2 style="color: #673AB7;">One-Time Password (OTP)</h2>
       <p>Your OTP is <strong>${otp}</strong>. It is valid for <strong>5 minutes</strong>.</p>
       <p>If you did not request this, please ignore this email.</p>
-      <p style="margin-top: 30px;">Thank you,<br>The Team</p>
+      <p style="margin-top: 30px;">Thank you,<br>SITCoders Team</p>
     </div>
   `
     );

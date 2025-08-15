@@ -5,7 +5,7 @@ import "react-image-crop/dist/ReactCrop.css";
 import { useAuth } from "../../context/AuthContext";
 
 const ProfilePicture = ({ user: profileUser, updateUser, showDialog, isOwnProfile = true }) => {
-  const { user: currentUser } = useAuth();
+  const { user: currentUser, isSuspended } = useAuth();
   const [uploading, setUploading] = useState(false);
   const [openPicture, setOpenPicture] = useState(false);
   const [showCropModal, setShowCropModal] = useState(false);
@@ -231,7 +231,7 @@ const ProfilePicture = ({ user: profileUser, updateUser, showDialog, isOwnProfil
             </div>
           )}
 
-          {isOwnProfile && (
+          {isOwnProfile && !isSuspended && (
             <button
               onClick={triggerFileInput}
               disabled={uploading}

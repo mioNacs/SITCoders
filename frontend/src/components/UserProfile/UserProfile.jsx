@@ -14,7 +14,7 @@ import ActionButtons from "./ActionButtons";
 import ShareButton from "./ShareButton";
 
 function UserProfile() {
-  const { user: currentUser, isAuthenticated, isLoading: authLoading, updateUser, logout } = useAuth();
+  const { user: currentUser, isAuthenticated, isLoading: authLoading, updateUser, logout, isSuspended } = useAuth();
   const navigate = useNavigate();
   const { username } = useParams();
 
@@ -174,7 +174,7 @@ function UserProfile() {
               <div className="lg:col-span-1 order-1 lg:order-1">
                 <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden sticky top-6">
                   {/* Profile Header Background */}
-                  {isOwnProfile ? (
+                  {isOwnProfile && !isSuspended ? (
                     <ProfileHeader 
                       profileUser={profileUser} 
                       updateUser={updateUser}

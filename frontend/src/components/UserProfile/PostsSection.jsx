@@ -9,6 +9,7 @@ import {
   FaClipboard,
   FaImage,
   FaTimes,
+  FaBan,
   FaExpand
 } from 'react-icons/fa';
 import { useAuth } from '../../context/AuthContext';
@@ -20,7 +21,7 @@ import SharePostButton from '../Home/SharePostButton';
 import { renderSafeMarkdown } from '../../utils/sanitize';
 
 const PostsSection = ({ user, isOwnProfile = true }) => {
-  const { user: authUser } = useAuth();
+  const { user: authUser, isSuspended, suspensionEnd } = useAuth();
   const [posts, setPosts] = useState([]);
   const [allPosts, setAllPosts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -37,8 +38,10 @@ const PostsSection = ({ user, isOwnProfile = true }) => {
   const [allPostsLoading, setAllPostsLoading] = useState(false);
 
   useEffect(() => {
-    if (user?._id) {
+    if (user?._id && !isSuspended) {
       fetchUserPosts();
+    }else{
+      setLoading(false)
     }
   }, [user, isOwnProfile]);
 
@@ -407,7 +410,32 @@ const PostsSection = ({ user, isOwnProfile = true }) => {
           </div>
         </div>
 
-        {posts.length === 0 ? (
+        {isSuspended ? (
+          <>
+          <div className="flex font-Saira flex-col items-center justify-center h-64 text-orange-700">
+            <FaBan size={48} className="mb-4" />
+            <p className="text-lg font-bold text-center">This account is suspended <br />
+              {suspensionEnd && (
+                <span className='text-md font-medium'>
+                  <span> </span>until {new Date(suspensionEnd).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  })}
+                </span>
+              )}
+            </p>
+            <p className="text-sm text-center">
+              {isOwnProfile
+                ? "You can't use this website while your account is suspended."
+                : "This user is currently suspended and cannot post."
+              }
+            </p>
+          </div>
+          </>
+        ) : posts.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-64 text-gray-400">
             <FaClipboard size={48} className="mb-4" />
             <p className="text-lg font-medium">No posts yet</p>

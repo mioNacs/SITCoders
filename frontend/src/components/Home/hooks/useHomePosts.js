@@ -4,6 +4,7 @@ import { getAllPosts, createPost, deletePost, editPost } from '../../../services
 import { getComments } from '../../../services/commentApi';
 import { toast } from 'react-toastify';
 import { useUrlPagination } from '../../../hooks/useUrlPagination';
+import { useAuth } from '../../../context/AuthContext';
 
 export const useHomePosts = () => {
   const location = useLocation();
@@ -25,6 +26,7 @@ export const useHomePosts = () => {
   const tagFromUrl = (searchParams.get('tag') || '').toLowerCase();
   const initialTag = allowedTags.includes(tagFromUrl) ? tagFromUrl : '';
   const [tag, setTag] = useState(initialTag);
+  const {isSuspended, suspensionEnd} = useAuth()
 
   const fetchPosts = async (page = currentPage, activeTag = tag) => {
     try {
@@ -166,7 +168,11 @@ export const useHomePosts = () => {
 
   // Fetch posts when page changes
   useEffect(() => {
-    fetchPosts(currentPage, tag);
+    if(!isSuspended){
+      fetchPosts(currentPage, tag);
+    }else(
+      setPostsLoading(false)
+    )
   }, [currentPage, tag]);
 
   // Keep URL in sync when tag changes
