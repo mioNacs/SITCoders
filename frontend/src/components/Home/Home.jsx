@@ -14,7 +14,7 @@ import ViewPost from "./ViewPost";
 import Pagination from "../UI/Pagination";
 
 function Home() {
-  const { user, isAuthenticated, isLoading: authLoading } = useAuth();
+  const { user, isAuthenticated, isLoading: authLoading, isSuspended } = useAuth();
   const {
     posts,
     postsLoading,
@@ -177,7 +177,7 @@ function Home() {
             />
 
             {/* Tag Filter */}
-            <div className="flex flex-wrap px-3 py-3 md:py-0 border-y md:border-none border-gray-300  bg-white md:bg-white/0 items-center gap-2">
+            { !isSuspended && (<div className="flex flex-wrap px-3 py-3 md:py-0 border-y md:border-none border-gray-300  bg-white md:bg-white/0 items-center gap-2">
               <button
                 className={`px-3 py-1 rounded-full text-md border transition ${!tag ? 'bg-orange-500 text-white border-orange-500' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'}`}
                 onClick={() => changeTag('')}
@@ -194,6 +194,7 @@ function Home() {
                 </button>
               ))}
             </div>
+            )}
             <PostsFeed
               posts={posts}
               postsLoading={postsLoading}

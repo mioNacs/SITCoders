@@ -340,7 +340,7 @@ const PostsSection = ({ user, isOwnProfile = true }) => {
 
       {/* Post Content - Updated to handle rich text */}
       <div 
-        className="text-gray-700 mb-3 text-sm whitespace-pre-wrap break-words"
+        className="markdown-body text-gray-700 mb-3 text-sm whitespace-pre-wrap break-words"
         dangerouslySetInnerHTML={{ 
           __html: renderSafeMarkdown(post.content) 
         }}

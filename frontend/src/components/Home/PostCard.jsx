@@ -1,4 +1,3 @@
-import React from 'react';
 import { FaUserCircle } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 import PostMenu from './PostMenu';
@@ -67,7 +66,7 @@ const PostCard = ({
 
       {/* Post Content */}
       <div 
-        className="text-gray-700 mb-3 whitespace-pre-wrap break-words"
+        className="markdown-body text-gray-700 mb-3 whitespace-pre-wrap break-words"
         dangerouslySetInnerHTML={{ 
           __html: renderSafeMarkdown(post.content) 
         }}

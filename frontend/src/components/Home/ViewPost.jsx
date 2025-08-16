@@ -90,7 +90,7 @@ function ViewPost({
           
           {/* Post Content with Rich Text Support */}
           <div
-            className="text-gray-700 mb-3 whitespace-pre-wrap break-words"
+            className="markdown-body text-gray-700 mb-3 whitespace-pre-wrap break-words"
             dangerouslySetInnerHTML={{
               __html: renderSafeMarkdown(currentPost.content),
             }}

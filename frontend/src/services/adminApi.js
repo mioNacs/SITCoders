@@ -136,7 +136,6 @@ export const rejectUser = async (email) => {
 
 export const suspendUser = async (email, duration, durationIn) => {
   try {
-    console.log(email, duration, durationIn)
     const response = await fetch(`${API_BASE_URL}/admin/suspend-user`, {
       method: 'POST',
       credentials: 'include',

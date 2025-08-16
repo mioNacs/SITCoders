@@ -143,7 +143,7 @@ const CommentSection = ({ postId, comments, setComments, commentLoading }) => {
           <div className="mb-3 p-2 bg-gray-50 rounded-lg border">
             <div className="text-xs text-gray-500 mb-1">Preview:</div>
             <div 
-              className="text-sm text-gray-700 whitespace-pre-wrap break-words"
+              className="markdown-body text-sm text-gray-700 whitespace-pre-wrap break-words"
               dangerouslySetInnerHTML={{ 
                 __html: renderSafeMarkdown(newComment) 
               }}
