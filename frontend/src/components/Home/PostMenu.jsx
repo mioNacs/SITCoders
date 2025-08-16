@@ -26,7 +26,7 @@ const PostMenu = ({
       </button>
 
       {showPostMenu === post._id && (
-        <div className="absolute z-50 right-0 top-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-10 min-w-[120px]">
+        <div className="absolute z-50 right-0 top-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg min-w-[120px]">
           {/* Edit Button - Only show if user can edit */}
           {canEditPost(post) && (
             <button
