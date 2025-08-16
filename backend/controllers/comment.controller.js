@@ -1,5 +1,6 @@
 import Comment from "../models/comment.model.js";
 import Post from "../models/post.model.js";
+import mongoose, { mongo } from "mongoose";
 
 const createComment = async (req, res) => {
   try {
@@ -39,7 +40,10 @@ const createComment = async (req, res) => {
 
     res
       .status(201)
-      .json({ message: "Comment created successfully", comment: populatedComment });
+      .json({
+        message: "Comment created successfully",
+        comment: populatedComment,
+      });
   } catch (error) {
     console.error("Error creating comment:", error.message);
     return res.status(500).json({ message: "Internal server error" });
@@ -95,7 +99,7 @@ const getParentComment = async (req, res) => {
     if (!postId) {
       return res.status(400).json({ message: "Post ID is required." });
     }
-    
+
     // Fetch parent comments for the given post
     const parentComments = await Comment.find({
       post: postId,
@@ -109,23 +113,25 @@ const getParentComment = async (req, res) => {
     const commentsWithReplies = await Promise.all(
       parentComments.map(async (comment) => {
         const replies = await Comment.find({
-          parentComment: comment._id
+          parentComment: comment._id,
         })
           .select("-__v")
           .populate("user", "fullName username profilePicture")
           .sort({ createdAt: 1 });
-        
+
         return {
           ...comment.toObject(),
-          replies: replies
+          replies: replies,
         };
       })
     );
 
     if (!commentsWithReplies || commentsWithReplies.length === 0) {
-      return res.status(200).json({ message: "No comments found.", parentComment: [] });
+      return res
+        .status(200)
+        .json({ message: "No comments found.", parentComment: [] });
     }
-    
+
     res.status(200).json({ parentComment: commentsWithReplies });
   } catch (error) {
     console.error("Error fetching parent comment:", error.message);
@@ -148,15 +154,19 @@ const deleteComment = async (req, res) => {
     }
 
     if (!comment.user.equals(user._id)) {
-      return res.status(403).json({ message: "You can only delete your own comments." });
+      return res
+        .status(403)
+        .json({ message: "You can only delete your own comments." });
     }
 
-    const repliesDeleted = await Comment.deleteMany({ parentComment: comment._id });
+    const repliesDeleted = await Comment.deleteMany({
+      parentComment: comment._id,
+    });
     await Comment.deleteOne({ _id: comment._id });
 
     res.status(200).json({
       message: "Comment and replies deleted successfully.",
-      repliesDeleted: repliesDeleted.deletedCount
+      repliesDeleted: repliesDeleted.deletedCount,
     });
   } catch (error) {
     console.error("Error deleting comment:", error.message);
@@ -164,9 +174,58 @@ const deleteComment = async (req, res) => {
   }
 };
 
+const updateComment = async (req, res) => {
+  try {
+    const { commentId } = req.params;
+    const content = req.body.content?.trim();
 
-const updateComment = async (req, res) => {};
- 
+    if (!commentId || !content) {
+      return res
+        .status(400)
+        .json({
+          success: false,
+          message: "Comment ID and content are required.",
+        });
+    }
 
+    if (!mongoose.Types.ObjectId.isValid(commentId)) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid Comment ID format." });
+    }
 
-export { createComment, createReply, getParentComment, deleteComment };
+    const comment = await Comment.findOneAndUpdate(
+      { _id: commentId, user: req.user._id },
+      { content },
+      { new: true }
+    );
+
+    if (!comment) {
+      return res
+        .status(404)
+        .json({
+          success: false,
+          message: "Comment not found or not authorized.",
+        });
+    }
+
+    res
+      .status(200)
+      .json({
+        success: true,
+        message: "Comment updated successfully.",
+        comment,
+      });
+  } catch (error) {
+    console.error("Error updating comment:", error);
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};
+
+export {
+  createComment,
+  createReply,
+  getParentComment,
+  deleteComment,
+  updateComment,
+};
