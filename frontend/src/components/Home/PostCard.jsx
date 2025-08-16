@@ -21,6 +21,10 @@ const PostCard = ({
     <div className="border bg-white border-gray-200 md:rounded-lg p-4 hover:border-orange-200 md:shadow-md transition-colors">
       {/* Post Header */}
       <div className="flex items-center gap-3 mb-3">
+        <Link 
+              to={`/profile/${post.author.username}`}
+              className="cursor-pointer"
+        >
         {post.author?.profilePicture?.url ? (
           <img
             src={post.author.profilePicture.url}
@@ -30,6 +34,7 @@ const PostCard = ({
         ) : (
           <FaUserCircle className="w-10 h-10 text-gray-400" />
         )}
+        </Link>
         <div className="flex-1">
           <h4 className="font-semibold text-gray-800">
             <Link 

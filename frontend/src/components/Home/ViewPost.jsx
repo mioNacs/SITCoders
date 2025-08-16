@@ -1,7 +1,8 @@
 import React from "react";
 import { FaTimes, FaUser } from "react-icons/fa";
 import CommentSection from "./CommentSection";
-import { renderSafeMarkdown } from '../../utils/sanitize';
+import { renderSafeMarkdown } from "../../utils/sanitize";
+import { Link } from "react-router-dom";
 
 function ViewPost({
   posts,
@@ -67,27 +68,40 @@ function ViewPost({
       <div className="relative overflow-y-auto">
         <div className="p-6 border-b border-gray-200">
           <div className="flex items-center gap-3 mb-3">
-            {currentPost.author?.profilePicture?.url ? (
-              <img
-                src={currentPost.author.profilePicture.url}
-                alt="user"
-                className="w-10 h-10 rounded-full object-cover"
-              />
-            ) : (
-              <FaUser className="w-10 h-10 text-gray-400 bg-gray-100 rounded-full p-2" />
-            )}
+            <Link
+              to={`/profile/${currentPost.author.username}`}
+              className="cursor-pointer"
+            >
+              {currentPost.author?.profilePicture?.url ? (
+                <img
+                  src={currentPost.author.profilePicture.url}
+                  alt="user"
+                  className="w-10 h-10 rounded-full object-cover"
+                />
+              ) : (
+                <FaUser className="w-10 h-10 text-gray-400 bg-gray-100 rounded-full p-2" />
+              )}
+            </Link>
             <div>
               <h4 className="font-semibold text-gray-800">
-                {currentPost.author?.fullName ||
-                  currentPost.author?.username ||
-                  "Unknown User"}
+                <Link
+                  to={`/profile/${currentPost.author.username}`}
+                  className="font-semibold text-gray-800 hover:text-orange-600 transition-colors"
+                >
+                  {currentPost.author?.fullName ||
+                    currentPost.author?.username ||
+                    "Unknown User"}
+                </Link>
+                {currentPost.beenEdited && (
+                  <span className="text-xs text-gray-500 ml-1">(Edited)</span>
+                )}
               </h4>
               <p className="text-sm text-gray-500">
                 {formatDate(currentPost.createdAt)}
               </p>
             </div>
           </div>
-          
+
           {/* Post Content with Rich Text Support */}
           <div
             className="markdown-body text-gray-700 mb-3 break-words"
@@ -95,7 +109,7 @@ function ViewPost({
               __html: renderSafeMarkdown(currentPost.content),
             }}
           />
-          
+
           {currentPost.postImage?.url && (
             <img
               src={currentPost.postImage.url}

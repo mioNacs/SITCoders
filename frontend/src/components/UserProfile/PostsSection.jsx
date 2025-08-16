@@ -21,7 +21,7 @@ import SharePostButton from '../Home/SharePostButton';
 import { renderSafeMarkdown } from '../../utils/sanitize';
 
 const PostsSection = ({ user, isOwnProfile = true }) => {
-  const { user: authUser, isSuspended, suspensionEnd } = useAuth();
+  const { user: authUser, isSuspended, suspensionEnd, isAdmin } = useAuth();
   const [posts, setPosts] = useState([]);
   const [allPosts, setAllPosts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -136,7 +136,7 @@ const PostsSection = ({ user, isOwnProfile = true }) => {
 
   const handleDeletePost = async (postId) => {
     // Only allow deletion for own posts
-    if (!isOwnProfile) {
+    if (!isOwnProfile && !isAdmin) {
       toast.error("You can only delete your own posts");
       return;
     }
@@ -268,7 +268,7 @@ const PostsSection = ({ user, isOwnProfile = true }) => {
 
   // Check if current user can delete a specific post
   const canDeletePost = (post) => {
-    return isOwnProfile && post.author?._id === authUser?._id;
+    return isAdmin || (isOwnProfile && post.author?._id === authUser?._id);
   };
 
   const PostCard = ({ post, showMenu = true }) => (
@@ -340,7 +340,7 @@ const PostsSection = ({ user, isOwnProfile = true }) => {
 
       {/* Post Content - Updated to handle rich text */}
       <div 
-        className="markdown-body text-gray-700 mb-3 text-sm whitespace-pre-wrap break-words"
+        className="markdown-body text-gray-700 mb-3 text-sm break-words"
         dangerouslySetInnerHTML={{ 
           __html: renderSafeMarkdown(post.content) 
         }}
@@ -520,7 +520,7 @@ const PostsSection = ({ user, isOwnProfile = true }) => {
       )}
 
       {/* Delete Confirmation Modal - Only show for own posts */}
-      {showDeleteConfirm && isOwnProfile && (
+      {showDeleteConfirm && (isOwnProfile || isAdmin) && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[70] p-4">
           <div className="bg-white rounded-xl shadow-2xl w-full max-w-sm">
             <div className="p-6">
