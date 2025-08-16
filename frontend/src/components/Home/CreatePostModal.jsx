@@ -10,6 +10,7 @@ import {
 import { toast } from "react-toastify";
 import EmojiPicker from "emoji-picker-react";
 import { renderSafeMarkdown } from '../../utils/sanitize';
+import { useNavigate } from "react-router-dom";
 
 const CreatePostModal = ({ isOpen, onClose, onSubmit, isAdmin }) => {
   const [newPost, setNewPost] = useState({
@@ -22,6 +23,7 @@ const CreatePostModal = ({ isOpen, onClose, onSubmit, isAdmin }) => {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
   const textareaRef = useRef(null);
+  const navigate = useNavigate();
 
   const getAvailableTags = () => {
     const baseTags = [
@@ -148,6 +150,7 @@ const CreatePostModal = ({ isOpen, onClose, onSubmit, isAdmin }) => {
     }
 
     setCreateLoading(false);
+    navigate('/')
   };
 
   const handleClose = () => {
@@ -233,7 +236,7 @@ const CreatePostModal = ({ isOpen, onClose, onSubmit, isAdmin }) => {
               <div className="mb-4 p-3 bg-gray-50 rounded-lg border">
                 <div className="text-xs text-gray-500 mb-2">Preview:</div>
                 <div 
-                  className="text-sm text-gray-700 whitespace-pre-wrap break-words"
+                  className="markdown-body text-sm text-gray-700 whitespace-pre-wrap break-words"
                   dangerouslySetInnerHTML={{ 
                     __html: renderSafeMarkdown(newPost.content) 
                   }}

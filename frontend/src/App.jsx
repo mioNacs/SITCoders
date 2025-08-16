@@ -6,6 +6,8 @@ import { useAuth } from './context/AuthContext'
 import React from 'react';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import "github-markdown-css/github-markdown.css";
+import "prismjs/themes/prism.css";
 
 function App() {
   const { isLoggedIn, isLoading, isAuthenticated } = useAuth();

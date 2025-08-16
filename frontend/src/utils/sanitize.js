@@ -1,24 +1,25 @@
 import DOMPurify from "dompurify";
 import { marked } from "marked";
 
-// Configure marked to treat single newlines as <br>, enable GFM
-const renderer = new marked.Renderer();
-renderer.link = (href, title, text) => {
-  const t = title ? ` title="${title}"` : "";
-  return `<a href="${href}" target="_blank" rel="noopener noreferrer"${t}>${text}</a>`;
-};
-
-marked.setOptions({
+// Modern API: use marked.use + token-based renderer functions
+marked.use({
   gfm: true,
-  breaks: true, // key: single newlines => <br>
-  renderer,
+  breaks: true,
+  renderer: {
+    link({ href, title, tokens }) {
+      // Convert child inline tokens to HTML (the link text)
+      const text = this.parser.parseInline(tokens) || (href ?? "link");
+      const safeHref = href || "#";
+      const t = title ? ` title="${title}"` : "";
+      return `<a href="${safeHref}" target="_blank" rel="noopener noreferrer"${t}>${text}</a>`;
+    },
+  },
 });
 
-/**
- * Turn user text into sanitized HTML with Markdown + safe links.
- */
 export function renderSafeMarkdown(input) {
   const src = typeof input === "string" ? input : "";
-  const html = marked.parse(src || "");
-  return DOMPurify.sanitize(html);
+  const html = marked.parse(src);
+  return DOMPurify.sanitize(html, {
+  ADD_ATTR: ["target", "rel"], // keep target/rel
+});
 }

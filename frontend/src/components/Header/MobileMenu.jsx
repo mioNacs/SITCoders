@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { Link, NavLink } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { FiUser, FiSettings, FiLogOut, FiX } from 'react-icons/fi';
+import { FaRegUserCircle } from 'react-icons/fa';
 
 const MobileMenu = ({ isMenuOpen, setIsMenuOpen }) => {
   const { isAuthenticated, user, logout } = useAuth();
@@ -82,10 +83,23 @@ const MobileMenu = ({ isMenuOpen, setIsMenuOpen }) => {
               {isAuthenticated ? (
                 <>
                   {/* User Info */}
+                <div className='flex items-center pl-4'>
+                  {user?.profilePicture.url? (
+                      <img
+                        src={user.profilePicture.url}
+                        alt="Profile"
+                        className="w-8 h-8 rounded-full"
+                      />
+                    ) : (
+                        <FaRegUserCircle size={32} 
+                        className="text-gray-600" 
+                      />
+                    )}
                   <div className="px-4 py-3 border-b border-gray-100 bg-gray-50">
                     <p className="font-medium text-gray-900">{user?.fullName}</p>
                     <p className="text-sm text-gray-500">@{user?.username}</p>
                   </div>
+                </div>
 
                   {/* Navigation Links */}
                   <div className="flex-1 py-2">

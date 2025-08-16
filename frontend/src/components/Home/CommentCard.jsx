@@ -192,7 +192,7 @@ const CommentCard = ({ comment, postId, setComments }) => {
         
         {/* Comment Content with Rich Text Support */}
         <div 
-          className="text-gray-700 mb-2 whitespace-pre-wrap break-words"
+          className="markdown-body text-gray-700 mb-2 whitespace-pre-wrap break-words"
           dangerouslySetInnerHTML={{ 
             __html: renderSafeMarkdown(comment.content) 
           }}
@@ -250,7 +250,7 @@ const CommentCard = ({ comment, postId, setComments }) => {
                     
                     {/* Reply Content with Rich Text Support */}
                     <div 
-                      className="text-gray-700 text-sm mb-2 whitespace-pre-wrap break-words"
+                      className="markdown-body text-gray-700 text-sm mb-2 whitespace-pre-wrap break-words"
                       dangerouslySetInnerHTML={{ 
                         __html: renderSafeMarkdown(reply.content) 
                       }}
@@ -282,7 +282,7 @@ const CommentCard = ({ comment, postId, setComments }) => {
               <div className="mb-2 p-2 bg-gray-50 rounded-lg border">
                 <div className="text-xs text-gray-500 mb-1">Preview:</div>
                 <div 
-                  className="text-sm text-gray-700"
+                  className="markdown-body text-sm text-gray-700"
                   dangerouslySetInnerHTML={{ 
                     __html: renderSafeMarkdown(replyContent) 
                   }}
@@ -358,7 +358,7 @@ const CommentCard = ({ comment, postId, setComments }) => {
               <div className="mb-2 p-2 bg-gray-50 rounded-lg border">
                 <div className="text-xs text-gray-500 mb-1">Preview:</div>
                 <div 
-                  className="text-sm text-gray-700"
+                  className="markdown-body text-sm text-gray-700"
                   dangerouslySetInnerHTML={{ 
                     __html: renderSafeMarkdown(replyContent) 
                   }}
