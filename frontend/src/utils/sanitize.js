@@ -18,7 +18,7 @@ marked.use({
 
 export function renderSafeMarkdown(input) {
   const src = typeof input === "string" ? input : "";
-  const html = marked.parse(src);
+  const html = marked.parse(src, { gfm: true, breaks: true });
   return DOMPurify.sanitize(html, {
   ADD_ATTR: ["target", "rel"], // keep target/rel
 });

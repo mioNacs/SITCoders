@@ -157,7 +157,7 @@ const PostView = () => {
             {/* Post Content */}
             <div className="prose prose-gray max-w-none">
               <div
-                className="markdown-body text-gray-800 whitespace-pre-wrap break-words"
+                className="markdown-body text-gray-800 break-words"
                 dangerouslySetInnerHTML={{
                   __html: renderSafeMarkdown(post.content),
                 }}

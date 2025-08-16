@@ -13,5 +13,6 @@ import ContactAdmin from "./ContactAdmin/ContactAdmin"
 import UserProfile from "./UserProfile/UserProfile"
 import AdminDashboard from "./AdminDashboard/AdminDashboard";
 import Settings from "./Settings/Settings";
+import CodeEnhancer from "./UI/CodeEnhancer";
 
-export {Header, Landing, Home, PostView, Footer, Login, ForgotPassword, Signup, VerifyOTP, Resources, Collaborate, ContactAdmin, UserProfile, AdminDashboard, Settings};
+export {Header, Landing, Home, PostView, Footer, Login, ForgotPassword, Signup, VerifyOTP, Resources, Collaborate, ContactAdmin, UserProfile, AdminDashboard, Settings, CodeEnhancer};

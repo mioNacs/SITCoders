@@ -55,3 +55,148 @@
     animation-timeline: view();
     animation-range: entry 0% cover 40%;
 }
+
+/* PrismJS + GitHub Markdown enhancements */
+.markdown-body pre {
+    position: relative;
+}
+
+/* Normalize Markdown list styles (Tailwind/GitHub CSS compatibility) */
+.markdown-body ul,
+.markdown-body ol {
+    margin: 0.5rem 0 0.5rem 1.5rem;
+    padding-left: 1.25rem;
+}
+.markdown-body ul {
+    list-style: disc;
+}
+.markdown-body ol {
+    list-style: decimal;
+}
+.markdown-body li {
+    margin: 0.25rem 0;
+}
+.markdown-body li > p {
+    margin: 0; /* avoid large gaps inside list items */
+}
+
+/* Reduce excessive spacing from line breaks */
+.markdown-body br {
+    line-height: 0.5;
+}
+.markdown-body p {
+    margin: 0.5rem 0;
+    line-height: 1.4;
+}
+
+/* Collapsible long code blocks: show first 5 lines by default */
+.markdown-body pre.collapsible.collapsed {
+    /* Approximate 5 lines + padding; adjust if theme line-height differs */
+    max-height: calc(1.5em * 5 + 2.5rem);
+    overflow: hidden;
+}
+
+.markdown-body pre.collapsible.collapsed::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 3rem;
+    /* fade to background color */
+    /* match Prism light theme background (#f5f2f0) for a smoother fade */
+    background: linear-gradient(to bottom, rgba(245,242,240,0), rgba(245,242,240,1));
+    pointer-events: none;
+}
+
+/* Toolbar placement & style inside code blocks */
+.markdown-body .code-toolbar {
+    position: relative;
+}
+
+.markdown-body .code-toolbar > .toolbar {
+    position: absolute;
+    top: 0.5rem;
+    left: 0.5rem;
+    right: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 0.5rem;
+    opacity: 1; /* ensure visible on hover-less devices */
+}
+
+/* Leave room for toolbar so it doesn't overlap first line */
+.markdown-body pre[class*="language-"] {
+    padding-top: 2rem;
+}
+
+.markdown-body .code-toolbar > .toolbar .toolbar-item {
+    margin: 0;
+}
+
+.markdown-body .code-toolbar > .toolbar .toolbar-item > a,
+.markdown-body .code-toolbar > .toolbar .toolbar-item > button,
+.markdown-body .code-toolbar > .toolbar .toolbar-item > span {
+    background: white; 
+    color: #111827; /* gray-900 */
+    border: 1px solid #e5e7eb; /* gray-200 */
+    /* border-radius: 9999px; pill */
+    padding: 4px 10px;
+    font-size: 12px;
+    line-height: 1.25;
+    text-transform: none;
+    box-shadow: 0 1px 1px rgba(0,0,0,.05);
+    cursor: pointer;
+}
+
+/* Place the show-language label to the left as a chip */
+/* Language label as a left-aligned heading */
+.markdown-body .code-toolbar > .toolbar .toolbar-item:first-child > span {
+    background: transparent;
+    box-shadow: none;
+    font-size: 1rem;
+    border: 0;
+    color: gray;
+    border-bottom: #111827;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    padding-left: 1rem;
+    cursor: default;
+}
+
+/* Push action buttons (Copy, Expand) to the right */
+.markdown-body .code-toolbar > .toolbar .toolbar-item:first-child {
+    margin-right: auto;
+}
+
+/* Copy button with an icon */
+.markdown-body .code-toolbar > .toolbar .toolbar-item > button.with-copy-icon {
+    position: relative;
+    padding-left: 26px;
+}
+.markdown-body .code-toolbar > .toolbar .toolbar-item > button.with-copy-icon::before {
+    content: "";
+    position: absolute;
+    left: 8px;
+    top: 50%;
+    width: 14px;
+    height: 14px;
+    transform: translateY(-50%);
+    background: currentColor;
+    -webkit-mask: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="%23000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>') no-repeat center / contain;
+            mask: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="%23000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>') no-repeat center / contain;
+}
+
+.markdown-body .code-toolbar > .toolbar .toolbar-item > a:hover,
+.markdown-body .code-toolbar > .toolbar .toolbar-item > button:hover {
+    background: #e5e7eb; /* gray-200 */
+}
+
+/* Make the Copy button text clearer when plugin toggles to "Copied!" */
+.markdown-body .code-toolbar > .toolbar .toolbar-item > button:disabled {
+    opacity: 1;
+    background: #d1fae5; /* emerald-100 */
+    border-color: #a7f3d0; /* emerald-200 */
+    color: #065f46; /* emerald-800 */
+}
