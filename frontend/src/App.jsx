@@ -6,11 +6,12 @@ import { useAuth } from './context/AuthContext'
 import React from 'react';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import "github-markdown-css/github-markdown.css";
-import "prismjs/themes/prism.css";
+import CodeEnhancer from './components/UI/CodeEnhancer';
 
 function App() {
   const { isLoggedIn, isLoading, isAuthenticated } = useAuth();
+
+  // CodeEnhancer handles Prism highlighting and code UX globally
   const navigate = useNavigate();
   const location = useLocation();
   useEffect(() => {
@@ -50,6 +51,7 @@ function App() {
   return (
     <div className="App">
       <>
+  <CodeEnhancer />
         <ScrollToTop />
         {isLoggedIn && <Header />}
         <Outlet />
@@ -73,3 +75,4 @@ function App() {
 }
 
 export default App
+

@@ -172,7 +172,7 @@ function UserProfile() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               {/* Profile Card - Takes up 1 column on large screens */}
               <div className="lg:col-span-1 order-1 lg:order-1">
-                <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden sticky top-6">
+                <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden sticky top-6 z-20">
                   {/* Profile Header Background */}
                   {isOwnProfile && !isSuspended ? (
                     <ProfileHeader 

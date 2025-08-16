@@ -1,9 +1,10 @@
 import React, { useState, useRef } from 'react';
-import { FaUser, FaReply, FaSpinner, FaPaperPlane, FaBold, FaItalic, FaSmile, FaTimes } from 'react-icons/fa';
+import { FaUser, FaReply, FaSpinner, FaPaperPlane, FaBold, FaItalic, FaSmile, FaTimes, FaCode } from 'react-icons/fa';
 import { createReply } from '../../services/commentApi';
 import { toast } from 'react-toastify';
 import { useAuth } from '../../context/AuthContext';
 import EmojiPicker from 'emoji-picker-react';
+import { FaEllipsisH } from "react-icons/fa";
 import { renderSafeMarkdown } from '../../utils/sanitize';
 
 const CommentCard = ({ comment, postId, setComments }) => {
@@ -14,6 +15,10 @@ const CommentCard = ({ comment, postId, setComments }) => {
   const [showReplies, setShowReplies] = useState({});
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [replyingToReply, setReplyingToReply] = useState(null);
+  const [showCodeBox, setShowCodeBox] = useState(false);
+  const [codeLanguage, setCodeLanguage] = useState('javascript');
+  const [codeText, setCodeText] = useState('');
+  const [showToolsMenu, setShowToolsMenu] = useState(false);
   
   const textareaRef = useRef(null);
 
@@ -48,6 +53,34 @@ const CommentCard = ({ comment, postId, setComments }) => {
 
   const handleItalic = () => {
     insertTextAtCursor('*', '*', 'italic text');
+  };
+
+  const LANG_OPTIONS = [
+    { value: 'javascript', label: 'JavaScript' },
+    { value: 'jsx', label: 'JSX' },
+    { value: 'typescript', label: 'TypeScript' },
+    { value: 'tsx', label: 'TSX' },
+    { value: 'python', label: 'Python' },
+    { value: 'java', label: 'Java' },
+    { value: 'c', label: 'C' },
+    { value: 'cpp', label: 'C++' },
+    { value: 'sql', label: 'SQL' },
+    { value: 'bash', label: 'Bash' },
+    { value: 'json', label: 'JSON' },
+    { value: 'markdown', label: 'Markdown' },
+    { value: 'css', label: 'CSS' },
+    { value: 'markup', label: 'HTML' },
+    { value: 'text', label: 'Plain text' },
+  ];
+
+  const handleInsertCode = () => {
+    const code = (codeText || '').replace(/\r\n/g, '\n');
+    if (!code.trim()) return;
+    const lang = codeLanguage || 'text';
+    const snippet = `\n\n\`\`\`${lang}\n${code}\n\`\`\`\n\n`;
+    insertTextAtCursor(snippet, '', '');
+    setCodeText('');
+    setShowCodeBox(false);
   };
 
   const handleEmojiClick = (emojiObject) => {
@@ -192,7 +225,7 @@ const CommentCard = ({ comment, postId, setComments }) => {
         
         {/* Comment Content with Rich Text Support */}
         <div 
-          className="markdown-body text-gray-700 mb-2 whitespace-pre-wrap break-words"
+          className="markdown-body text-gray-700 mb-2 break-words"
           dangerouslySetInnerHTML={{ 
             __html: renderSafeMarkdown(comment.content) 
           }}
@@ -250,7 +283,7 @@ const CommentCard = ({ comment, postId, setComments }) => {
                     
                     {/* Reply Content with Rich Text Support */}
                     <div 
-                      className="markdown-body text-gray-700 text-sm mb-2 whitespace-pre-wrap break-words"
+                      className="markdown-body text-gray-700 text-sm mb-2 break-words"
                       dangerouslySetInnerHTML={{ 
                         __html: renderSafeMarkdown(reply.content) 
                       }}
@@ -276,63 +309,75 @@ const CommentCard = ({ comment, postId, setComments }) => {
         {/* Reply form */}
         {replyTo === comment._id && (
           <div className="mt-3 ml-6">
-
             {/* Live Preview for Reply */}
             {replyContent && (
               <div className="mb-2 p-2 bg-gray-50 rounded-lg border">
                 <div className="text-xs text-gray-500 mb-1">Preview:</div>
-                <div 
+                <div
                   className="markdown-body text-sm text-gray-700"
-                  dangerouslySetInnerHTML={{ 
-                    __html: renderSafeMarkdown(replyContent) 
-                  }}
+                  dangerouslySetInnerHTML={{ __html: renderSafeMarkdown(replyContent) }}
                 />
               </div>
             )}
 
             <form onSubmit={handleSubmitReply}>
               <div className="flex gap-2">
-                <textarea
-                  ref={textareaRef}
-                  value={replyContent}
-                  onChange={(e) => setReplyContent(e.target.value)}
-                  placeholder={replyingToReply ? "Reply to this reply..." : "Write a reply..."}
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-orange-400 focus:border-orange-500 outline-none text-sm resize-none font-mono"
-                  disabled={submitting}
-                  rows={2}
-                />
-                {/* Rich Text Toolbar for Reply */}
-            <div className="flex items-center p-2">
-              <button
-                type="button"
-                onClick={handleBold}
-                disabled={submitting}
-                className="p-1 hover:bg-gray-200 rounded transition-colors disabled:opacity-50"
-                title="Bold"
-              >
-                <FaBold className="text-gray-600" size={15} />
-              </button>
-              <button
-                type="button"
-                onClick={handleItalic}
-                disabled={submitting}
-                className="p-1 hover:bg-gray-200 rounded transition-colors disabled:opacity-50"
-                title="Italic"
-              >
-                <FaItalic className="text-gray-600" size={15} />
-              </button>
-              <div className="relative">
-                <button
-                  type="button"
-                  onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                  disabled={submitting}
-                  className="p-1 hover:bg-gray-200 rounded transition-colors disabled:opacity-50"
-                  title="Insert Emoji"
-                >
-                  <FaSmile className="text-gray-600" size={15} />
-                </button>
-              </div>
-            </div>
+                <div className='flex items-center w-full'>
+                  <textarea
+                    ref={textareaRef}
+                    value={replyContent}
+                    onChange={(e) => setReplyContent(e.target.value)}
+                    placeholder="Write your reply..."
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-orange-400 focus:border-orange-500 outline-none text-sm resize-none font-mono"
+                    disabled={submitting}
+                    rows={2}
+                  />
+                  <div className="relative p-2">
+                    <button
+                      type="button"
+                      onClick={() => setShowToolsMenu(v => !v)}
+                      disabled={submitting}
+                      className="p-1 hover:bg-gray-200 rounded transition-colors disabled:opacity-50"
+                      aria-haspopup="menu"
+                      aria-expanded={showToolsMenu}
+                      title="Formatting options"
+                    >
+                      <FaEllipsisH className="text-gray-600" size={16} />
+                    </button>
+                    {showToolsMenu && (
+                      <div className="absolute right-0 bottom-full mb-2 w-40 bg-white border border-gray-200 shadow-lg rounded-md z-10">
+                        <button
+                          type="button"
+                          onClick={() => { handleBold(); setShowToolsMenu(false); }}
+                          className="w-full px-3 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2"
+                        >
+                          <FaBold /> <span>Bold</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => { handleItalic(); setShowToolsMenu(false); }}
+                          className="w-full px-3 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2"
+                        >
+                          <FaItalic /> <span>Italic</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => { setShowCodeBox(s => !s); setShowToolsMenu(false); }}
+                          className="w-full px-3 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2"
+                        >
+                          <FaCode /> <span>Add code</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => { setShowEmojiPicker(!showEmojiPicker); setShowToolsMenu(false); }}
+                          className="w-full px-3 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2"
+                        >
+                          <FaSmile /> <span>Emoji</span>
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
                 <button
                   type="submit"
                   disabled={submitting || !replyContent.trim()}
@@ -346,6 +391,46 @@ const CommentCard = ({ comment, postId, setComments }) => {
                 </button>
               </div>
             </form>
+          </div>
+        )}
+
+        {replyTo === comment._id && showCodeBox && (
+          <div className="mt-2 ml-6 p-3 bg-gray-50 rounded-lg border space-y-3">
+            <div className="flex items-center gap-3">
+              <label className="text-sm text-gray-600">Language</label>
+              <select
+                value={codeLanguage}
+                onChange={(e) => setCodeLanguage(e.target.value)}
+                className="p-2 border border-gray-300 rounded-lg focus:ring focus:ring-orange-500 focus:border-orange-400 outline-none text-sm"
+              >
+                {LANG_OPTIONS.map(opt => (
+                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+                ))}
+              </select>
+            </div>
+            <textarea
+              value={codeText}
+              onChange={(e) => setCodeText(e.target.value)}
+              rows={6}
+              placeholder="Paste or type your code here..."
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring focus:ring-orange-400 focus:border-orange-500 resize-y outline-none font-mono text-sm"
+            />
+            <div className="flex gap-2 justify-end">
+              <button
+                type="button"
+                onClick={() => { setCodeText(''); setShowCodeBox(false); }}
+                className="px-3 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleInsertCode}
+                className="px-3 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600"
+              >
+                Insert code
+              </button>
+            </div>
           </div>
         )}
 
@@ -369,46 +454,60 @@ const CommentCard = ({ comment, postId, setComments }) => {
             <form onSubmit={handleSubmitReply}>
               <div className="flex gap-2">
                 <div className='flex items-center w-full'>
-                <textarea
-                  ref={textareaRef}
-                  value={replyContent}
-                  onChange={(e) => setReplyContent(e.target.value)}
-                  placeholder="Reply to this reply..."
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-orange-400 focus:border-orange-500 outline-none text-sm resize-none font-mono"
-                  disabled={submitting}
-                  rows={2}
-                />
-                <div className="flex items-center mb-2 p-2">
-              <button
-                type="button"
-                onClick={handleBold}
-                disabled={submitting}
-                className="p-1 hover:bg-gray-200 rounded transition-colors disabled:opacity-50 cursor-pointer"
-                title="Bold"
-              >
-                <FaBold className="text-gray-600" size={15} />
-              </button>
-              <button
-                type="button"
-                onClick={handleItalic}
-                disabled={submitting}
-                className="p-1 cursor-pointer hover:bg-gray-200 rounded transition-colors disabled:opacity-50"
-                title="Italic"
-              >
-                <FaItalic className="text-gray-600" size={15} />
-              </button>
-              <div className="relative">
-                <button
-                  type="button"
-                  onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                  disabled={submitting}
-                  className="p-1 cursor-pointer hover:bg-gray-200 rounded transition-colors disabled:opacity-50"
-                  title="Insert Emoji"
-                >
-                  <FaSmile className="text-gray-600" size={15} />
-                </button>
-              </div>
-            </div>
+                  <textarea
+                    ref={textareaRef}
+                    value={replyContent}
+                    onChange={(e) => setReplyContent(e.target.value)}
+                    placeholder="Reply to this reply..."
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-orange-400 focus:border-orange-500 outline-none text-sm resize-none font-mono"
+                    disabled={submitting}
+                    rows={2}
+                  />
+                  <div className="relative p-2">
+                    <button
+                      type="button"
+                      onClick={() => setShowToolsMenu(v => !v)}
+                      disabled={submitting}
+                      className="p-1 cursor-pointer hover:bg-gray-200 rounded transition-colors disabled:opacity-50"
+                      aria-haspopup="menu"
+                      aria-expanded={showToolsMenu}
+                      title="Formatting options"
+                    >
+                      <FaEllipsisH className="text-gray-600" size={16} />
+                    </button>
+                    {showToolsMenu && (
+                      <div className="absolute right-0 bottom-full mb-2 w-40 bg-white border border-gray-200 shadow-lg rounded-md z-10">
+                        <button
+                          type="button"
+                          onClick={() => { handleBold(); setShowToolsMenu(false); }}
+                          className="w-full px-3 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2"
+                        >
+                          <FaBold /> <span>Bold</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => { handleItalic(); setShowToolsMenu(false); }}
+                          className="w-full px-3 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2"
+                        >
+                          <FaItalic /> <span>Italic</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => { setShowCodeBox(s => !s); setShowToolsMenu(false); }}
+                          className="w-full px-3 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2"
+                        >
+                          <FaCode /> <span>Add code</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => { setShowEmojiPicker(!showEmojiPicker); setShowToolsMenu(false); }}
+                          className="w-full px-3 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2"
+                        >
+                          <FaSmile /> <span>Emoji</span>
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
                 <button
                   type="submit"
@@ -423,6 +522,46 @@ const CommentCard = ({ comment, postId, setComments }) => {
                 </button>
               </div>
             </form>
+          </div>
+        )}
+
+        {comment.replies && comment.replies.some(reply => replyTo === reply._id) && showCodeBox && (
+          <div className="mt-2 ml-12 p-3 bg-gray-50 rounded-lg border space-y-3">
+            <div className="flex items-center gap-3">
+              <label className="text-sm text-gray-600">Language</label>
+              <select
+                value={codeLanguage}
+                onChange={(e) => setCodeLanguage(e.target.value)}
+                className="p-2 border border-gray-300 rounded-lg focus:ring focus:ring-orange-500 focus:border-orange-400 outline-none text-sm"
+              >
+                {LANG_OPTIONS.map(opt => (
+                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+                ))}
+              </select>
+            </div>
+            <textarea
+              value={codeText}
+              onChange={(e) => setCodeText(e.target.value)}
+              rows={6}
+              placeholder="Paste or type your code here..."
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring focus:ring-orange-400 focus:border-orange-500 resize-y outline-none font-mono text-sm"
+            />
+            <div className="flex gap-2 justify-end">
+              <button
+                type="button"
+                onClick={() => { setCodeText(''); setShowCodeBox(false); }}
+                className="px-3 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleInsertCode}
+                className="px-3 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600"
+              >
+                Insert code
+              </button>
+            </div>
           </div>
         )}
       </div>
