@@ -46,11 +46,12 @@ import userRoutes from './routes/user.route.js';
 app.use('/api/users', userRoutes);
 
 import adminRoutes from './routes/admin.route.js';
-app.use('/api/admin', verifyUser, isSuspended, adminRoutes);
+app.use('/api/admin', verifyUser, isSuspended, verifyAdmin, adminRoutes);
 
 
 import postRoutes from './routes/post.route.js';
 app.use('/api/posts', verifyUser, isSuspended, postRoutes);
 
 import commentRoutes from './routes/comment.route.js';
+import verifyAdmin from './middlewares/verifyAdmin.js';
 app.use('/api/comments', verifyUser, isSuspended, commentRoutes);

@@ -2,6 +2,7 @@ import Admin from "../models/admin.model.js";
 import User from "../models/user.model.js";
 import { deleteFromCloudinary } from "../middlewares/cloudinary.js";
 import { sendEmail } from "../utilities/transporter.js";
+import Comment from "../models/comment.model.js";
 
 const createAdmin = async (req, res) => {
   try {
@@ -284,6 +285,34 @@ const suspendAccount = async (req, res) => {
 
 }
 
+const deleteCommentAndReplyByAdmin = async (req,res) => {
+  try {
+    const { commentId } = req.params;
+
+    if (!commentId) {
+      return res.status(400).json({ message: "Comment ID is required." });
+    }
+    const comment = await Comment.findById(commentId);
+    if (!comment) {
+      return res.status(404).json({ message: "Comment not found." });
+    }
+
+    // Check if the user is an admin
+    const user = req.user;
+    const admin = await Admin.findOne({ admin: user._id });
+    if (!admin) {
+      return res.status(403).json({ message: "You are not authorized to perform this action." });
+    }
+    // Delete the comment and its replies
+    await Comment.deleteMany({ parentComment: commentId });
+    await Comment.deleteOne({ _id: commentId });
+    res.status(200).json({ message: "Comment and its replies deleted successfully." });
+  } catch (error) {
+    console.error("Error deleting comment and replies:", error.message);
+    res.status(500).json({ message: "Internal server error" });
+  }
+}
+
 export {
   createAdmin,
   getAllUnverifiedUsers,
@@ -293,4 +322,5 @@ export {
   getVerifiedUser,
   removeFromAdmin,
   suspendAccount,
+  deleteCommentAndReplyByAdmin,
 };
