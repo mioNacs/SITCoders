@@ -291,7 +291,7 @@ function EditPostModal({ isOpen, onClose, onSubmit, post, isAdmin }) {
 
             {/* Live Preview */}
             {content && (
-              <div className="mb-4 p-3 bg-gray-50 rounded-lg border">
+              <div className="mb-4 p-3 rounded-lg border">
                 <div className="text-xs text-gray-500 mb-2">Preview:</div>
                 <div 
                   className="markdown-body text-sm text-gray-700 break-words"

@@ -1,5 +1,5 @@
 import React from "react";
-import { FaTimes, FaUser } from "react-icons/fa";
+import { FaTimes, FaComments, FaUser } from "react-icons/fa";
 import CommentSection from "./CommentSection";
 import { renderSafeMarkdown } from "../../utils/sanitize";
 import { Link } from "react-router-dom";
@@ -117,6 +117,15 @@ function ViewPost({
               className="w-full max-w-md object-cover rounded-lg"
             />
           )}
+          {/* Post Stats */}
+          <div className="flex items-center justify-between pt-4 mt-4 border-t border-gray-100">
+            <div className="flex items-center gap-2 text-gray-600">
+              <FaComments size={16} />
+              <span className="text-sm">
+                {comments[currentPost._id]?.length || 0} Comments
+              </span>
+            </div>
+          </div>
         </div>
 
         {/* Comments Section - Now using the extracted component */}

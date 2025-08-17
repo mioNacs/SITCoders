@@ -113,9 +113,10 @@ const PostView = () => {
 
   return (
     <div className="pt-20 min-h-screen bg-orange-50">
-      <div className="max-w-4xl mx-auto py-4">
+      <div className="max-w-4xl mx-auto md:pb-4">
         {/* Post Card */}
-        <div className="bg-white rounded-xl shadow-md border border-orange-100 overflow-hidden">
+        <div className="bg-white md:rounded-xl shadow-md border border-orange-100">
+          <div className="overflow-hidden rounded-t-xl">
           {/* Post Header */}
           <div className="p-6 border-b border-gray-100">
             <div className="flex items-start justify-between mb-4">
@@ -197,9 +198,12 @@ const PostView = () => {
               </div>
             </div>
           </div>
+          
+          {/* close overflow wrapper */}
+          </div>
 
           {/* Comments Section */}
-          <div className="bg-gray-50">
+          <div className="border-t border-gray-500">
             <CommentSection
               postId={post._id}
               comments={comments}

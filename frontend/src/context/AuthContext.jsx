@@ -69,7 +69,6 @@ export const AuthProvider = ({ children }) => {
       setAdminLoading(true);
       const adminStatus = await verifyIsAdmin(user.email);
       setIsAdmin(adminStatus.isAdmin);
-      console.log('Admin status:', adminStatus.isAdmin);
     } catch (error) {
       console.error("Error checking admin status:", error);
       setIsAdmin(false);
