@@ -11,7 +11,7 @@ import {
   FaEllipsisH,
 } from "react-icons/fa";
 import { useAuth } from "../../context/AuthContext";
-import { createComment, createReply } from "../../services/commentApi";
+import { createComment, createReply, updateComment } from "../../services/commentApi";
 import { toast } from "react-toastify";
 import EmojiPicker from "emoji-picker-react";
 import CommentCard from "./CommentCard";
@@ -28,6 +28,7 @@ const CommentSection = ({ postId, comments, setComments, commentLoading }) => {
   const [codeLanguage, setCodeLanguage] = useState('javascript');
   const [codeText, setCodeText] = useState('');
   const [showToolsMenu, setShowToolsMenu] = useState(false);
+  const [editTarget, setEditTarget] = useState(null); // { commentId }
 
   const textareaRef = useRef(null);
   const postComments = comments[postId] || [];
@@ -115,6 +116,14 @@ const CommentSection = ({ postId, comments, setComments, commentLoading }) => {
     }, 0);
   };
 
+  const handleStartEdit = ({ commentId, content }) => {
+    setReplyTarget(null);
+    setEditTarget({ commentId });
+    setNewComment(content || '');
+    // focus textarea
+    setTimeout(() => textareaRef.current?.focus(), 0);
+  };
+
   // Handle comment / reply submission via single box
   const handleSubmitComment = async (e) => {
     e.preventDefault();
@@ -126,6 +135,38 @@ const CommentSection = ({ postId, comments, setComments, commentLoading }) => {
 
     setSubmitting(true);
     try {
+      if (editTarget?.commentId) {
+        // Update an existing comment or reply
+        const result = await updateComment(editTarget.commentId, newComment);
+        const updatedComment = result.comment;
+        
+        setComments((prev) => {
+          const current = [...(prev[postId] || [])];
+          // Try top-level first
+          const idx = current.findIndex((c) => c._id === editTarget.commentId);
+          if (idx !== -1) {
+            current[idx] = { ...current[idx], ...updatedComment };
+            return { ...prev, [postId]: current };
+          }
+          // Else, update inside replies
+          for (let i = 0; i < current.length; i++) {
+            const replies = current[i].replies || [];
+            const rIdx = replies.findIndex((r) => r._id === editTarget.commentId);
+            if (rIdx !== -1) {
+              const newReplies = [...replies];
+              newReplies[rIdx] = { ...newReplies[rIdx], ...updatedComment };
+              current[i] = { ...current[i], replies: newReplies };
+              break;
+            }
+          }
+          return { ...prev, [postId]: current };
+        });
+        setEditTarget(null);
+        setNewComment("");
+        toast.success("Comment updated successfully!");
+        return;
+      }
+
       if (replyTarget?.parentCommentId) {
         // Create a reply to an existing comment
         const result = await createReply(replyTarget.parentCommentId, newComment);
@@ -217,6 +258,9 @@ const CommentSection = ({ postId, comments, setComments, commentLoading }) => {
               <CommentCard
                 key={comment._id}
                 comment={comment}
+                postId={postId}
+                setComments={setComments}
+                onStartEdit={(commentId, content) => handleStartEdit({ commentId, content })}
                 onStartReply={(parentCommentId, userFullName) =>
                   handleSetReplyTarget({ parentCommentId, userFullName })
                 }
@@ -238,6 +282,21 @@ const CommentSection = ({ postId, comments, setComments, commentLoading }) => {
                 __html: renderSafeMarkdown(newComment) 
               }}
             />
+          </div>
+        )}
+
+        {/* Edit target pill */}
+        {editTarget?.commentId && (
+          <div className="mb-2 inline-flex items-center gap-2 text-sm text-gray-700 bg-yellow-100 border border-yellow-200 rounded-full px-3 py-1">
+            Editing your comment
+            <button
+              type="button"
+              onClick={() => { setEditTarget(null); setNewComment(''); }}
+              className="ml-1 px-2 py-0.5 rounded-full bg-yellow-200 hover:bg-yellow-300"
+              aria-label="Cancel edit"
+            >
+              ×
+            </button>
           </div>
         )}
 
