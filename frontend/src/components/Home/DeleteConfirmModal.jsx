@@ -1,5 +1,6 @@
-import React from 'react';
+import { useEffect } from 'react';
 import { FaTrash, FaSpinner } from 'react-icons/fa';
+import { lockBodyScroll, unlockBodyScroll } from '../../utils/scrollLock';
 
 const DeleteConfirmModal = ({ 
   isOpen, 
@@ -8,10 +9,20 @@ const DeleteConfirmModal = ({
   deleteLoading,
   postId 
 }) => {
+  
+  // Always call hooks; control logic inside effect
+  useEffect(() => {
+    if (!isOpen) return;
+    lockBodyScroll();
+    return () => {
+      unlockBodyScroll();
+    };
+  }, [isOpen]);
+  
   if (!isOpen) return null;
-
+  
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4 animate-fade-in">
       <div className="bg-white rounded-xl shadow-2xl w-full max-w-sm">
         <div className="p-6">
           <div className="flex items-center gap-4 mb-4">

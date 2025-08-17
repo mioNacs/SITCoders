@@ -3,13 +3,12 @@ import { Link } from 'react-router-dom';
 import PostMenu from './PostMenu';
 import PostActions from './PostActions';
 import { renderSafeMarkdown } from '../../utils/sanitize';
+import { formatRelativeDate as formatDate, getTagStyle } from '../../utils/formatters';
 
 const PostCard = ({ 
   post, 
   comments, 
   onShowComments,
-  formatDate,
-  getTagStyle 
 }) => {
   return (
     <div className="border bg-white border-gray-200 md:rounded-lg p-4 hover:border-orange-200 md:shadow-md transition-colors">

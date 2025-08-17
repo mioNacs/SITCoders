@@ -12,6 +12,8 @@ import Sidebar from "./Sidebar";
 import { usePostUI } from "../../context/PostUIContext";
 import ViewPost from "./ViewPost";
 import Pagination from "../UI/Pagination";
+// formatters are consumed inside PostCard; no need to import here
+import { useCommentsUI } from "../../context/CommentsUIContext";
 // PostUIProvider is provided at App level
 
 function Home() {
@@ -22,10 +24,7 @@ function Home() {
     postsLoading,
     comments,
     commentLoading,
-    showComments,
-    setShowComments,
     setComments,
-    setCommentLoading,
     handleCreatePost,
     handleDeletePost,
     handleEditPost,
@@ -37,6 +36,9 @@ function Home() {
   changeTag,
   allowedTags
   } = useHomePosts();
+
+  // Centralized comments UI
+  const { showCommentsPostId, openComments, closeComments } = useCommentsUI();
 
   // Admin status state
   const [isAdmin, setIsAdmin] = useState(false);
@@ -88,35 +90,7 @@ function Home() {
     return unregister;
   }, [registerDeleteHandler, handleDeletePost]);
 
-  const formatDate = (dateString) => {
-    const now = new Date();
-    const date = new Date(dateString);
-    const diffInSeconds = Math.floor((now - date) / 1000);
-
-    if (diffInSeconds < 60) return "now";
-    const diffInMinutes = Math.floor(diffInSeconds / 60);
-    if (diffInMinutes < 60) return `${diffInMinutes} minute${diffInMinutes === 1 ? "" : "s"} ago`;
-    const diffInHours = Math.floor(diffInMinutes / 60);
-    if (diffInHours < 24) return `${diffInHours} hour${diffInHours === 1 ? "" : "s"} ago`;
-    const diffInDays = Math.floor(diffInHours / 24);
-    if (diffInDays < 7) return `${diffInDays} day${diffInDays === 1 ? "" : "s"} ago`;
-    const diffInWeeks = Math.floor(diffInDays / 7);
-    if (diffInWeeks < 4) return `${diffInWeeks} week${diffInWeeks === 1 ? "" : "s"} ago`;
-    const diffInMonths = Math.floor(diffInDays / 30);
-    if (diffInMonths < 12) return `${diffInMonths} month${diffInMonths === 1 ? "" : "s"} ago`;
-    const diffInYears = Math.floor(diffInDays / 365);
-    return `${diffInYears} year${diffInYears === 1 ? "" : "s"} ago`;
-  };
-
-  const getTagStyle = (tag) => {
-    const styles = {
-      query: "bg-blue-100 text-blue-600",
-      project: "bg-green-100 text-green-600",
-      announcement: "bg-red-100 text-red-600",
-      event: "bg-purple-100 text-purple-600",
-    };
-    return styles[tag] || "bg-gray-100 text-gray-600";
-  };
+  // formatDate & getTagStyle imported from utils/formatters
 
   // Calculate user's post count
   const userPostsCount = posts.filter((post) => post.author?._id === user._id).length;
@@ -172,9 +146,7 @@ function Home() {
               posts={posts}
               postsLoading={postsLoading}
               comments={comments}
-              onShowComments={handleShowComments}
-              formatDate={formatDate}
-              getTagStyle={getTagStyle}
+              onShowComments={(postId)=>{ openComments(postId); handleShowComments(postId); }}
             />
 
             {/* Pagination Component */}
@@ -207,16 +179,15 @@ function Home() {
 
   {/* Edit/Delete modals are rendered by PostUIProvider */}
 
-      {showComments && (
+  {showCommentsPostId && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4">
           <ViewPost 
             posts={posts}
             comments={comments}
             setComments={setComments}
-            setShowComments={setShowComments}
-            setCommentLoading={setCommentLoading}
+    setShowComments={closeComments}
             commentLoading={commentLoading}
-            showComments={showComments}
+    showComments={showCommentsPostId}
           />
         </div>
       )}

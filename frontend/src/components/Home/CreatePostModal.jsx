@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   FaTimes,
   FaImage,
@@ -10,8 +10,9 @@ import {
 } from "react-icons/fa";
 import { toast } from "react-toastify";
 import EmojiPicker from "emoji-picker-react";
-import { renderSafeMarkdown } from '../../utils/sanitize';
+import { renderSafeMarkdown } from "../../utils/sanitize";
 import { useNavigate } from "react-router-dom";
+import { lockBodyScroll, unlockBodyScroll } from "../../utils/scrollLock";
 
 const CreatePostModal = ({ isOpen, onClose, onSubmit, isAdmin }) => {
   const [newPost, setNewPost] = useState({
@@ -43,6 +44,15 @@ const CreatePostModal = ({ isOpen, onClose, onSubmit, isAdmin }) => {
 
     return isAdmin ? [...baseTags, ...adminTags] : baseTags;
   };
+
+  // Lock background scroll while modal is open
+  useEffect(() => {
+    if (!isOpen) return;
+    lockBodyScroll();
+    return () => {
+      unlockBodyScroll();
+    };
+  }, [isOpen]);
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -100,27 +110,27 @@ const CreatePostModal = ({ isOpen, onClose, onSubmit, isAdmin }) => {
   };
 
   const LANG_OPTIONS = [
-    { value: 'javascript', label: 'JavaScript' },
-    { value: 'jsx', label: 'JSX' },
-    { value: 'typescript', label: 'TypeScript' },
-    { value: 'tsx', label: 'TSX' },
-    { value: 'python', label: 'Python' },
-    { value: 'java', label: 'Java' },
-    { value: 'c', label: 'C' },
-    { value: 'cpp', label: 'C++' },
-    { value: 'sql', label: 'SQL' },
-    { value: 'bash', label: 'Bash' },
-    { value: 'json', label: 'JSON' },
-    { value: 'markdown', label: 'Markdown' },
-    { value: 'css', label: 'CSS' },
-    { value: 'markup', label: 'HTML' },
-    { value: 'text', label: 'Plain text' },
+    { value: "javascript", label: "JavaScript" },
+    { value: "jsx", label: "JSX" },
+    { value: "typescript", label: "TypeScript" },
+    { value: "tsx", label: "TSX" },
+    { value: "python", label: "Python" },
+    { value: "java", label: "Java" },
+    { value: "c", label: "C" },
+    { value: "cpp", label: "C++" },
+    { value: "sql", label: "SQL" },
+    { value: "bash", label: "Bash" },
+    { value: "json", label: "JSON" },
+    { value: "markdown", label: "Markdown" },
+    { value: "css", label: "CSS" },
+    { value: "markup", label: "HTML" },
+    { value: "text", label: "Plain text" },
   ];
 
   const handleInsertCode = () => {
     const code = (codeText || "").replace(/\r\n/g, "\n");
     if (!code.trim()) return;
-    const lang = codeLanguage || 'text';
+    const lang = codeLanguage || "text";
     const snippet = `\n\n\
 \`\`\`${lang}\n${code}\n\`\`\`\n\n`;
     insertTextAtCursor(snippet, "", "");
@@ -183,7 +193,7 @@ const CreatePostModal = ({ isOpen, onClose, onSubmit, isAdmin }) => {
     }
 
     setCreateLoading(false);
-    navigate('/')
+    navigate("/");
   };
 
   const handleClose = () => {
@@ -197,10 +207,10 @@ const CreatePostModal = ({ isOpen, onClose, onSubmit, isAdmin }) => {
 
   return (
     <>
-      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 ">
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 animate-fade-in">
         <div className="bg-white rounded-xl shadow-2xl w-full max-w-md md:max-w-lg lg:max-w-2xl max-h-[90vh] overflow-y-auto">
           {/* Modal Header */}
-          <div className="p-6 border-b border-gray-200">
+          <div className="sticky top-0 bg-white z-20 px-6 py-4 border-b border-gray-200">
             <div className="flex items-center justify-between">
               <h3 className="text-xl font-bold text-gray-800">
                 Create New Post
@@ -215,7 +225,7 @@ const CreatePostModal = ({ isOpen, onClose, onSubmit, isAdmin }) => {
           </div>
 
           {/* Modal Body */}
-          <form onSubmit={handleSubmit} className="px-6 pt-6">
+          <form onSubmit={handleSubmit} className="px-6 pt-2">
             {/* Formatting Toolbar */}
             <div className="flex items-center gap-2 mb-4 p-3 bg-gray-50 rounded-lg border">
               <button
@@ -253,7 +263,7 @@ const CreatePostModal = ({ isOpen, onClose, onSubmit, isAdmin }) => {
                 </button>
               </div>
               <div className="ml-auto text-xs text-gray-500">
-                Use **bold**, *italic*, URLs auto-detected
+                Use **bold**, *italic*, or `Code Snippets`
               </div>
             </div>
 
@@ -266,8 +276,10 @@ const CreatePostModal = ({ isOpen, onClose, onSubmit, isAdmin }) => {
                     onChange={(e) => setCodeLanguage(e.target.value)}
                     className="p-2 border border-gray-300 rounded-lg focus:ring focus:ring-orange-500 focus:border-orange-400 outline-none text-sm"
                   >
-                    {LANG_OPTIONS.map(opt => (
-                      <option key={opt.value} value={opt.value}>{opt.label}</option>
+                    {LANG_OPTIONS.map((opt) => (
+                      <option key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </option>
                     ))}
                   </select>
                 </div>
@@ -281,7 +293,10 @@ const CreatePostModal = ({ isOpen, onClose, onSubmit, isAdmin }) => {
                 <div className="flex gap-2 justify-end">
                   <button
                     type="button"
-                    onClick={() => { setCodeText(""); setShowCodeBox(false); }}
+                    onClick={() => {
+                      setCodeText("");
+                      setShowCodeBox(false);
+                    }}
                     className="px-3 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50"
                   >
                     Cancel
@@ -314,12 +329,12 @@ const CreatePostModal = ({ isOpen, onClose, onSubmit, isAdmin }) => {
 
             {/* Live Preview */}
             {newPost.content && (
-        <div className="mb-4 p-3 rounded-lg border">
+              <div className="mb-4 p-3 rounded-lg border">
                 <div className="text-xs text-gray-500 mb-2">Preview:</div>
-                <div 
-          className="markdown-body text-sm text-gray-700 break-words"
-                  dangerouslySetInnerHTML={{ 
-                    __html: renderSafeMarkdown(newPost.content) 
+                <div
+                  className="markdown-body text-sm text-gray-700 break-words"
+                  dangerouslySetInnerHTML={{
+                    __html: renderSafeMarkdown(newPost.content),
                   }}
                 />
               </div>
@@ -336,75 +351,77 @@ const CreatePostModal = ({ isOpen, onClose, onSubmit, isAdmin }) => {
               </div>
             )}
             <div className="sticky bottom-0 py-4 bg-white border-t">
-            <div className="flex items-center justify-between">
-              {/* Image Upload */}
-              <div className="mb-4">
-                <div className="flex items-center gap-3">
-                  <label className="flex items-center gap-2 cursor-pointer bg-gray-100 hover:bg-gray-200 px-4 py-2 rounded-lg transition-colors">
-                    <FaImage className="text-gray-600" />
-                    <span className="text-sm text-gray-600">Choose Image</span>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleImageChange}
-                      className="hidden"
-                    />
-                  </label>
-                  {imagePreview && (
-                    <button
-                      type="button"
-                      onClick={removeImage}
-                      className="text-red-500 hover:text-red-700 transition-colors"
-                    >
-                      <FaTimes />
-                    </button>
-                  )}
+              <div className="flex items-center justify-between">
+                {/* Image Upload */}
+                <div className="mb-4">
+                  <div className="flex items-center gap-3">
+                    <label className="flex items-center gap-2 cursor-pointer bg-gray-100 hover:bg-gray-200 px-4 py-2 rounded-lg transition-colors">
+                      <FaImage className="text-gray-600" />
+                      <span className="text-sm text-gray-600">
+                        Choose Image
+                      </span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageChange}
+                        className="hidden"
+                      />
+                    </label>
+                    {imagePreview && (
+                      <button
+                        type="button"
+                        onClick={removeImage}
+                        className="text-red-500 hover:text-red-700 transition-colors"
+                      >
+                        <FaTimes />
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Tag Selection */}
+                <div className="mb-4">
+                  <select
+                    value={newPost.tag}
+                    onChange={(e) =>
+                      setNewPost({ ...newPost, tag: e.target.value })
+                    }
+                    className="w-full p-2 border border-gray-300 rounded-lg focus:ring focus:ring-orange-500 focus:border-orange-400 outline-none"
+                  >
+                    {getAvailableTags().map((tag) => (
+                      <option key={tag.value} value={tag.value}>
+                        {tag.label}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </div>
 
-              {/* Tag Selection */}
-              <div className="mb-4">
-                <select
-                  value={newPost.tag}
-                  onChange={(e) =>
-                    setNewPost({ ...newPost, tag: e.target.value })
-                  }
-                  className="w-full p-2 border border-gray-300 rounded-lg focus:ring focus:ring-orange-500 focus:border-orange-400 outline-none"
+              {/* Submit Button */}
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={handleClose}
+                  className="flex-1 px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                  disabled={createLoading}
                 >
-                  {getAvailableTags().map((tag) => (
-                    <option key={tag.value} value={tag.value}>
-                      {tag.label}
-                    </option>
-                  ))}
-                </select>
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={createLoading || !newPost.content.trim()}
+                  className="flex-1 px-4 py-2 bg-gradient-to-r from-orange-400 to-amber-500 text-white rounded-lg font-medium hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  {createLoading ? (
+                    <>
+                      <FaSpinner className="animate-spin" />
+                      <span>Posting...</span>
+                    </>
+                  ) : (
+                    <span>Post</span>
+                  )}
+                </button>
               </div>
-            </div>
-
-            {/* Submit Button */}
-            <div className="flex gap-3">
-              <button
-                type="button"
-                onClick={handleClose}
-                className="flex-1 px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-                disabled={createLoading}
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                disabled={createLoading || !newPost.content.trim()}
-                className="flex-1 px-4 py-2 bg-gradient-to-r from-orange-400 to-amber-500 text-white rounded-lg font-medium hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-              >
-                {createLoading ? (
-                  <>
-                    <FaSpinner className="animate-spin" />
-                    <span>Posting...</span>
-                  </>
-                ) : (
-                  <span>Post</span>
-                )}
-              </button>
-            </div>
             </div>
           </form>
         </div>

@@ -13,8 +13,10 @@ import { getComments } from '../../services/commentApi';
 import { toast } from 'react-toastify';
 import ViewPost from '../Home/ViewPost';
 import PostCard from '../Home/PostCard';
+// PostCard uses shared formatters internally
 // Edit/Delete modals are centralized in PostUIContext
 import { usePostUI } from '../../context/PostUIContext';
+import { useCommentsUI } from '../../context/CommentsUIContext';
 // PostUIProvider is provided at App level
 
 const PostsSection = ({ user, isOwnProfile = true }) => {
@@ -25,7 +27,7 @@ const PostsSection = ({ user, isOwnProfile = true }) => {
   // Post menu handled by PostUIProvider
   const [comments, setComments] = useState({});
   const [commentLoading, setCommentLoading] = useState(false);
-  const [showComments, setShowComments] = useState(null);
+  const { showCommentsPostId, openComments, closeComments } = useCommentsUI();
   const [totalPosts, setTotalPosts] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -168,7 +170,7 @@ const PostsSection = ({ user, isOwnProfile = true }) => {
   }, [isOwnProfile, isAdmin, posts.length, totalPosts]);
 
   const handleShowComments = (postId) => {
-    setShowComments(postId);
+    openComments(postId);
     if (!comments[postId]) {
       setCommentLoading(true);
       getComments(postId)
@@ -201,53 +203,7 @@ const PostsSection = ({ user, isOwnProfile = true }) => {
     }
   };
 
-  const formatDate = (dateString) => {
-    const now = new Date();
-    const date = new Date(dateString);
-    const diffInSeconds = Math.floor((now - date) / 1000);
-
-    if (diffInSeconds < 60) {
-      return "now";
-    }
-
-    const diffInMinutes = Math.floor(diffInSeconds / 60);
-    if (diffInMinutes < 60) {
-      return `${diffInMinutes} minute${diffInMinutes === 1 ? "" : "s"} ago`;
-    }
-
-    const diffInHours = Math.floor(diffInMinutes / 60);
-    if (diffInHours < 24) {
-      return `${diffInHours} hour${diffInHours === 1 ? "" : "s"} ago`;
-    }
-
-    const diffInDays = Math.floor(diffInHours / 24);
-    if (diffInDays < 7) {
-      return `${diffInDays} day${diffInDays === 1 ? "" : "s"} ago`;
-    }
-
-    const diffInWeeks = Math.floor(diffInDays / 7);
-    if (diffInWeeks < 4) {
-      return `${diffInWeeks} week${diffInWeeks === 1 ? "" : "s"} ago`;
-    }
-
-    const diffInMonths = Math.floor(diffInDays / 30);
-    if (diffInMonths < 12) {
-      return `${diffInMonths} month${diffInMonths === 1 ? "" : "s"} ago`;
-    }
-
-    const diffInYears = Math.floor(diffInDays / 365);
-    return `${diffInYears} year${diffInYears === 1 ? "" : "s"} ago`;
-  };
-
-  const getTagStyle = (tag) => {
-    const styles = {
-      query: "bg-blue-100 text-blue-600",
-      project: "bg-green-100 text-green-600",
-      announcement: "bg-red-100 text-red-600",
-      event: "bg-purple-100 text-purple-600",
-    };
-    return styles[tag] || "bg-gray-100 text-gray-600";
-  };
+  // formatters imported from utils
 
   // Menu + permissions handled by PostUIProvider/PostMenu
 
@@ -380,8 +336,6 @@ const PostsSection = ({ user, isOwnProfile = true }) => {
                 post={post}
                 comments={comments}
                 onShowComments={handleShowComments}
-                formatDate={formatDate}
-                getTagStyle={getTagStyle}
               />
             ))}
             {totalPosts > 1 && (
@@ -397,7 +351,7 @@ const PostsSection = ({ user, isOwnProfile = true }) => {
 
       {/* All Posts Modal */}
       {showAllPostsModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4 animate-fade-in">
           <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] flex flex-col">
             {/* Modal Header */}
             <div className="flex items-center justify-between p-6 border-b border-gray-200">
@@ -428,8 +382,6 @@ const PostsSection = ({ user, isOwnProfile = true }) => {
                       post={post}
                       comments={comments}
                       onShowComments={handleShowComments}
-                      formatDate={formatDate}
-                      getTagStyle={getTagStyle}
                     />
                   ))}
                   
@@ -462,16 +414,15 @@ const PostsSection = ({ user, isOwnProfile = true }) => {
   {/* Edit/Delete modals are rendered by PostUIProvider */}
 
       {/* Comments Modal */}
-      {showComments && (
+  {showCommentsPostId && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4">
           <ViewPost 
             posts={showAllPostsModal ? allPosts : posts}
             comments={comments}
             setComments={setComments}
-            setShowComments={setShowComments}
-            setCommentLoading={setCommentLoading}
+    setShowComments={closeComments}
             commentLoading={commentLoading}
-            showComments={showComments}
+    showComments={showCommentsPostId}
           />
         </div>
       )}

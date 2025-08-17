@@ -56,6 +56,15 @@
     animation-range: entry 0% cover 40%;
 }
 
+/* Small fade for menus/popovers */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateX(4px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+.animate-fade-in {
+    animation: fadeIn 120ms ease-out;
+}
+
 /* PrismJS + GitHub Markdown enhancements */
 .markdown-body pre {
     position: relative;
@@ -64,7 +73,7 @@
 /* Normalize Markdown list styles (Tailwind/GitHub CSS compatibility) */
 .markdown-body ul,
 .markdown-body ol {
-    margin: 0.5rem 0 0.5rem 1.5rem;
+    margin: 0.5rem 0 -out0.5rem 1.5rem;
     padding-left: 1.25rem;
 }
 .markdown-body ul {

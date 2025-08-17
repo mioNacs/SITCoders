@@ -11,6 +11,7 @@ import { renderSafeMarkdown } from "../../utils/sanitize";
 import PostMenu from "./PostMenu";
 // Edit/Delete modals are centralized in PostUIContext
 import { usePostUI } from "../../context/PostUIContext";
+import { formatRelativeDate as formatDate } from "../../utils/formatters";
 
 const SinglePostView = () => {
   const { postId } = useParams();
@@ -24,24 +25,7 @@ const SinglePostView = () => {
   const [commentLoading, _setCommentLoading] = useState(false);
   // Modals are centralized; no local state
 
-  // Format date function
-  const formatDate = (dateString) => {
-    const now = new Date();
-    const date = new Date(dateString);
-    const diffInSeconds = Math.floor((now - date) / 1000);
-
-    if (diffInSeconds < 60) return "now";
-    const diffInMinutes = Math.floor(diffInSeconds / 60);
-    if (diffInMinutes < 60)
-      return `${diffInMinutes} minute${diffInMinutes === 1 ? "" : "s"} ago`;
-    const diffInHours = Math.floor(diffInMinutes / 60);
-    if (diffInHours < 24)
-      return `${diffInHours} hour${diffInHours === 1 ? "" : "s"} ago`;
-    const diffInDays = Math.floor(diffInHours / 24);
-    return `${diffInDays} day${diffInDays === 1 ? "" : "s"} ago`;
-  };
-
-  // Get tag style
+  // Local tag style with slight variants preserved
   const getTagStyle = (tag) => {
     const tagColors = {
       general: "bg-blue-100 text-blue-800",

@@ -1,58 +1,34 @@
-import React from "react";
+import {useEffect} from "react";
 import { FaTimes, FaComments, FaUser } from "react-icons/fa";
 import CommentSection from "./CommentSection";
 import { renderSafeMarkdown } from "../../utils/sanitize";
 import { Link } from "react-router-dom";
+import { formatRelativeDate as formatDate } from "../../utils/formatters";
+import { lockBodyScroll, unlockBodyScroll } from '../../utils/scrollLock';
 
 function ViewPost({
   posts,
   comments,
   setShowComments,
   setComments,
-  setCommentLoading,
   commentLoading,
   showComments,
 }) {
   // Find the current post
   const currentPost = posts.find((post) => post._id === showComments);
 
-  // Format date function
-  const formatDate = (dateString) => {
-    const now = new Date();
-    const date = new Date(dateString);
-    const diffInSeconds = Math.floor((now - date) / 1000);
-
-    if (diffInSeconds < 60) {
-      return "now";
-    }
-
-    const diffInMinutes = Math.floor(diffInSeconds / 60);
-    if (diffInMinutes < 60) {
-      return `${diffInMinutes} minute${diffInMinutes === 1 ? "" : "s"} ago`;
-    }
-
-    const diffInHours = Math.floor(diffInMinutes / 60);
-    if (diffInHours < 24) {
-      return `${diffInHours} hour${diffInHours === 1 ? "" : "s"} ago`;
-    }
-
-    const diffInDays = Math.floor(diffInHours / 24);
-    return `${diffInDays} day${diffInDays === 1 ? "" : "s"} ago`;
-  };
-
-  // Format content for display with rich text support
-  const formatContentForDisplay = (content) => {
-    if (!content) return "";
-
-    return renderSafeMarkdown(content);
-  };
-
   if (!currentPost) {
     return null;
   }
 
+  // Lock body while the comments modal is mounted
+  useEffect(() => {
+    lockBodyScroll();
+    return () => unlockBodyScroll();
+  }, []);
+
   return (
-    <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+    <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col animate-fade-in">
       {/* Header */}
       <div className="p-6 border-b border-gray-200 flex items-center justify-between">
         <h3 className="text-xl font-bold text-gray-800">Post Comments</h3>

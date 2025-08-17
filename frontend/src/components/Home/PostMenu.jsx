@@ -1,9 +1,20 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { FaEllipsisV, FaTrash, FaEdit } from 'react-icons/fa';
 import { usePostUI } from '../../context/PostUIContext';
 
 const PostMenu = ({ post }) => {
   const { openMenuPostId, toggleMenu, closeMenu, canEditPost, canDeletePost, requestEdit, requestDelete } = usePostUI();
+
+  // Close on ESC
+  useEffect(() => {
+    const onKeyDown = (e) => {
+      if (e.key === 'Escape') closeMenu();
+    };
+    if (openMenuPostId === post._id) {
+      window.addEventListener('keydown', onKeyDown);
+    }
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [openMenuPostId, post._id, closeMenu]);
 
   if (!canDeletePost(post) && !canEditPost(post)) return null;
 
@@ -20,7 +31,9 @@ const PostMenu = ({ post }) => {
       </button>
 
       {openMenuPostId === post._id && (
-        <div className="absolute z-50 right-0 top-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg min-w-[140px]">
+  <div
+          className="absolute z-50 right-0 top-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg min-w-[140px] animate-fade-in"
+        >
           {canEditPost(post) && (
             <button
               onClick={(e) => {

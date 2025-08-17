@@ -3,6 +3,7 @@ import React, { createContext, useContext, useState, useMemo, useCallback, useEf
 import { useAuth } from './AuthContext';
 import EditPostModal from '../components/Home/EditPostModal';
 import DeleteConfirmModal from '../components/Home/DeleteConfirmModal';
+import SharePostModal from '../components/Home/SharePostModal';
 
 const PostUIContext = createContext(null);
 
@@ -21,6 +22,7 @@ export const PostUIProvider = ({ children, onEditPost, onDeleteConfirm }) => {
   const [editingPost, setEditingPost] = useState(null);
   const [deletingPostId, setDeletingPostId] = useState(null);
   const [deleteLoading, setDeleteLoading] = useState(null);
+  const [sharingPost, setSharingPost] = useState(null);
 
   // Handlers registered by pages (latest registration wins)
   const editHandlerRef = useRef(null);
@@ -60,6 +62,10 @@ export const PostUIProvider = ({ children, onEditPost, onDeleteConfirm }) => {
     onDeleteConfirm && onDeleteConfirm(postId);
   }, [onDeleteConfirm]);
 
+  const requestShare = useCallback((post) => {
+    setSharingPost(post || null);
+  }, []);
+
   // Consumers can register confirm handlers for edit/delete
   const registerEditHandler = useCallback((fn) => {
     editHandlerRef.current = typeof fn === 'function' ? fn : null;
@@ -88,12 +94,14 @@ export const PostUIProvider = ({ children, onEditPost, onDeleteConfirm }) => {
       deletingPostId,
       requestEdit,
       requestDelete,
+      requestShare,
       setEditingPost,
       setDeletingPostId,
+      setSharingPost,
       registerEditHandler,
       registerDeleteHandler,
     }),
-    [openMenuPostId, toggleMenu, closeMenu, canEditPost, canDeletePost, editingPost, deletingPostId, requestEdit, requestDelete, registerEditHandler, registerDeleteHandler]
+    [openMenuPostId, toggleMenu, closeMenu, canEditPost, canDeletePost, editingPost, deletingPostId, requestEdit, requestDelete, requestShare, registerEditHandler, registerDeleteHandler]
   );
 
   // Close any open menu on outside click
@@ -137,6 +145,13 @@ export const PostUIProvider = ({ children, onEditPost, onDeleteConfirm }) => {
         }}
         deleteLoading={deleteLoading}
         postId={deletingPostId}
+      />
+
+      {/* Centralized Share Modal */}
+      <SharePostModal
+        isOpen={!!sharingPost}
+        onClose={() => setSharingPost(null)}
+        post={sharingPost}
       />
     </PostUIContext.Provider>
   );

@@ -8,8 +8,6 @@ const PostsFeed = ({
   postsLoading, 
   comments,
   onShowComments,
-  formatDate,
-  getTagStyle 
 }) => {
   const { isSuspended, suspensionEnd } = useAuth();
   return (
@@ -54,8 +52,6 @@ const PostsFeed = ({
               post={post}
               comments={comments}
               onShowComments={onShowComments}
-              formatDate={formatDate}
-              getTagStyle={getTagStyle}
             />
           ))}
         </div>

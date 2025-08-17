@@ -2,23 +2,13 @@ import React, { useState } from 'react';
 import { FaUser, FaReply } from 'react-icons/fa';
 import { useAuth } from '../../context/AuthContext';
 import { renderSafeMarkdown } from '../../utils/sanitize';
+import { formatRelativeDate as formatDate } from '../../utils/formatters';
 
 const CommentCard = ({ comment, onStartReply }) => {
   const { user } = useAuth();
   const [showReplies, setShowReplies] = useState(false);
 
-  const formatDate = (dateString) => {
-    const now = new Date();
-    const date = new Date(dateString);
-    const diffInSeconds = Math.floor((now - date) / 1000);
-    if (diffInSeconds < 60) return 'now';
-    const diffInMinutes = Math.floor(diffInSeconds / 60);
-    if (diffInMinutes < 60) return `${diffInMinutes} minute${diffInMinutes === 1 ? '' : 's'} ago`;
-    const diffInHours = Math.floor(diffInMinutes / 60);
-    if (diffInHours < 24) return `${diffInHours} hour${diffInHours === 1 ? '' : 's'} ago`;
-    const diffInDays = Math.floor(diffInHours / 24);
-    return `${diffInDays} day${diffInDays === 1 ? '' : 's'} ago`;
-  };
+  // date formatter from utils
 
   return (
     <div className="border border-gray-200 rounded-lg p-4">

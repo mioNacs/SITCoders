@@ -6,6 +6,7 @@ import App from './App.jsx'
 import {Login, Signup, VerifyOTP, Landing, Home, Resources, ContactAdmin, Collaborate, UserProfile, AdminDashboard, SinglePostView, ForgotPassword, Settings} from './components'
 import { AuthProvider } from './context/AuthContext.jsx'
 import { PostUIProvider } from './context/PostUIContext.jsx'
+import { CommentsUIProvider } from './context/CommentsUIContext.jsx'
 
 const router = createBrowserRouter(
   createRoutesFromElements(
@@ -31,7 +32,9 @@ createRoot(document.getElementById('root')).render(
   <StrictMode>
     <AuthProvider>
       <PostUIProvider>
-        <RouterProvider router={router}/>
+        <CommentsUIProvider>
+          <RouterProvider router={router}/>
+        </CommentsUIProvider>
       </PostUIProvider>
     </AuthProvider>
   </StrictMode>
