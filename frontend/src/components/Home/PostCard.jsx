@@ -7,13 +7,7 @@ import { renderSafeMarkdown } from '../../utils/sanitize';
 const PostCard = ({ 
   post, 
   comments, 
-  showPostMenu, 
-  setShowPostMenu,
-  onDeleteConfirm,
-  onEditPost,
-  canEditPost,
   onShowComments,
-  canDeletePost,
   formatDate,
   getTagStyle 
 }) => {
@@ -58,15 +52,7 @@ const PostCard = ({
           </span>
         )}
 
-        <PostMenu
-          post={post}
-          showPostMenu={showPostMenu}
-          setShowPostMenu={setShowPostMenu}
-          onDeleteConfirm={onDeleteConfirm}
-          onEditPost={onEditPost}
-          canEditPost={canEditPost}
-          canDeletePost={canDeletePost}
-        />
+  <PostMenu post={post} />
       </div>
 
       {/* Post Content */}

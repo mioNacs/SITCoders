@@ -1,23 +1,28 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { FaSpinner, FaArrowLeft, FaUser, FaComments } from "react-icons/fa";
+import { FaSpinner, FaUser, FaComments } from "react-icons/fa";
 import { toast } from "react-toastify";
-import { getPostById } from "../../services/postApi";
+import { getPostById, deletePost, editPost } from "../../services/postApi";
 import { getComments } from "../../services/commentApi";
 import { useAuth } from "../../context/AuthContext";
 import CommentSection from "./CommentSection";
 import SharePostButton from "./SharePostButton";
 import { renderSafeMarkdown } from "../../utils/sanitize";
+import PostMenu from "./PostMenu";
+// Edit/Delete modals are centralized in PostUIContext
+import { usePostUI } from "../../context/PostUIContext";
 
-const PostView = () => {
+const SinglePostView = () => {
   const { postId } = useParams();
   const navigate = useNavigate();
   const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const { registerEditHandler, registerDeleteHandler } = usePostUI();
 
   const [post, setPost] = useState(null);
   const [comments, setComments] = useState({});
   const [loading, setLoading] = useState(true);
-  const [commentLoading, setCommentLoading] = useState(false);
+  const [commentLoading, _setCommentLoading] = useState(false);
+  // Modals are centralized; no local state
 
   // Format date function
   const formatDate = (dateString) => {
@@ -82,6 +87,44 @@ const PostView = () => {
     }
   }, [postId, navigate, isAuthenticated, authLoading]);
 
+  // Register handlers for centralized modals
+  useEffect(() => {
+    const unregisterEdit = registerEditHandler(async (postId, data) => {
+      try {
+        const res = await editPost(postId, data);
+        const updated = res.post || res.updatedPost || {};
+        setPost((prev) => {
+          if (!prev) return updated;
+          const next = { ...prev, ...updated };
+          const ua = updated.author;
+          const incomplete = !ua || typeof ua !== 'object' || !ua.fullName;
+          if (incomplete) next.author = prev.author;
+          return next;
+        });
+        toast.success(res.message || 'Post updated');
+        return { success: true };
+      } catch (e) {
+        toast.error(e.message || 'Failed to update post');
+        return { success: false, message: e.message };
+      }
+    });
+
+    const unregisterDelete = registerDeleteHandler(async (id) => {
+      try {
+        const res = await deletePost(id);
+        toast.success(res.message || 'Post deleted');
+        navigate('/home');
+      } catch (e) {
+        toast.error(e.message || 'Failed to delete post');
+      }
+    });
+
+    return () => {
+      unregisterEdit();
+      unregisterDelete();
+    };
+  }, [registerEditHandler, registerDeleteHandler, navigate]);
+
   if (authLoading || loading) {
     return (
       <div className="pt-20 min-h-screen bg-orange-50 flex items-center justify-center">
@@ -111,12 +154,12 @@ const PostView = () => {
     );
   }
 
-  return (
+  const content = (
     <div className="pt-20 min-h-screen bg-orange-50">
       <div className="max-w-4xl mx-auto md:pb-4">
         {/* Post Card */}
         <div className="bg-white md:rounded-xl shadow-md border border-orange-100">
-          <div className="overflow-hidden rounded-t-xl">
+          <div className="overflow-visible rounded-t-xl">
           {/* Post Header */}
           <div className="p-6 border-b border-gray-100">
             <div className="flex items-start justify-between mb-4">
@@ -153,7 +196,7 @@ const PostView = () => {
                 </div>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 relative">
                 {post.tag && (
                   <span
                     className={`px-3 py-1 rounded-full text-sm font-medium ${getTagStyle(
@@ -163,6 +206,7 @@ const PostView = () => {
                     {post.tag.charAt(0).toUpperCase() + post.tag.slice(1)}
                   </span>
                 )}
+                <PostMenu post={post} />
                 <SharePostButton post={post} />
               </div>
             </div>
@@ -215,6 +259,13 @@ const PostView = () => {
       </div>
     </div>
   );
+
+  return (
+    <>
+      {content}
+  {/* Edit/Delete modals are rendered by PostUIProvider */}
+    </>
+  );
 };
 
-export default PostView;
+export default SinglePostView;

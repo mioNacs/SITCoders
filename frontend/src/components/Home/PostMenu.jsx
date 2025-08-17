@@ -1,16 +1,10 @@
 import React from 'react';
 import { FaEllipsisV, FaTrash, FaEdit } from 'react-icons/fa';
+import { usePostUI } from '../../context/PostUIContext';
 
-const PostMenu = ({ 
-  post, 
-  showPostMenu, 
-  setShowPostMenu, 
-  onDeleteConfirm,
-  onEditPost,
-  canEditPost,
-  canDeletePost 
-}) => {
-  // Show menu if user can either edit or delete
+const PostMenu = ({ post }) => {
+  const { openMenuPostId, toggleMenu, closeMenu, canEditPost, canDeletePost, requestEdit, requestDelete } = usePostUI();
+
   if (!canDeletePost(post) && !canEditPost(post)) return null;
 
   return (
@@ -18,22 +12,21 @@ const PostMenu = ({
       <button
         onClick={(e) => {
           e.stopPropagation();
-          setShowPostMenu(showPostMenu === post._id ? null : post._id);
+          toggleMenu(post._id);
         }}
         className="p-2 hover:bg-gray-100 rounded-full transition-colors"
       >
         <FaEllipsisV className="text-gray-500" size={14} />
       </button>
 
-      {showPostMenu === post._id && (
-        <div className="absolute z-50 right-0 top-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg min-w-[120px]">
-          {/* Edit Button - Only show if user can edit */}
+      {openMenuPostId === post._id && (
+        <div className="absolute z-50 right-0 top-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg min-w-[140px]">
           {canEditPost(post) && (
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                onEditPost(post);
-                setShowPostMenu(null);
+                requestEdit(post);
+                closeMenu();
               }}
               className="w-full flex items-center gap-2 px-4 py-2 text-blue-600 hover:bg-blue-50 transition-colors text-sm"
             >
@@ -41,14 +34,13 @@ const PostMenu = ({
               <span>Edit</span>
             </button>
           )}
-          
-          {/* Delete Button - Only show if user can delete */}
+
           {canDeletePost(post) && (
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                onDeleteConfirm(post._id);
-                setShowPostMenu(null);
+                requestDelete(post._id);
+                closeMenu();
               }}
               className="w-full flex items-center gap-2 px-4 py-2 text-red-600 hover:bg-red-50 transition-colors text-sm"
             >

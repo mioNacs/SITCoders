@@ -6,15 +6,17 @@ import { verifyIsAdmin } from "../../services/adminApi";
 import { useHomePosts } from "./hooks/useHomePosts";
 import CreatePostButton from "./CreatePostButton";
 import CreatePostModal from "./CreatePostModal";
-import EditPostModal from "./EditPostModal";
 import PostsFeed from "./PostsFeed";
 import Sidebar from "./Sidebar";
-import DeleteConfirmModal from "./DeleteConfirmModal";
+// Edit/Delete modals are centralized in PostUIContext
+import { usePostUI } from "../../context/PostUIContext";
 import ViewPost from "./ViewPost";
 import Pagination from "../UI/Pagination";
+// PostUIProvider is provided at App level
 
 function Home() {
   const { user, isAuthenticated, isLoading: authLoading, isSuspended } = useAuth();
+  const { registerEditHandler, registerDeleteHandler } = usePostUI();
   const {
     posts,
     postsLoading,
@@ -24,7 +26,6 @@ function Home() {
     setShowComments,
     setComments,
     setCommentLoading,
-    fetchPosts,
     handleCreatePost,
     handleDeletePost,
     handleEditPost,
@@ -43,10 +44,7 @@ function Home() {
 
   // Modal states
   const [showCreatePost, setShowCreatePost] = useState(false);
-  const [showEditPost, setShowEditPost] = useState(null);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(null);
-  const [showPostMenu, setShowPostMenu] = useState(null);
-  const [deleteLoading, setDeleteLoading] = useState(null);
+  // Edit/Delete are handled globally by PostUIProvider modals
 
   // Check admin status
   useEffect(() => {
@@ -73,47 +71,22 @@ function Home() {
     checkAdminStatus();
   }, [isAuthenticated, user]);
 
-  // Close menus when clicking outside
+  // Permissions centralized in PostUIProvider
+
+  // Register global handlers for Edit/Delete modals
   useEffect(() => {
-    const handleClickOutside = () => {
-      setShowPostMenu(null);
-    };
+    const unregister = registerEditHandler(async (postId, postData) => {
+      return await handleEditPost(postId, postData);
+    });
+    return unregister;
+  }, [registerEditHandler, handleEditPost]);
 
-    document.addEventListener("click", handleClickOutside);
-    return () => document.removeEventListener("click", handleClickOutside);
-  }, []);
-
-  const canDeletePost = (post) => {
-    if (!user) return false;
-    const isAuthor = post.author?._id === user._id;
-    const isAdminUser = isAdmin;
-    return isAuthor || isAdminUser;
-  };
-
-  const canEditPost = (post) => {
-    if (!user) return false;
-    const isAuthor = post.author?._id === user._id
-    return isAuthor
-  }
-
-  const handleDeleteConfirm = async (postId) => {
-    setDeleteLoading(postId);
-    const result = await handleDeletePost(postId);
-    if (result.success) {
-      setShowDeleteConfirm(null);
-      setShowPostMenu(null);
-    }
-    setDeleteLoading(null);
-  };
-
-  const handleEditConfirm = async (postId, postData) => {
-    const result = await handleEditPost(postId, postData);
-    if (result.success) {
-      setShowEditPost(null);
-      setShowPostMenu(null);
-    }
-    return result;
-  };
+  useEffect(() => {
+    const unregister = registerDeleteHandler(async (postId) => {
+      return await handleDeletePost(postId);
+    });
+    return unregister;
+  }, [registerDeleteHandler, handleDeletePost]);
 
   const formatDate = (dateString) => {
     const now = new Date();
@@ -199,13 +172,7 @@ function Home() {
               posts={posts}
               postsLoading={postsLoading}
               comments={comments}
-              showPostMenu={showPostMenu}
-              setShowPostMenu={setShowPostMenu}
-              onDeleteConfirm={setShowDeleteConfirm}
-              onEditPost={setShowEditPost}
               onShowComments={handleShowComments}
-              canDeletePost={canDeletePost}
-              canEditPost={canEditPost}
               formatDate={formatDate}
               getTagStyle={getTagStyle}
             />
@@ -238,21 +205,7 @@ function Home() {
         isAdmin={isAdmin}
       />
 
-      <EditPostModal
-        isOpen={!!showEditPost}
-        onClose={() => setShowEditPost(null)}
-        onSubmit={handleEditConfirm}
-        post={showEditPost}
-        isAdmin={isAdmin}
-      />
-
-      <DeleteConfirmModal
-        isOpen={!!showDeleteConfirm}
-        onClose={() => setShowDeleteConfirm(null)}
-        onConfirm={handleDeleteConfirm}
-        deleteLoading={deleteLoading}
-        postId={showDeleteConfirm}
-      />
+  {/* Edit/Delete modals are rendered by PostUIProvider */}
 
       {showComments && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4">

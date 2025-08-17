@@ -1,33 +1,28 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
   FaUserCircle, 
   FaSpinner, 
-  FaTrash, 
-  FaEllipsisV, 
-  FaComments, 
-  FaArrowRight,
   FaClipboard,
-  FaImage,
   FaTimes,
   FaBan,
   FaExpand
 } from 'react-icons/fa';
 import { useAuth } from '../../context/AuthContext';
-import { getUserPosts, deletePost, getPostsByUserId } from '../../services/postApi';
+import { getUserPosts, deletePost, getPostsByUserId, editPost } from '../../services/postApi';
 import { getComments } from '../../services/commentApi';
 import { toast } from 'react-toastify';
 import ViewPost from '../Home/ViewPost';
-import SharePostButton from '../Home/SharePostButton';
-import { renderSafeMarkdown } from '../../utils/sanitize';
+import PostCard from '../Home/PostCard';
+// Edit/Delete modals are centralized in PostUIContext
+import { usePostUI } from '../../context/PostUIContext';
+// PostUIProvider is provided at App level
 
 const PostsSection = ({ user, isOwnProfile = true }) => {
-  const { user: authUser, isSuspended, suspensionEnd, isAdmin } = useAuth();
+  const { isSuspended, suspensionEnd, isAdmin } = useAuth();
   const [posts, setPosts] = useState([]);
   const [allPosts, setAllPosts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [deleteLoading, setDeleteLoading] = useState(null);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(null);
-  const [showPostMenu, setShowPostMenu] = useState(null);
+  // Post menu handled by PostUIProvider
   const [comments, setComments] = useState({});
   const [commentLoading, setCommentLoading] = useState(false);
   const [showComments, setShowComments] = useState(null);
@@ -36,16 +31,18 @@ const PostsSection = ({ user, isOwnProfile = true }) => {
   const [totalPages, setTotalPages] = useState(1);
   const [showAllPostsModal, setShowAllPostsModal] = useState(false);
   const [allPostsLoading, setAllPostsLoading] = useState(false);
+  const { registerEditHandler, registerDeleteHandler } = usePostUI();
 
+  // Fetch latest user posts when identity or suspension changes
   useEffect(() => {
     if (user?._id && !isSuspended) {
       fetchUserPosts();
-    }else{
-      setLoading(false)
+    } else {
+      setLoading(false);
     }
-  }, [user, isOwnProfile]);
+  }, [user?._id, isOwnProfile, isSuspended]);
 
-  const fetchUserPosts = async () => {
+  const fetchUserPosts = useCallback(async () => {
     if (!user?._id) return;
 
     try {
@@ -74,13 +71,13 @@ const PostsSection = ({ user, isOwnProfile = true }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user?._id, isOwnProfile]);
 
-  const fetchPostsByUserId = async (userId, page = 1, limit = 10) => {
+  const fetchPostsByUserId = useCallback(async (userId, page = 1, limit = 10) => {
     return await getPostsByUserId(userId, page, limit);
-  };
+  }, []);
 
-  const fetchAllUserPosts = async (page = 1) => {
+  const fetchAllUserPosts = useCallback(async (page = 1) => {
     if (!user?._id) return;
 
     try {
@@ -112,7 +109,7 @@ const PostsSection = ({ user, isOwnProfile = true }) => {
     } finally {
       setAllPostsLoading(false);
     }
-  };
+  }, [user?._id, isOwnProfile, fetchPostsByUserId]);
 
   const fetchCommentsForPosts = async (postIds) => {
     if (!postIds || postIds.length === 0) return;
@@ -134,21 +131,19 @@ const PostsSection = ({ user, isOwnProfile = true }) => {
     }
   };
 
-  const handleDeletePost = async (postId) => {
+  const handleDeletePost = React.useCallback(async (postId) => {
     // Only allow deletion for own posts
     if (!isOwnProfile && !isAdmin) {
       toast.error("You can only delete your own posts");
       return;
     }
 
-    setDeleteLoading(postId);
-
     try {
       await deletePost(postId);
 
       // Remove post from both latest posts and all posts
-      setPosts(posts.filter((post) => post._id !== postId));
-      setAllPosts(allPosts.filter((post) => post._id !== postId));
+      setPosts(prevPosts => prevPosts.filter((post) => post._id !== postId));
+      setAllPosts(prevAllPosts => prevAllPosts.filter((post) => post._id !== postId));
       setTotalPosts(prev => prev - 1);
 
       // Remove comments for this post
@@ -168,11 +163,9 @@ const PostsSection = ({ user, isOwnProfile = true }) => {
       console.error('Error deleting post:', error);
       toast.error('Failed to delete post. Please try again.');
     } finally {
-      setDeleteLoading(null);
-      setShowDeleteConfirm(null);
-      setShowPostMenu(null);
+      // menu closes via provider; delete modal is centralized
     }
-  };
+  }, [isOwnProfile, isAdmin, posts.length, totalPosts]);
 
   const handleShowComments = (postId) => {
     setShowComments(postId);
@@ -256,121 +249,54 @@ const PostsSection = ({ user, isOwnProfile = true }) => {
     return styles[tag] || "bg-gray-100 text-gray-600";
   };
 
-  // Close menus when clicking outside
-  useEffect(() => {
-    const handleClickOutside = () => {
-      setShowPostMenu(null);
-    };
+  // Menu + permissions handled by PostUIProvider/PostMenu
 
-    document.addEventListener("click", handleClickOutside);
-    return () => document.removeEventListener("click", handleClickOutside);
-  }, []);
+  const handleEditConfirm = useCallback(
+    async (postId, postData) => {
+      try {
+        const res = await editPost(postId, postData);
+        const updated = res.post || res.updatedPost || {};
 
-  // Check if current user can delete a specific post
-  const canDeletePost = (post) => {
-    return isAdmin || (isOwnProfile && post.author?._id === authUser?._id);
-  };
+        setPosts(prev => prev.map(p => {
+          if (p._id !== postId) return p;
+          const next = { ...p, ...updated };
+          const ua = updated.author;
+          const incomplete = !ua || typeof ua !== 'object' || !ua.fullName;
+          if (incomplete) next.author = p.author;
+          return next;
+        }));
 
-  const PostCard = ({ post, showMenu = true }) => (
-    <div className="bg-white border border-gray-200 rounded-lg p-4 hover:border-orange-200 transition-colors">
-      {/* Post Header */}
-      <div className="flex items-center gap-3 mb-3">
-        {post.author?.profilePicture?.url ? (
-          <img
-            src={post.author.profilePicture.url}
-            alt="Profile"
-            className="w-8 h-8 rounded-full object-cover"
-          />
-        ) : (
-          <FaUserCircle className="w-8 h-8 text-gray-400" />
-        )}
-        <div className="flex-1">
-          <h4 className="font-medium text-gray-800 text-sm">
-            {post.author?.fullName || post.author?.username || "User"}
-          </h4>
-          <p className="text-xs text-gray-500">
-            {formatDate(post.createdAt)}
-            {post.beenEdited && <span className="ml-1">(Edited)</span>}
-          </p>
-        </div>
-        {post.tag !== "general" && (
-          <span
-            className={`px-2 py-1 rounded-lg text-xs font-medium ${getTagStyle(
-              post.tag
-            )}`}
-          >
-            {post.tag.charAt(0).toUpperCase() + post.tag.slice(1)}
-          </span>
-        )}
+        setAllPosts(prev => prev.map(p => {
+          if (p._id !== postId) return p;
+          const next = { ...p, ...updated };
+          const ua = updated.author;
+          const incomplete = !ua || typeof ua !== 'object' || !ua.fullName;
+          if (incomplete) next.author = p.author;
+          return next;
+        }));
 
-        {/* Post Menu - only show for own posts */}
-        {showMenu && canDeletePost(post) && (
-          <div className="relative">
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                setShowPostMenu(
-                  showPostMenu === post._id ? null : post._id
-                );
-              }}
-              className="p-1 hover:bg-gray-100 rounded-full transition-colors"
-            >
-              <FaEllipsisV className="text-gray-500" size={12} />
-            </button>
-
-            {/* Dropdown Menu */}
-            {showPostMenu === post._id && (
-              <div className="absolute right-0 top-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-10 min-w-[100px]">
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setShowDeleteConfirm(post._id);
-                    setShowPostMenu(null);
-                  }}
-                  className="w-full flex items-center gap-2 px-3 py-2 text-red-600 hover:bg-red-50 transition-colors text-xs"
-                >
-                  <FaTrash size={10} />
-                  <span>Delete</span>
-                </button>
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-
-      {/* Post Content - Updated to handle rich text */}
-      <div 
-        className="markdown-body text-gray-700 mb-3 text-sm break-words"
-        dangerouslySetInnerHTML={{ 
-          __html: renderSafeMarkdown(post.content) 
-        }}
-      />
-
-      {/* Post Image */}
-      {post.postImage?.url && (
-        <div className="mb-3">
-          <img
-            src={post.postImage.url}
-            alt="Post"
-            className="w-full object-cover rounded-lg border border-gray-200"
-          />
-        </div>
-      )}
-
-      {/* Post Actions */}
-      <div className="flex items-center justify-end gap-4 text-xs text-gray-500 border-t pt-2">
-        <SharePostButton post={post} />
-        <button 
-          onClick={() => handleShowComments(post._id)}
-          className="flex items-center gap-2 hover:text-orange-500 transition-colors cursor-pointer bg-gray-50 p-1 px-3 rounded-lg"
-        >
-          <FaComments size={12} /> 
-          <span>{comments[post._id]?.length || 0}</span>
-          <FaArrowRight size={10} />
-        </button>
-      </div>
-    </div>
+        toast.success(res.message || 'Post updated');
+        return { success: true };
+      } catch (e) {
+        toast.error(e.message || 'Failed to update post');
+        return { success: false, message: e.message };
+      }
+    },
+    []
   );
+
+  // Register global handlers
+  useEffect(() => {
+    const unregister = registerEditHandler(async (postId, postData) => handleEditConfirm(postId, postData));
+    return unregister;
+  }, [registerEditHandler, handleEditConfirm]);
+
+  useEffect(() => {
+    const unregister = registerDeleteHandler(async (postId) => handleDeletePost(postId));
+    return unregister;
+  }, [registerDeleteHandler, handleDeletePost]);
+
+  // Use shared Home/PostCard to avoid duplication
 
   if (loading) {
     return (
@@ -387,7 +313,7 @@ const PostsSection = ({ user, isOwnProfile = true }) => {
   }
 
   return (
-    <>
+  <>
       <div className="w-full">
         <div className="flex items-center justify-between mb-4 border-b border-orange-200 pb-2">
           <h2 className="text-2xl font-bold text-orange-600 flex items-center gap-2">
@@ -449,7 +375,14 @@ const PostsSection = ({ user, isOwnProfile = true }) => {
         ) : (
           <div className="space-y-4">
             {posts.map((post) => (
-              <PostCard key={post._id} post={post} showMenu={true} />
+              <PostCard
+                key={post._id}
+                post={post}
+                comments={comments}
+                onShowComments={handleShowComments}
+                formatDate={formatDate}
+                getTagStyle={getTagStyle}
+              />
             ))}
             {totalPosts > 1 && (
               <div className="text-center pt-2 border-t">
@@ -490,7 +423,14 @@ const PostsSection = ({ user, isOwnProfile = true }) => {
               ) : (
                 <div className="space-y-4">
                   {allPosts.map((post) => (
-                    <PostCard key={post._id} post={post} showMenu={true} />
+                    <PostCard
+                      key={post._id}
+                      post={post}
+                      comments={comments}
+                      onShowComments={handleShowComments}
+                      formatDate={formatDate}
+                      getTagStyle={getTagStyle}
+                    />
                   ))}
                   
                   {/* Load More Button */}
@@ -519,60 +459,7 @@ const PostsSection = ({ user, isOwnProfile = true }) => {
         </div>
       )}
 
-      {/* Delete Confirmation Modal - Only show for own posts */}
-      {showDeleteConfirm && (isOwnProfile || isAdmin) && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[70] p-4">
-          <div className="bg-white rounded-xl shadow-2xl w-full max-w-sm">
-            <div className="p-6">
-              <div className="flex items-center gap-4 mb-4">
-                <div className="bg-red-100 p-3 rounded-full">
-                  <FaTrash className="text-red-600" size={20} />
-                </div>
-                <div>
-                  <h3 className="text-lg font-bold text-gray-800">
-                    Delete Post
-                  </h3>
-                  <p className="text-sm text-gray-600">
-                    This action cannot be undone
-                  </p>
-                </div>
-              </div>
-
-              <p className="text-gray-600 mb-6">
-                Are you sure you want to delete this post? This will permanently
-                remove the post and all its content.
-              </p>
-
-              <div className="flex gap-3">
-                <button
-                  onClick={() => setShowDeleteConfirm(null)}
-                  className="flex-1 px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-                  disabled={deleteLoading}
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={() => handleDeletePost(showDeleteConfirm)}
-                  disabled={deleteLoading === showDeleteConfirm}
-                  className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                >
-                  {deleteLoading === showDeleteConfirm ? (
-                    <>
-                      <FaSpinner className="animate-spin" />
-                      <span>Deleting...</span>
-                    </>
-                  ) : (
-                    <>
-                      <FaTrash />
-                      <span>Delete</span>
-                    </>
-                  )}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+  {/* Edit/Delete modals are rendered by PostUIProvider */}
 
       {/* Comments Modal */}
       {showComments && (
@@ -588,7 +475,7 @@ const PostsSection = ({ user, isOwnProfile = true }) => {
           />
         </div>
       )}
-    </>
+  </>
   );
 };
 
