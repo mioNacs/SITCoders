@@ -108,11 +108,6 @@ const UnverifiedUsers = ({
                           </span>
                         </span>
                       </div>
-                      <div className="mt-2">
-                        <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs font-medium">
-                          Pending Verification
-                        </span>
-                      </div>
                       {userItem.bio && (
                         <div className="mt-2">
                           <p className="text-xs text-gray-500 italic">
