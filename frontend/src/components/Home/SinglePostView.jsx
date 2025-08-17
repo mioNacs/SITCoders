@@ -139,10 +139,10 @@ const SinglePostView = () => {
   }
 
   const content = (
-    <div className="pt-20 min-h-screen bg-orange-50">
+    <div className="post-container pt-20 min-h-screen bg-orange-50">
       <div className="max-w-4xl mx-auto md:pb-4">
         {/* Post Card */}
-        <div className="bg-white md:rounded-xl shadow-md border border-orange-100">
+        <div className="post-card bg-white md:rounded-xl shadow-md border border-orange-100">
           <div className="overflow-visible rounded-t-xl">
           {/* Post Header */}
           <div className="p-6 border-b border-gray-100">

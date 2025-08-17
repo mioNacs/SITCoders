@@ -113,7 +113,7 @@ function Home() {
   }
 
   return (
-    <>
+    <div className="post-container">
       <div className="pt-20 min-h-screen bg-orange-50">
         <div className="flex flex-col md:flex-row gap-6 md:max-w-[90%] lg:max-w-[80%] mx-0 md:mx-auto md:pb-8">
           {/* Main Content Area */}
@@ -191,7 +191,7 @@ function Home() {
           />
         </div>
       )}
-    </>
+    </div>
   );
 }
 
