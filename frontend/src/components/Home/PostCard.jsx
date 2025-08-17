@@ -3,24 +3,21 @@ import { Link } from 'react-router-dom';
 import PostMenu from './PostMenu';
 import PostActions from './PostActions';
 import { renderSafeMarkdown } from '../../utils/sanitize';
+import { formatRelativeDate as formatDate, getTagStyle } from '../../utils/formatters';
 
 const PostCard = ({ 
   post, 
   comments, 
-  showPostMenu, 
-  setShowPostMenu,
-  onDeleteConfirm,
-  onEditPost,
-  canEditPost,
   onShowComments,
-  canDeletePost,
-  formatDate,
-  getTagStyle 
 }) => {
   return (
     <div className="border bg-white border-gray-200 md:rounded-lg p-4 hover:border-orange-200 md:shadow-md transition-colors">
       {/* Post Header */}
       <div className="flex items-center gap-3 mb-3">
+        <Link 
+              to={`/profile/${post.author.username}`}
+              className="cursor-pointer"
+        >
         {post.author?.profilePicture?.url ? (
           <img
             src={post.author.profilePicture.url}
@@ -30,6 +27,7 @@ const PostCard = ({
         ) : (
           <FaUserCircle className="w-10 h-10 text-gray-400" />
         )}
+        </Link>
         <div className="flex-1">
           <h4 className="font-semibold text-gray-800">
             <Link 
@@ -53,15 +51,7 @@ const PostCard = ({
           </span>
         )}
 
-        <PostMenu
-          post={post}
-          showPostMenu={showPostMenu}
-          setShowPostMenu={setShowPostMenu}
-          onDeleteConfirm={onDeleteConfirm}
-          onEditPost={onEditPost}
-          canEditPost={canEditPost}
-          canDeletePost={canDeletePost}
-        />
+  <PostMenu post={post} />
       </div>
 
       {/* Post Content */}

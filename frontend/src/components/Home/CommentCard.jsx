@@ -1,267 +1,227 @@
-import React, { useState, useRef } from 'react';
-import { FaUser, FaReply, FaSpinner, FaPaperPlane, FaBold, FaItalic, FaSmile, FaTimes, FaCode } from 'react-icons/fa';
-import { createReply } from '../../services/commentApi';
-import { toast } from 'react-toastify';
-import { useAuth } from '../../context/AuthContext';
-import EmojiPicker from 'emoji-picker-react';
-import { FaEllipsisH } from "react-icons/fa";
-import { renderSafeMarkdown } from '../../utils/sanitize';
+import React, { useEffect, useRef, useState } from "react";
+import { FaUser, FaReply, FaEllipsisV, FaTrash, FaEdit } from "react-icons/fa";
+import { useAuth } from "../../context/AuthContext";
+import { renderSafeMarkdown } from "../../utils/sanitize";
+import { formatRelativeDate as formatDate } from "../../utils/formatters";
+import {
+  updateComment,
+  deleteComment,
+  adminDeleteComment,
+} from "../../services/commentApi";
+import { toast } from "react-toastify";
+import DeleteConfirmModal from "./DeleteConfirmModal";
 
-const CommentCard = ({ comment, postId, setComments }) => {
-  const { user } = useAuth();
-  const [replyTo, setReplyTo] = useState(null);
-  const [replyContent, setReplyContent] = useState("");
-  const [submitting, setSubmitting] = useState(false);
-  const [showReplies, setShowReplies] = useState({});
-  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-  const [replyingToReply, setReplyingToReply] = useState(null);
-  const [showCodeBox, setShowCodeBox] = useState(false);
-  const [codeLanguage, setCodeLanguage] = useState('javascript');
-  const [codeText, setCodeText] = useState('');
-  const [showToolsMenu, setShowToolsMenu] = useState(false);
-  
-  const textareaRef = useRef(null);
+const CommentCard = ({
+  comment,
+  postId,
+  setComments,
+  onStartReply,
+  onStartEdit,
+}) => {
+  const { user, isAdmin } = useAuth();
+  const [showReplies, setShowReplies] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef(null);
+  const [openReplyMenuId, setOpenReplyMenuId] = useState(null);
+  // central delete modal state
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [deleteLoadingId, setDeleteLoadingId] = useState(null);
+  const [deleteTarget, setDeleteTarget] = useState({ id: null, isReply: false, replyUserId: null });
 
-  // Text formatting functions for replies
-  const insertTextAtCursor = (startTag, endTag = '', placeholder = '') => {
-    const textarea = textareaRef.current;
-    if (!textarea) return;
+  // date formatter from utils
 
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const selectedText = replyContent.substring(start, end);
-    const textToInsert = selectedText || placeholder;
-    
-    const beforeText = replyContent.substring(0, start);
-    const afterText = replyContent.substring(end);
-    
-    const newContent = beforeText + startTag + textToInsert + endTag + afterText;
-    
-    setReplyContent(newContent);
-    
-    // Set cursor position after the inserted text
-    setTimeout(() => {
-      const newCursorPos = start + startTag.length + textToInsert.length;
-      textarea.setSelectionRange(newCursorPos, newCursorPos);
-      textarea.focus();
-    }, 0);
+  const canEdit = user && comment.user?._id === user._id;
+  const canDelete = canEdit || !!isAdmin;
+
+  const openDeleteConfirm = (targetId, isReply = false, replyUserId = null) => {
+    setDeleteTarget({ id: targetId, isReply, replyUserId });
+    setConfirmOpen(true);
   };
 
-  const handleBold = () => {
-    insertTextAtCursor('**', '**', 'bold text');
-  };
-
-  const handleItalic = () => {
-    insertTextAtCursor('*', '*', 'italic text');
-  };
-
-  const LANG_OPTIONS = [
-    { value: 'javascript', label: 'JavaScript' },
-    { value: 'jsx', label: 'JSX' },
-    { value: 'typescript', label: 'TypeScript' },
-    { value: 'tsx', label: 'TSX' },
-    { value: 'python', label: 'Python' },
-    { value: 'java', label: 'Java' },
-    { value: 'c', label: 'C' },
-    { value: 'cpp', label: 'C++' },
-    { value: 'sql', label: 'SQL' },
-    { value: 'bash', label: 'Bash' },
-    { value: 'json', label: 'JSON' },
-    { value: 'markdown', label: 'Markdown' },
-    { value: 'css', label: 'CSS' },
-    { value: 'markup', label: 'HTML' },
-    { value: 'text', label: 'Plain text' },
-  ];
-
-  const handleInsertCode = () => {
-    const code = (codeText || '').replace(/\r\n/g, '\n');
-    if (!code.trim()) return;
-    const lang = codeLanguage || 'text';
-    const snippet = `\n\n\`\`\`${lang}\n${code}\n\`\`\`\n\n`;
-    insertTextAtCursor(snippet, '', '');
-    setCodeText('');
-    setShowCodeBox(false);
-  };
-
-  const handleEmojiClick = (emojiObject) => {
-    const textarea = textareaRef.current;
-    if (!textarea) return;
-
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    
-    const beforeText = replyContent.substring(0, start);
-    const afterText = replyContent.substring(end);
-    
-    const newContent = beforeText + emojiObject.emoji + afterText;
-    setReplyContent(newContent);
-    
-    setShowEmojiPicker(false);
-    
-    setTimeout(() => {
-      const newCursorPos = start + emojiObject.emoji.length;
-      textarea.setSelectionRange(newCursorPos, newCursorPos);
-      textarea.focus();
-    }, 0);
-  };
-
-  // Format date function
-  const formatDate = (dateString) => {
-    const now = new Date();
-    const date = new Date(dateString);
-    const diffInSeconds = Math.floor((now - date) / 1000);
-
-    if (diffInSeconds < 60) {
-      return "now";
-    }
-
-    const diffInMinutes = Math.floor(diffInSeconds / 60);
-    if (diffInMinutes < 60) {
-      return `${diffInMinutes} minute${diffInMinutes === 1 ? "" : "s"} ago`;
-    }
-
-    const diffInHours = Math.floor(diffInMinutes / 60);
-    if (diffInHours < 24) {
-      return `${diffInHours} hour${diffInHours === 1 ? "" : "s"} ago`;
-    }
-
-    const diffInDays = Math.floor(diffInHours / 24);
-    return `${diffInDays} day${diffInDays === 1 ? "" : "s"} ago`;
-  };
-
-  // Handle reply submission (works for both comment replies and reply-to-reply)
-  const handleSubmitReply = async (e) => {
-    e.preventDefault();
-
-    if (!replyContent.trim()) {
-      toast.warning("Please enter a reply");
-      return;
-    }
-
-    setSubmitting(true);
+  const handleConfirmDelete = async (targetId) => {
+    const { isReply, replyUserId } = deleteTarget;
     try {
-      // If replying to a reply, use the parent comment ID
-      const targetId = replyingToReply || replyTo;
-      const result = await createReply(targetId, replyContent);
-      
-      // Update comments state with new reply
+      // Determine authorship for replies and comments
+      const isAuthor = isReply
+        ? Boolean(user && replyUserId && user._id === replyUserId)
+        : Boolean(canEdit);
+
+      // Always prefer admin endpoint when user is admin (solves admin author case)
+      if (isAdmin) {
+        await adminDeleteComment(targetId);
+      } else if (isAuthor) {
+        await deleteComment(targetId);
+      } else {
+        throw new Error("You do not have permission to delete this comment");
+      }
+
+      // Update local state
       setComments((prev) => {
-        const updatedComments = [...(prev[postId] || [])];
-        const commentIndex = updatedComments.findIndex(
-          (c) => c._id === comment._id
-        );
-        if (commentIndex !== -1) {
-          updatedComments[commentIndex] = {
-            ...updatedComments[commentIndex],
-            replies: [
-              ...(updatedComments[commentIndex].replies || []),
-              result.comment,
-            ],
+        const current = [...(prev[postId] || [])];
+        if (!isReply) {
+          return {
+            ...prev,
+            [postId]: current.filter((c) => c._id !== targetId),
           };
         }
-        return {
-          ...prev,
-          [postId]: updatedComments,
-        };
+        // reply: find parent and remove from replies
+        const parentIdx = current.findIndex((c) => c._id === comment._id);
+        if (parentIdx !== -1) {
+          const parent = current[parentIdx];
+          const updated = {
+            ...parent,
+            replies: (parent.replies || []).filter((r) => r._id !== targetId),
+          };
+          current[parentIdx] = updated;
+        }
+        return { ...prev, [postId]: current };
       });
-
-      setReplyContent("");
-      setReplyTo(null);
-      setReplyingToReply(null);
-      toast.success("Reply added successfully!");
-    } catch (error) {
-      console.error("Error submitting reply:", error);
-      toast.error("Failed to add reply. Please try again.");
+      toast.success("Comment deleted");
+    } catch (e) {
+      console.error("Delete comment failed", e);
+      toast.error(e.message || "Failed to delete comment");
     } finally {
-      setSubmitting(false);
+      setMenuOpen(false);
+      setOpenReplyMenuId(null);
+      setDeleteLoadingId(null);
+      setConfirmOpen(false);
     }
   };
 
-  const toggleReplies = (commentId) => {
-    setShowReplies((prev) => ({
-      ...prev,
-      [commentId]: !prev[commentId],
-    }));
-  };
-
-  const handleReplyClick = (targetId, isReplyToReply = false) => {
-    if (replyTo === targetId) {
-      // Close reply form
-      setReplyTo(null);
-      setReplyingToReply(null);
-      setReplyContent("");
-    } else {
-      // Open reply form
-      setReplyTo(targetId);
-      setReplyingToReply(isReplyToReply ? comment._id : null);
-      setReplyContent("");
-    }
-  };
+  // close menu on outside click or ESC
+  useEffect(() => {
+    if (!menuOpen && !openReplyMenuId) return;
+    const onClick = (e) => {
+      if (menuRef.current && menuRef.current.contains(e.target)) return;
+      setMenuOpen(false);
+      setOpenReplyMenuId(null);
+    };
+    const onKey = (e) => {
+      if (e.key === "Escape") {
+        setMenuOpen(false);
+        setOpenReplyMenuId(null);
+      }
+    };
+    document.addEventListener("click", onClick);
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("click", onClick);
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [menuOpen, openReplyMenuId]);
 
   return (
-    <>
-      <div className="border border-gray-200 rounded-lg p-4">
-        <div className="flex items-center gap-3 mb-2">
-          {comment.user?.profilePicture?.url ? (
-            <img
-              src={comment.user.profilePicture.url}
-              alt="Commenter"
-              className="w-8 h-8 rounded-full object-cover"
-            />
-          ) : (
-            <FaUser className="w-8 h-8 text-gray-400 bg-gray-100 rounded-full p-1" />
-          )}
-          <div>
-            <h5 className="font-medium text-gray-800">
-              {comment.user?.fullName ||
-                comment.user?.username ||
-                "Unknown User"}
-            </h5>
-            <p className="text-xs text-gray-500">
-              {formatDate(comment.createdAt)}
-            </p>
-          </div>
-        </div>
-        
-        {/* Comment Content with Rich Text Support */}
-        <div 
-          className="markdown-body text-gray-700 mb-2 break-words"
-          dangerouslySetInnerHTML={{ 
-            __html: renderSafeMarkdown(comment.content) 
-          }}
-        />
-
-        {/* Reply button */}
-        {user?.isAdminVerified && (
-          <button
-            onClick={() => handleReplyClick(comment._id)}
-            className="text-orange-500 text-sm hover:text-orange-600 transition-colors flex items-center gap-1"
-          >
-            <FaReply size={12} />
-            <span>Reply</span>
-          </button>
+    <div className="border border-gray-200 rounded-lg p-4">
+      <DeleteConfirmModal
+        isOpen={confirmOpen}
+        onClose={() => setConfirmOpen(false)}
+        onConfirm={async (id) => {
+          setDeleteLoadingId(id);
+          await handleConfirmDelete(id);
+        }}
+        deleteLoading={deleteLoadingId}
+        targetId={deleteTarget.id}
+        title={deleteTarget.isReply ? 'Delete Reply' : 'Delete Comment'}
+        message={deleteTarget.isReply ? 'Are you sure you want to delete this reply? This action cannot be undone.' : 'Are you sure you want to delete this comment? This action cannot be undone.'}
+        confirmLabel="Delete"
+      />
+      <div className="flex items-center gap-3 mb-2">
+        {comment.user?.profilePicture?.url ? (
+          <img
+            src={comment.user.profilePicture.url}
+            alt="Commenter"
+            className="w-8 h-8 rounded-full object-cover"
+          />
+        ) : (
+          <FaUser className="w-8 h-8 text-gray-400 bg-gray-100 rounded-full p-1" />
         )}
-
-        {/* Replies */}
-        {comment.replies && comment.replies.length > 0 && (
-          <div className="mt-3">
+        <div className="flex-1">
+          <h5 className="font-medium text-gray-800">
+            {comment.user?.fullName || comment.user?.username || "Unknown User"}
+            {(comment.createdAt < comment.updatedAt) && (
+              <span className="pl-2 text-xs text-gray-500">(Edited)</span>
+            )}
+          </h5>
+          <p className="text-xs text-gray-500">
+            {formatDate(comment.createdAt)}
+          </p>
+        </div>
+        {(canEdit || canDelete) && (
+          <div className="relative" ref={menuRef}>
             <button
-              onClick={() => toggleReplies(comment._id)}
-              className="text-blue-500 text-sm hover:text-blue-600 transition-colors"
+              onClick={() => setMenuOpen((v) => !v)}
+              className="p-1 rounded hover:bg-gray-100"
+              aria-label="Comment options"
             >
-              {showReplies[comment._id] ? "Hide" : "Show"}{" "}
-              {comment.replies.length}{" "}
-              {comment.replies.length === 1 ? "reply" : "replies"}
+              <FaEllipsisV className="text-gray-500" size={12} />
             </button>
-
-            {showReplies[comment._id] && (
-              <div className="ml-6 mt-2 space-y-2 border-l-2 border-gray-200 pl-4">
-                {comment.replies.map((reply) => (
-                  <div
-                    key={reply._id}
-                    className="bg-gray-50 rounded p-3"
+            {menuOpen && (
+              <div className="absolute right-0 bottom-full mb-1 bg-white border border-gray-200 rounded-md shadow-lg z-10 min-w-[140px] animate-fade-in">
+                {canEdit && (
+                  <button
+                    onClick={() => {
+                      onStartEdit && onStartEdit(comment._id, comment.content);
+                      setMenuOpen(false);
+                    }}
+                    className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-gray-50 text-blue-600"
                   >
-                    <div className="flex items-center gap-2 mb-1">
+                    <FaEdit size={12} /> Edit
+                  </button>
+                )}
+        {canDelete && (
+                  <button
+          onClick={() => openDeleteConfirm(comment._id, false)}
+                    className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-gray-50 text-red-600"
+                  >
+                    <FaTrash size={12} /> Delete
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      <div
+        className="markdown-body text-gray-700 mb-2 break-words"
+        dangerouslySetInnerHTML={{
+          __html: renderSafeMarkdown(comment.content),
+        }}
+      />
+
+      {/* Reply using main input with @mention */}
+      {user?.isAdminVerified && (
+        <button
+          onClick={() =>
+            onStartReply &&
+            onStartReply(
+              comment._id,
+              comment.user?.fullName || comment.user?.username || "Unknown User"
+            )
+          }
+          className="text-orange-500 text-sm hover:text-orange-600 transition-colors flex items-center gap-1"
+        >
+          <FaReply size={12} />
+          <span>Reply</span>
+        </button>
+      )}
+
+      {Array.isArray(comment.replies) && comment.replies.length > 0 && (
+        <div className="mt-3">
+          <button
+            onClick={() => setShowReplies((v) => !v)}
+            className="text-blue-500 text-sm hover:text-blue-600 transition-colors"
+          >
+            {showReplies ? "Hide" : "Show"} {comment.replies.length}{" "}
+            {comment.replies.length === 1 ? "reply" : "replies"}
+          </button>
+
+          {showReplies && (
+            <div className="ml-6 mt-2 space-y-2 border-l-2 border-gray-200 pl-4">
+              {comment.replies.map((reply) => (
+                <div key={reply._id} className="rounded p-3">
+                  <div className="flex items-center justify-between mb-1">
+                    <div className="flex items-center gap-2">
                       {reply.user?.profilePicture?.url ? (
                         <img
                           src={reply.user.profilePicture.url}
@@ -275,321 +235,91 @@ const CommentCard = ({ comment, postId, setComments }) => {
                         {reply.user?.fullName ||
                           reply.user?.username ||
                           "Unknown User"}
+                        {(reply.createdAt < reply.updatedAt) && (
+                          <span className="pl-2 text-xs text-gray-500">(Edited)</span>
+                        )}
                       </h6>
                       <p className="text-xs text-gray-500">
                         {formatDate(reply.createdAt)}
                       </p>
                     </div>
-                    
-                    {/* Reply Content with Rich Text Support */}
-                    <div 
-                      className="markdown-body text-gray-700 text-sm mb-2 break-words"
-                      dangerouslySetInnerHTML={{ 
-                        __html: renderSafeMarkdown(reply.content) 
-                      }}
-                    />
-
-                    {/* Reply to Reply button */}
-                    {user?.isAdminVerified && (
-                      <button
-                        onClick={() => handleReplyClick(reply._id, true)}
-                        className="text-orange-400 text-xs hover:text-orange-500 transition-colors flex items-center gap-1"
+                    {(isAdmin || (user && reply.user?._id === user._id)) && (
+                      <div
+                        className="relative"
+                        onClick={(e) => e.stopPropagation()}
                       >
-                        <FaReply size={10} />
-                        <span>Reply</span>
-                      </button>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Reply form */}
-        {replyTo === comment._id && (
-          <div className="mt-3 ml-6">
-            {/* Live Preview for Reply */}
-            {replyContent && (
-              <div className="mb-2 p-2 bg-gray-50 rounded-lg border">
-                <div className="text-xs text-gray-500 mb-1">Preview:</div>
-                <div
-                  className="markdown-body text-sm text-gray-700"
-                  dangerouslySetInnerHTML={{ __html: renderSafeMarkdown(replyContent) }}
-                />
-              </div>
-            )}
-
-            <form onSubmit={handleSubmitReply}>
-              <div className="flex gap-2">
-                <div className='flex items-center w-full'>
-                  <textarea
-                    ref={textareaRef}
-                    value={replyContent}
-                    onChange={(e) => setReplyContent(e.target.value)}
-                    placeholder="Write your reply..."
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-orange-400 focus:border-orange-500 outline-none text-sm resize-none font-mono"
-                    disabled={submitting}
-                    rows={2}
-                  />
-                  <div className="relative p-2">
-                    <button
-                      type="button"
-                      onClick={() => setShowToolsMenu(v => !v)}
-                      disabled={submitting}
-                      className="p-1 hover:bg-gray-200 rounded transition-colors disabled:opacity-50"
-                      aria-haspopup="menu"
-                      aria-expanded={showToolsMenu}
-                      title="Formatting options"
-                    >
-                      <FaEllipsisH className="text-gray-600" size={16} />
-                    </button>
-                    {showToolsMenu && (
-                      <div className="absolute right-0 bottom-full mb-2 w-40 bg-white border border-gray-200 shadow-lg rounded-md z-10">
                         <button
-                          type="button"
-                          onClick={() => { handleBold(); setShowToolsMenu(false); }}
-                          className="w-full px-3 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2"
+                          onClick={() =>
+                            setOpenReplyMenuId((prev) =>
+                              prev === reply._id ? null : reply._id
+                            )
+                          }
+                          className="p-1 rounded hover:bg-gray-100"
+                          aria-label="Reply options"
+                          title="Options"
                         >
-                          <FaBold /> <span>Bold</span>
+                          <FaEllipsisV size={12} className="text-gray-500" />
                         </button>
-                        <button
-                          type="button"
-                          onClick={() => { handleItalic(); setShowToolsMenu(false); }}
-                          className="w-full px-3 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2"
-                        >
-                          <FaItalic /> <span>Italic</span>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => { setShowCodeBox(s => !s); setShowToolsMenu(false); }}
-                          className="w-full px-3 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2"
-                        >
-                          <FaCode /> <span>Add code</span>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => { setShowEmojiPicker(!showEmojiPicker); setShowToolsMenu(false); }}
-                          className="w-full px-3 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2"
-                        >
-                          <FaSmile /> <span>Emoji</span>
-                        </button>
+                        {openReplyMenuId === reply._id && (
+                          <div className="absolute right-0 bottom-full mb-1 bg-white border border-gray-200 rounded shadow z-10 min-w-[140px] animate-fade-in">
+                            {user && reply.user?._id === user._id && (
+                              <button
+                                onClick={() => {
+                                  onStartEdit &&
+                                    onStartEdit(reply._id, reply.content);
+                                  setOpenReplyMenuId(null);
+                                }}
+                                className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50 text-blue-600 flex items-center gap-2"
+                              >
+                                <FaEdit size={12} /> Edit
+                              </button>
+                            )}
+                            <button
+                              onClick={() => {
+                                openDeleteConfirm(reply._id, true, reply.user?._id);
+                                setOpenReplyMenuId(null);
+                              }}
+                              className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50 text-red-600 flex items-center gap-2"
+                            >
+                              <FaTrash size={12} /> Delete
+                            </button>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
-                </div>
-                <button
-                  type="submit"
-                  disabled={submitting || !replyContent.trim()}
-                  className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                >
-                  {submitting ? (
-                    <FaSpinner className="animate-spin" size={12} />
-                  ) : (
-                    <FaPaperPlane size={12} />
-                  )}
-                </button>
-              </div>
-            </form>
-          </div>
-        )}
 
-        {replyTo === comment._id && showCodeBox && (
-          <div className="mt-2 ml-6 p-3 bg-gray-50 rounded-lg border space-y-3">
-            <div className="flex items-center gap-3">
-              <label className="text-sm text-gray-600">Language</label>
-              <select
-                value={codeLanguage}
-                onChange={(e) => setCodeLanguage(e.target.value)}
-                className="p-2 border border-gray-300 rounded-lg focus:ring focus:ring-orange-500 focus:border-orange-400 outline-none text-sm"
-              >
-                {LANG_OPTIONS.map(opt => (
-                  <option key={opt.value} value={opt.value}>{opt.label}</option>
-                ))}
-              </select>
-            </div>
-            <textarea
-              value={codeText}
-              onChange={(e) => setCodeText(e.target.value)}
-              rows={6}
-              placeholder="Paste or type your code here..."
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring focus:ring-orange-400 focus:border-orange-500 resize-y outline-none font-mono text-sm"
-            />
-            <div className="flex gap-2 justify-end">
-              <button
-                type="button"
-                onClick={() => { setCodeText(''); setShowCodeBox(false); }}
-                className="px-3 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={handleInsertCode}
-                className="px-3 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600"
-              >
-                Insert code
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Reply form for reply-to-reply */}
-        {comment.replies && comment.replies.some(reply => replyTo === reply._id) && (
-          <div className="mt-3 ml-12">
-
-            {/* Live Preview for Reply-to-Reply */}
-            {replyContent && (
-              <div className="mb-2 p-2 bg-gray-50 rounded-lg border">
-                <div className="text-xs text-gray-500 mb-1">Preview:</div>
-                <div 
-                  className="markdown-body text-sm text-gray-700"
-                  dangerouslySetInnerHTML={{ 
-                    __html: renderSafeMarkdown(replyContent) 
-                  }}
-                />
-              </div>
-            )}
-
-            <form onSubmit={handleSubmitReply}>
-              <div className="flex gap-2">
-                <div className='flex items-center w-full'>
-                  <textarea
-                    ref={textareaRef}
-                    value={replyContent}
-                    onChange={(e) => setReplyContent(e.target.value)}
-                    placeholder="Reply to this reply..."
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring focus:ring-orange-400 focus:border-orange-500 outline-none text-sm resize-none font-mono"
-                    disabled={submitting}
-                    rows={2}
+                  <div
+                    className="markdown-body text-gray-700 text-sm mb-2 break-words"
+                    dangerouslySetInnerHTML={{
+                      __html: renderSafeMarkdown(reply.content),
+                    }}
                   />
-                  <div className="relative p-2">
+
+                  {user?.isAdminVerified && (
                     <button
-                      type="button"
-                      onClick={() => setShowToolsMenu(v => !v)}
-                      disabled={submitting}
-                      className="p-1 cursor-pointer hover:bg-gray-200 rounded transition-colors disabled:opacity-50"
-                      aria-haspopup="menu"
-                      aria-expanded={showToolsMenu}
-                      title="Formatting options"
+                      onClick={() =>
+                        onStartReply &&
+                        onStartReply(
+                          comment._id,
+                          reply.user?.fullName ||
+                            reply.user?.username ||
+                            "Unknown User"
+                        )
+                      }
+                      className="text-orange-400 text-xs hover:text-orange-500 transition-colors flex items-center gap-1"
                     >
-                      <FaEllipsisH className="text-gray-600" size={16} />
+                      <FaReply size={10} />
+                      <span>Reply</span>
                     </button>
-                    {showToolsMenu && (
-                      <div className="absolute right-0 bottom-full mb-2 w-40 bg-white border border-gray-200 shadow-lg rounded-md z-10">
-                        <button
-                          type="button"
-                          onClick={() => { handleBold(); setShowToolsMenu(false); }}
-                          className="w-full px-3 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2"
-                        >
-                          <FaBold /> <span>Bold</span>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => { handleItalic(); setShowToolsMenu(false); }}
-                          className="w-full px-3 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2"
-                        >
-                          <FaItalic /> <span>Italic</span>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => { setShowCodeBox(s => !s); setShowToolsMenu(false); }}
-                          className="w-full px-3 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2"
-                        >
-                          <FaCode /> <span>Add code</span>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => { setShowEmojiPicker(!showEmojiPicker); setShowToolsMenu(false); }}
-                          className="w-full px-3 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2"
-                        >
-                          <FaSmile /> <span>Emoji</span>
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                </div>
-                <button
-                  type="submit"
-                  disabled={submitting || !replyContent.trim()}
-                  className="px-4 py-2 cursor-pointer bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                >
-                  {submitting ? (
-                    <FaSpinner className="animate-spin" size={12} />
-                  ) : (
-                    <FaPaperPlane size={12} />
                   )}
-                </button>
-              </div>
-            </form>
-          </div>
-        )}
-
-        {comment.replies && comment.replies.some(reply => replyTo === reply._id) && showCodeBox && (
-          <div className="mt-2 ml-12 p-3 bg-gray-50 rounded-lg border space-y-3">
-            <div className="flex items-center gap-3">
-              <label className="text-sm text-gray-600">Language</label>
-              <select
-                value={codeLanguage}
-                onChange={(e) => setCodeLanguage(e.target.value)}
-                className="p-2 border border-gray-300 rounded-lg focus:ring focus:ring-orange-500 focus:border-orange-400 outline-none text-sm"
-              >
-                {LANG_OPTIONS.map(opt => (
-                  <option key={opt.value} value={opt.value}>{opt.label}</option>
-                ))}
-              </select>
+                </div>
+              ))}
             </div>
-            <textarea
-              value={codeText}
-              onChange={(e) => setCodeText(e.target.value)}
-              rows={6}
-              placeholder="Paste or type your code here..."
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring focus:ring-orange-400 focus:border-orange-500 resize-y outline-none font-mono text-sm"
-            />
-            <div className="flex gap-2 justify-end">
-              <button
-                type="button"
-                onClick={() => { setCodeText(''); setShowCodeBox(false); }}
-                className="px-3 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={handleInsertCode}
-                className="px-3 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600"
-              >
-                Insert code
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Emoji Picker Modal for Replies */}
-      {showEmojiPicker && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[70] p-4">
-          <div className="relative bg-white rounded-lg shadow-xl">
-            <button
-              onClick={() => setShowEmojiPicker(false)}
-              className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors z-10"
-            >
-              <FaTimes size={12} />
-            </button>
-            <EmojiPicker
-              onEmojiClick={handleEmojiClick}
-              width={Math.min(350, window.innerWidth - 32)}
-              height={Math.min(450, window.innerHeight - 100)}
-              searchDisabled={false}
-              skinTonesDisabled={false}
-              previewConfig={{
-                showPreview: false
-              }}
-            />
-          </div>
+          )}
         </div>
       )}
-    </>
+    </div>
   );
 };
 

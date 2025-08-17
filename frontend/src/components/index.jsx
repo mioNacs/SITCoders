@@ -1,7 +1,7 @@
 import Header from "./Header/Header";
 import Landing from "./Landing/Landing";
 import Home from "./Home/Home";
-import PostView from "./Home/SinglePostView";
+import SinglePostView from "./Home/SinglePostView";
 import Footer from "./Footer/Footer";
 import Login from "./Login/Login";
 import ForgotPassword from "./Login/ForgotPassword";
@@ -15,4 +15,4 @@ import AdminDashboard from "./AdminDashboard/AdminDashboard";
 import Settings from "./Settings/Settings";
 import CodeEnhancer from "./UI/CodeEnhancer";
 
-export {Header, Landing, Home, PostView, Footer, Login, ForgotPassword, Signup, VerifyOTP, Resources, Collaborate, ContactAdmin, UserProfile, AdminDashboard, Settings, CodeEnhancer};
+export {Header, Landing, Home, SinglePostView, Footer, Login, ForgotPassword, Signup, VerifyOTP, Resources, Collaborate, ContactAdmin, UserProfile, AdminDashboard, Settings, CodeEnhancer};

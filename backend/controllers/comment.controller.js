@@ -177,55 +177,72 @@ const deleteComment = async (req, res) => {
 const updateComment = async (req, res) => {
   try {
     const { commentId } = req.params;
-    const content = req.body.content?.trim();
+    const { content } = req.body;
+    const user = req.user;
 
-    if (!commentId || !content) {
-      return res
-        .status(400)
-        .json({
-          success: false,
-          message: "Comment ID and content are required.",
-        });
+    if (!commentId) {
+      return res.status(400).json({ message: "Comment ID is required." });
     }
 
-    if (!mongoose.Types.ObjectId.isValid(commentId)) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Invalid Comment ID format." });
+    if (!content?.trim() || typeof content !== "string") {
+      return res.status(400).json({ message: "Content is required and must be a string." });
     }
 
-    const comment = await Comment.findOneAndUpdate(
-      { _id: commentId, user: req.user._id },
-      { content },
-      { new: true }
-    );
-
+    const comment = await Comment.findById(commentId);
     if (!comment) {
-      return res
-        .status(404)
-        .json({
-          success: false,
-          message: "Comment not found or not authorized.",
-        });
+      return res.status(404).json({ message: "Comment not found." });
     }
 
-    res
-      .status(200)
-      .json({
-        success: true,
-        message: "Comment updated successfully.",
-        comment,
-      });
+    // Only the author can edit their comment
+    if (!comment.user.equals(user._id)) {
+      return res.status(403).json({ message: "You can only edit your own comments." });
+    }
+
+    // Update the comment
+    const updatedComment = await Comment.findByIdAndUpdate(
+      commentId,
+      { content: content.trim() },
+      { new: true }
+    )
+      .select("-__v")
+      .populate("user", "fullName username profilePicture");
+
+    res.status(200).json({
+      message: "Comment updated successfully.",
+      comment: updatedComment
+    });
   } catch (error) {
-    console.error("Error updating comment:", error);
-    res.status(500).json({ success: false, message: "Internal server error" });
+    console.error("Error updating comment:", error.message);
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
-export {
-  createComment,
-  createReply,
-  getParentComment,
-  deleteComment,
-  updateComment,
+const adminDeleteComment = async (req, res) => {
+  try {
+    const { commentId } = req.params;
+    const user = req.user;
+
+    if (!commentId) {
+      return res.status(400).json({ message: "Comment ID is required." });
+    }
+
+    const comment = await Comment.findById(commentId);
+    if (!comment) {
+      return res.status(404).json({ message: "Comment not found." });
+    }
+
+    // Admin can delete any comment (no ownership check)
+    const repliesDeleted = await Comment.deleteMany({ parentComment: comment._id });
+    await Comment.deleteOne({ _id: comment._id });
+
+    res.status(200).json({
+      message: "Comment and replies deleted successfully by admin.",
+      repliesDeleted: repliesDeleted.deletedCount
+    });
+  } catch (error) {
+    console.error("Error deleting comment (admin):", error.message);
+    res.status(500).json({ message: "Internal server error" });
+  }
 };
+
+export { createComment, createReply, getParentComment, deleteComment, updateComment, adminDeleteComment };

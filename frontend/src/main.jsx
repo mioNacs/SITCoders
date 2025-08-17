@@ -3,8 +3,10 @@ import { createRoot } from 'react-dom/client'
 import { createBrowserRouter, Route, RouterProvider, createRoutesFromElements} from 'react-router-dom'
 import './index.css'
 import App from './App.jsx'
-import {Login, Signup, VerifyOTP, Landing, Home, Resources, ContactAdmin, Collaborate, UserProfile, AdminDashboard, PostView, ForgotPassword, Settings} from './components'
+import {Login, Signup, VerifyOTP, Landing, Home, Resources, ContactAdmin, Collaborate, UserProfile, AdminDashboard, SinglePostView, ForgotPassword, Settings} from './components'
 import { AuthProvider } from './context/AuthContext.jsx'
+import { PostUIProvider } from './context/PostUIContext.jsx'
+import { CommentsUIProvider } from './context/CommentsUIContext.jsx'
 
 const router = createBrowserRouter(
   createRoutesFromElements(
@@ -18,7 +20,7 @@ const router = createBrowserRouter(
       <Route path="Resources" element={<Resources/>}/>
       <Route path="Collaborate" element={<Collaborate/>}/>
       <Route path="contact-admin" element={<ContactAdmin/>}/>
-      <Route path="post/:postId" element={<PostView/>}/>
+      <Route path="post/:postId" element={<SinglePostView/>}/>
       <Route path="profile/:username?" element={<UserProfile/>}/>
       <Route path="settings" element={<Settings/>}/>
       <Route path="admin-dashboard" element={<AdminDashboard/>}/>
@@ -29,7 +31,11 @@ const router = createBrowserRouter(
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <AuthProvider>
-      <RouterProvider router={router}/>
+      <PostUIProvider>
+        <CommentsUIProvider>
+          <RouterProvider router={router}/>
+        </CommentsUIProvider>
+      </PostUIProvider>
     </AuthProvider>
   </StrictMode>
 )
