@@ -1,6 +1,7 @@
 import Post from "../models/post.model.js";
 import Admin from "../models/admin.model.js"; // Import Admin model
 import User from "../models/user.model.js"; // Import User model
+import Comment from "../models/comment.model.js";
 import { uploadPostImageOnCloudinary, deleteFromCloudinary } from "../middlewares/cloudinary.js";
 import fs from "fs";
 
@@ -110,7 +111,10 @@ const deletePost = async (req, res) => {
 
     // Check permissions: user is the author OR user is an admin
     const isAuthor = post.author.toString() === userId.toString();
-    
+
+    //also delete all the comment has been commendted on the post
+    await Comment.deleteMany({ post: postId }).session(session);
+
     if (!isAuthor && !isAdmin) {
       await session.abortTransaction();
       session.endSession();
