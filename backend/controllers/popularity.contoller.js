@@ -67,4 +67,6 @@ const addPopularityOnProfile = async (req,res) => {
     }
 }
 
+const leaderBoard = async (req, res) =>{}
+
 export { addPopularityOnPost, addPopularityOnProfile };

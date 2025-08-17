@@ -47,7 +47,6 @@ const userSchema = new mongoose.Schema(
       type: String,
       trim: true,
       unique: true,
-      index:true,
     },
     gender: {
       type: String,
@@ -60,10 +59,10 @@ const userSchema = new mongoose.Schema(
       trim: true,
     },
 
-    popularity: {
+    popularity: [{
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Post",
-    },
+      ref: "User",
+    }],
     isSuspended: {
       type: Boolean,
       default: false,

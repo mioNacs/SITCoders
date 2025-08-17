@@ -238,52 +238,139 @@ const isAdmin = async (req, res) => {
 };
 
 const suspendAccount = async (req, res) => {
+  const session = await User.startSession();
   try {
-    const { email, duration , durationIn} = req.body;
-    
-    // Validate required fields - duration is not required for 'forever' suspension
-    if(!email || (!duration && durationIn !== 'forever')){
-      return res.status(400).json({message : "Email and duration are required"})
-    }
-    
-    const user = await User.findOne({ email });
+    session.startTransaction();
+    const { email, duration, durationIn, suspensionReason } = req.body;
+    const adminUser = req.user;
 
-    if(!user){
-      return res.status(404).json({message  : "User not found"})
+    if (!email || (!duration && durationIn !== 'forever')) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(400).json({ message: "Email and duration are required" });
     }
 
-    const admin = await Admin.findOne({ admin: user._id });
-    if(admin){
-      return res.status(403).json({message : "You cannot suspend an admin account"})
+    const user = await User.findOne({ email }).session(session);
+    if (!user) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(404).json({ message: "User not found" });
     }
 
-    if(durationIn === 'hours'){
+    const admin = await Admin.findOne({ admin: user._id }).session(session);
+    if (admin) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(403).json({ message: "You cannot suspend an admin account" });
+    }
+
+    // Suspension duration logic
+    switch (durationIn) {
+      case 'hours':
         user.suspensionEnd = new Date(Date.now() + duration * 60 * 60 * 1000);
-    }
-    if(durationIn === 'days'){
+        break;
+      case 'days':
         user.suspensionEnd = new Date(Date.now() + duration * 24 * 60 * 60 * 1000);
-    }
-    if(durationIn === 'weeks'){
+        break;
+      case 'weeks':
         user.suspensionEnd = new Date(Date.now() + duration * 7 * 24 * 60 * 60 * 1000);
-    }
-    if(durationIn === 'months'){
+        break;
+      case 'months':
         user.suspensionEnd = new Date(Date.now() + duration * 30 * 24 * 60 * 60 * 1000);
-    }
-    if(durationIn === 'years'){
+        break;
+      case 'years':
         user.suspensionEnd = new Date(Date.now() + duration * 365 * 24 * 60 * 60 * 1000);
-    }
-    if(durationIn === 'forever'){
+        break;
+      case 'forever':
         user.suspensionEnd = null;
+        break;
     }
-    user.isSuspended = true;
-    await user.save();
-    return res.status(200).json({message : "User suspended successfully"})
-  } catch (error) {
-    console.error("Error suspending account:", error.message);
-    return res.status(500).json({message : "Internal server error"})
-  }
 
-}
+    user.isSuspended = true;
+
+    await sendEmail(
+      user.email,
+      "Account Suspended",
+      `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px;">
+          <h2 style="color: #F44336;">Account Suspended</h2>
+          <p>Dear ${user.fullName || "User"},</p>
+          <p>Your account has been <strong>suspended</strong> by ${adminUser.fullName || "an Admin"}.</p>
+          <p>Reason: ${suspensionReason || "No reason provided."}</p>
+          <p>Duration: ${duration ? `${duration} ${durationIn}` : "Forever"}</p>
+          <p>If you believe this is a mistake, please contact support.</p>
+          <p style="margin-top: 30px;">Thank you,<br>SIT coders</p>
+        </div>
+      `
+    );
+
+    await user.save({ session });
+
+    await session.commitTransaction();
+    session.endSession();
+
+    return res.status(200).json({ message: "User suspended successfully" });
+
+  } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+    console.error("Error suspending account:", error.message);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+
+const removeSuspension = async (req, res) => {
+  const session = await User.startSession();
+  try {
+    session.startTransaction();
+    const { email } = req.body;
+    const adminUser = req.user;
+
+    if (!email) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(400).json({ message: "Email is required" });
+    }
+
+    const user = await User.findOne({ email }).session(session);
+    if (!user) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    user.isSuspended = false;
+    user.suspensionEnd = null;
+
+    await sendEmail(
+      user.email,
+      "Account Suspension Removed",
+      `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px;">
+          <h2 style="color: #4CAF50;">Account Suspension Removed</h2>
+          <p>Dear ${user.fullName || "User"},</p>
+          <p>Your account suspension has been <strong>removed</strong> by ${adminUser.fullName || "an Admin"}.</p>
+          <p>If you believe this is a mistake, please contact support.</p>
+          <p style="margin-top: 30px;">Thank you,<br>SIT coders</p>
+        </div>
+      `
+    );
+
+    await user.save({ session });
+
+    await session.commitTransaction();
+    session.endSession();
+
+    return res.status(200).json({ message: "User suspension removed successfully" });
+
+  } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+    console.error("Error removing suspension:", error.message);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
 
 const deleteCommentAndReplyByAdmin = async (req,res) => {
   try {
@@ -313,6 +400,16 @@ const deleteCommentAndReplyByAdmin = async (req,res) => {
   }
 }
 
+const getSuspendedAccount = async (req, res) => {
+  try {
+    const suspendedUsers = await User.find({ isSuspended: true });
+    return res.status(200).json({message: "Suspended accounts fetched successfully", data: suspendedUsers });
+  } catch (error) {
+    console.error("Error fetching suspended accounts:", error.message);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+}
+
 export {
   createAdmin,
   getAllUnverifiedUsers,
@@ -322,5 +419,7 @@ export {
   getVerifiedUser,
   removeFromAdmin,
   suspendAccount,
+  removeSuspension,
   deleteCommentAndReplyByAdmin,
+  getSuspendedAccount,
 };

@@ -38,12 +38,10 @@ const createComment = async (req, res) => {
       .select("-__v")
       .populate("user", "fullName username profilePicture");
 
-    res
-      .status(201)
-      .json({
-        message: "Comment created successfully",
-        comment: populatedComment,
-      });
+    res.status(201).json({
+      message: "Comment created successfully",
+      comment: populatedComment,
+    });
   } catch (error) {
     console.error("Error creating comment:", error.message);
     return res.status(500).json({ message: "Internal server error" });
@@ -185,7 +183,9 @@ const updateComment = async (req, res) => {
     }
 
     if (!content?.trim() || typeof content !== "string") {
-      return res.status(400).json({ message: "Content is required and must be a string." });
+      return res
+        .status(400)
+        .json({ message: "Content is required and must be a string." });
     }
 
     const comment = await Comment.findById(commentId);
@@ -195,7 +195,9 @@ const updateComment = async (req, res) => {
 
     // Only the author can edit their comment
     if (!comment.user.equals(user._id)) {
-      return res.status(403).json({ message: "You can only edit your own comments." });
+      return res
+        .status(403)
+        .json({ message: "You can only edit your own comments." });
     }
 
     // Update the comment
@@ -209,7 +211,7 @@ const updateComment = async (req, res) => {
 
     res.status(200).json({
       message: "Comment updated successfully.",
-      comment: updatedComment
+      comment: updatedComment,
     });
   } catch (error) {
     console.error("Error updating comment:", error.message);
@@ -232,12 +234,14 @@ const adminDeleteComment = async (req, res) => {
     }
 
     // Admin can delete any comment (no ownership check)
-    const repliesDeleted = await Comment.deleteMany({ parentComment: comment._id });
+    const repliesDeleted = await Comment.deleteMany({
+      parentComment: comment._id,
+    });
     await Comment.deleteOne({ _id: comment._id });
 
     res.status(200).json({
       message: "Comment and replies deleted successfully by admin.",
-      repliesDeleted: repliesDeleted.deletedCount
+      repliesDeleted: repliesDeleted.deletedCount,
     });
   } catch (error) {
     console.error("Error deleting comment (admin):", error.message);
@@ -245,4 +249,13 @@ const adminDeleteComment = async (req, res) => {
   }
 };
 
-export { createComment, createReply, getParentComment, deleteComment, updateComment, adminDeleteComment };
+const addPopularityOnComment = async (req, res) => {}
+
+export {
+  createComment,
+  createReply,
+  getParentComment,
+  deleteComment,
+  updateComment,
+  adminDeleteComment,
+};

@@ -11,6 +11,8 @@ import {
   getVerifiedUser,
   removeFromAdmin,
   suspendAccount,
+  removeSuspension,
+  getSuspendedAccount,
   deleteCommentAndReplyByAdmin,
 } from "../controllers/admin.controller.js";
 import verifySuperAdmin from "../middlewares/verifySuperAdmin.js";
@@ -23,6 +25,7 @@ router.post("/isAdmin", isAdmin);
 // these routes are protected by verifyUser and verifyAdmin middlewares
 
 router.post("/suspend-user", suspendAccount);
+router.post("/remove-suspension", removeSuspension);
 router.post("/create", createAdmin);
 router.get("/unverified-users", getAllUnverifiedUsers);
 router.post("/verify-user", verifyUserFromAdmin);
@@ -33,6 +36,8 @@ router.post(
   verifySuperAdmin,
   removeFromAdmin
 );
+
+router.get("/suspended-users", getSuspendedAccount);
 
 router.delete("/delete-comment/:commentId", deleteCommentAndReplyByAdmin);
 
