@@ -7,15 +7,7 @@ const PostsFeed = ({
   posts, 
   postsLoading, 
   comments,
-  showPostMenu, 
-  setShowPostMenu,
-  onDeleteConfirm,
-  onEditPost,
   onShowComments,
-  canDeletePost,
-  canEditPost,
-  formatDate,
-  getTagStyle 
 }) => {
   const { isSuspended, suspensionEnd } = useAuth();
   return (
@@ -59,15 +51,7 @@ const PostsFeed = ({
               key={post._id}
               post={post}
               comments={comments}
-              showPostMenu={showPostMenu}
-              setShowPostMenu={setShowPostMenu}
-              onDeleteConfirm={onDeleteConfirm}
-              onEditPost={onEditPost}
-              canEditPost={canEditPost}
               onShowComments={onShowComments}
-              canDeletePost={canDeletePost}
-              formatDate={formatDate}
-              getTagStyle={getTagStyle}
             />
           ))}
         </div>

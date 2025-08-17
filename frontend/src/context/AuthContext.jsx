@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
+import { verifyIsAdmin } from '../services/adminApi';
 
 const AuthContext = createContext();
 
@@ -21,6 +22,8 @@ const api = axios.create({
 });
 
 export const AuthProvider = ({ children }) => {
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [adminLoading, setAdminLoading] = useState(true);
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -29,6 +32,16 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     checkAuthStatus();
   }, []);
+
+  // Check admin status when user authentication changes
+  useEffect(() => {
+    if (isAuthenticated && user?.email) {
+      checkAdminStatus();
+    } else {
+      setAdminLoading(false);
+      setIsAdmin(false);
+    }
+  }, [isAuthenticated, user?.email]);
 
   const checkAuthStatus = async () => {
     try {
@@ -48,6 +61,19 @@ export const AuthProvider = ({ children }) => {
       setIsAuthenticated(false);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const checkAdminStatus = async () => {
+    try {
+      setAdminLoading(true);
+      const adminStatus = await verifyIsAdmin(user.email);
+      setIsAdmin(adminStatus.isAdmin);
+    } catch (error) {
+      console.error("Error checking admin status:", error);
+      setIsAdmin(false);
+    } finally {
+      setAdminLoading(false);
     }
   };
 
@@ -257,6 +283,8 @@ export const AuthProvider = ({ children }) => {
     verifyResetPasswordOtp,
     resetPassword,
     deleteAccount,
+    isAdmin,
+    adminLoading,
     isLoggedIn: isAuthenticated, // For backward compatibility
     isSuspended: user?.isSuspended || false, // Add suspension status check
     suspensionEnd: user?.suspensionEnd || null,

@@ -1,17 +1,13 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { FaShare } from 'react-icons/fa';
-import SharePostModal from './SharePostModal';
+import { usePostUI } from '../../context/PostUIContext';
 
 const SharePostButton = ({ post, className = '' }) => {
-  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const { requestShare } = usePostUI();
 
   const handleShareClick = (e) => {
     e.stopPropagation();
-    setIsShareModalOpen(true);
-  };
-
-  const handleCloseShareModal = () => {
-    setIsShareModalOpen(false);
+  requestShare(post);
   };
 
   return (
@@ -25,11 +21,7 @@ const SharePostButton = ({ post, className = '' }) => {
         <span className="text-sm">Share</span>
       </button>
 
-      <SharePostModal
-        isOpen={isShareModalOpen}
-        onClose={handleCloseShareModal}
-        post={post}
-      />
+  {/* Share modal is centralized in PostUIProvider */}
     </>
   );
 };

@@ -3,10 +3,21 @@ import { Link, NavLink } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { FiUser, FiSettings, FiLogOut, FiX } from 'react-icons/fi';
 import { FaRegUserCircle } from 'react-icons/fa';
+import { useEffect } from 'react';
+import { lockBodyScroll, unlockBodyScroll } from '../../utils/scrollLock';
 
 const MobileMenu = ({ isMenuOpen, setIsMenuOpen }) => {
   const { isAuthenticated, user, logout } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!isMenuOpen) return;
+    // Lock body scroll when menu is open
+    lockBodyScroll()
+    return () => {
+      unlockBodyScroll();
+    };
+  }, [isMenuOpen]);
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);

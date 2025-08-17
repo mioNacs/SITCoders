@@ -1,8 +1,9 @@
-import React, { useRef, useState, useCallback } from "react";
+import React, { useRef, useState, useCallback, useEffect } from "react";
 import { FaUser, FaCamera, FaSpinner, FaTimes, FaCheck } from "react-icons/fa";
 import ReactCrop from "react-image-crop";
 import "react-image-crop/dist/ReactCrop.css";
 import { useAuth } from "../../context/AuthContext";
+import { lockBodyScroll, unlockBodyScroll } from "../../utils/scrollLock";
 
 const ProfilePicture = ({ user: profileUser, updateUser, showDialog, isOwnProfile = true }) => {
   const { user: currentUser, isSuspended } = useAuth();
@@ -23,6 +24,14 @@ const ProfilePicture = ({ user: profileUser, updateUser, showDialog, isOwnProfil
   const previewCanvasRef = useRef(null);
   const fileInputRef = useRef(null);
   const [selectedFile, setSelectedFile] = useState(null);
+
+  useEffect(() => {
+    if(!showCropModal && !openPicture) return;
+    lockBodyScroll()
+    return () => {
+      unlockBodyScroll();
+    };
+  }, [showCropModal, openPicture]);
 
   const displayUser = profileUser || currentUser;
 
@@ -259,7 +268,7 @@ const ProfilePicture = ({ user: profileUser, updateUser, showDialog, isOwnProfil
       {/* Full Size Image Modal */}
       {openPicture && (
         <div 
-          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4"
+          className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4"
           onClick={closePictureModal}
         >
           <div className="relative max-w-2xl max-h-[80vh] bg-white rounded-2xl shadow-2xl overflow-hidden">
@@ -302,13 +311,13 @@ const ProfilePicture = ({ user: profileUser, updateUser, showDialog, isOwnProfil
                   onChange={(newCrop) => setCrop(newCrop)}
                   onComplete={(newCrop) => setCompletedCrop(newCrop)}
                   aspect={1}
-                  className="max-w-full"
+                  className="w-full"
                 >
                   <img
                     ref={imgRef}
                     src={imageSrc}
                     alt="Crop preview"
-                    className="max-w-full h-auto"
+                    className="max-w-full h-auto object-cover"
                   />
                 </ReactCrop>
               </div>
