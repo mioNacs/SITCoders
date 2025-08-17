@@ -351,7 +351,6 @@ const removeSuspension = async (req, res) => {
           <h2 style="color: #4CAF50;">Account Suspension Removed</h2>
           <p>Dear ${user.fullName || "User"},</p>
           <p>Your account suspension has been <strong>removed</strong> by ${adminUser.fullName || "an Admin"}.</p>
-          <p>If you believe this is a mistake, please contact support.</p>
           <p style="margin-top: 30px;">Thank you,<br>SIT coders</p>
         </div>
       `

@@ -1,5 +1,5 @@
 import User from "../models/user.model.js";
-import { sendEmail } from "../utilities/transporter.js";
+
 
 const isSuspended = async (req, res, next) => {
   try {
@@ -14,6 +14,7 @@ const isSuspended = async (req, res, next) => {
         // Suspension expired → remove suspension
         user.isSuspended = false;
         user.suspensionEnd = null;
+        const { sendEmail } = await import("../utilities/transporter.js");
         await sendEmail(
           user.email,
           "Account Suspension Removed",
