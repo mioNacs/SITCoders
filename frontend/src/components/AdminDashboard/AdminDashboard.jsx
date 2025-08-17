@@ -7,6 +7,7 @@ import {
   getVerifiedUsers,
   verifyUser,
   rejectUser,
+  getSuspendedUsers,
 } from "../../services/adminApi.js";
 import { FaUsers, FaEnvelope, FaCrown, FaSpinner } from "react-icons/fa";
 import { MdAdminPanelSettings, MdVerifiedUser } from "react-icons/md";
@@ -15,6 +16,7 @@ import Dialog from "../UI/Dialog";
 // Import the new components
 import UnverifiedUsers from "./UnverifiedUsers";
 import VerifiedUsers from "./VerifiedUsers";
+import SuspendedUsers from "./SuspendedUsers";
 
 function AdminDashboard() {
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
@@ -31,6 +33,7 @@ function AdminDashboard() {
   const [rejectLoading, setRejectLoading] = useState(false);
   const [currentAction, setCurrentAction] = useState(null);
   const [showUsers, setShowUsers] = useState("");
+  const [suspendedCount, setSuspendedCount] = useState(0);
 
   const handleShowUsers = (type) => {
     setShowUsers(type);
@@ -90,6 +93,28 @@ function AdminDashboard() {
     }
   };
 
+  const extractUsers = (payload) => {
+    if (Array.isArray(payload)) return payload;
+    if (payload && typeof payload === 'object') {
+      for (const key of ['users', 'suspendedUsers', 'suspended', 'accounts', 'suspendedAccounts', 'data', 'result', 'results', 'list']) {
+        const val = payload[key];
+        if (Array.isArray(val)) return val;
+      }
+    }
+    return [];
+  };
+
+  const fetchSuspendedUsersCount = async () => {
+    try {
+      const data = await getSuspendedUsers();
+      const arr = extractUsers(data);
+      setSuspendedCount(arr.length);
+    } catch (error) {
+      console.error('Error fetching suspended users count:', error);
+      setSuspendedCount(0);
+    }
+  };
+
   const fetchUnverifiedUsers = async () => {
     try {
       const data = await getAllUnverifiedUsers();
@@ -118,6 +143,22 @@ function AdminDashboard() {
     if (newPage >= 1 && newPage <= pagination.totalPages) {
       fetchVerifiedUsers(newPage, 10);
     }
+  };
+
+  // Update a single verified user's suspension state locally
+  const onUpdateUserSuspension = (email, isSuspended, suspensionEnd = null, suspensionReason = undefined) => {
+    setVerifiedUsers(prev => {
+      if (!Array.isArray(prev)) return prev;
+      return prev.map(u => {
+        if (u.email !== email) return u;
+        return {
+          ...u,
+          isSuspended: !!isSuspended,
+          suspensionEnd: isSuspended ? suspensionEnd || u.suspensionEnd || null : null,
+          ...(suspensionReason !== undefined ? { suspensionReason } : {}),
+        };
+      });
+    });
   };
 
   const handleVerifyUser = async (email) => {
@@ -171,9 +212,10 @@ function AdminDashboard() {
       if (!res.isAdmin) {
         navigate("/");
       } else {
-        setAdminStatus(res);
-        fetchUnverifiedUsers();
-        fetchVerifiedUsers();
+  setAdminStatus(res);
+  fetchUnverifiedUsers();
+  fetchVerifiedUsers();
+  fetchSuspendedUsersCount();
       }
       setLoading(false);
     });
@@ -262,7 +304,7 @@ function AdminDashboard() {
           </div>
           
           {/* Stats Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4 mb-6 md:mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4 mb-6 md:mb-8">
             <div 
               onClick={() => handleShowUsers("unverified")}
               className={`bg-white rounded-lg shadow-md p-4 md:p-6 border-l-4 ${
@@ -294,6 +336,23 @@ function AdminDashboard() {
               </div>
               <div className="text-xl md:text-2xl lg:text-3xl font-bold text-gray-800 mt-2">
                 {pagination.totalUsers || verifiedUsers.length}
+              </div>
+            </div>
+
+            <div 
+              onClick={() => handleShowUsers("suspended")}
+              className={`bg-white rounded-lg shadow-md p-4 md:p-6 border-l-4 ${
+                showUsers === "suspended" ? "border-red-500" : "border-white"
+              } cursor-pointer hover:border-red-500 transition-colors duration-200`}
+            >
+              <div className="flex items-center space-x-2 md:space-x-3">
+                <FaUsers className="text-red-500 flex-shrink-0" size={18} />
+                <span className="text-sm md:text-base font-medium text-gray-600">
+                  Suspended Users
+                </span>
+              </div>
+              <div className="text-xl md:text-2xl lg:text-3xl font-bold text-gray-800 mt-2">
+                {suspendedCount}
               </div>
             </div>
           </div>
@@ -351,6 +410,19 @@ function AdminDashboard() {
               handlePageChange={handlePageChange}
               formatJoinDate={formatJoinDate}
               adminStatus={adminStatus}
+              onRefresh={() => fetchVerifiedUsers(pagination.currentPage)}
+              onSuspendedCountRefresh={fetchSuspendedUsersCount}
+              onUpdateUserSuspension={onUpdateUserSuspension}
+            />
+          )}
+
+          {/* Suspended Users Component */}
+          {showUsers === "suspended" && (
+            <SuspendedUsers
+              showDialog={showDialog}
+              adminStatus={adminStatus}
+              onCountChange={setSuspendedCount}
+              onUpdateUserSuspension={onUpdateUserSuspension}
             />
           )}
         </div>

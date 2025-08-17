@@ -111,7 +111,7 @@ const CommentCard = ({
   }, [menuOpen, openReplyMenuId]);
 
   return (
-    <div className="border border-gray-200 rounded-lg p-4">
+    <div className="comment-card border border-gray-200 rounded-lg p-4">
       <DeleteConfirmModal
         isOpen={confirmOpen}
         onClose={() => setConfirmOpen(false)}

@@ -208,3 +208,103 @@
     border-color: #a7f3d0; /* emerald-200 */
     color: #065f46; /* emerald-800 */
 }
+
+/* Force light theme for posts and related components */
+/* Override dark mode for posts, comments, and code blocks */
+.post-container,
+.post-container *,
+.markdown-body,
+.markdown-body *,
+.comment-container,
+.comment-container * {
+    color-scheme: light !important;
+}
+
+/* Force light theme on body and root for posts */
+.post-container,
+.comment-container {
+    background: white !important;
+}
+
+/* Ensure orange backgrounds stay light */
+.post-container .bg-orange-50 {
+    background-color: #fff7ed !important; /* orange-50 */
+}
+
+/* Ensure post cards remain light themed */
+.post-card {
+    background: white !important;
+    color: #374151 !important; /* gray-700 */
+    border-color: #e5e7eb !important; /* gray-200 */
+}
+
+.post-card .text-gray-800 {
+    color: #1f2937 !important; /* gray-800 */
+}
+
+.post-card .text-gray-700 {
+    color: #374151 !important; /* gray-700 */
+}
+
+.post-card .text-gray-500 {
+    color: #6b7280 !important; /* gray-500 */
+}
+
+.post-card .text-gray-400 {
+    color: #9ca3af !important; /* gray-400 */
+}
+
+/* Force light theme for markdown content */
+.markdown-body {
+    background: white !important;
+    color: #374151 !important; /* gray-700 */
+}
+
+.markdown-body pre,
+.markdown-body code {
+    background: #f5f2f0 !important; /* Prism light background */
+    color: #383a42 !important; /* Prism light text */
+}
+
+.markdown-body pre[class*="language-"] {
+    background: #f5f2f0 !important;
+    color: #383a42 !important;
+}
+
+/* Fix code block fade overlay for light theme */
+.markdown-body pre.collapsible.collapsed::after {
+    background: linear-gradient(to bottom, rgba(245,242,240,0), rgba(245,242,240,1)) !important;
+}
+
+/* Ensure comment cards stay light */
+.comment-card {
+    background: white !important;
+    border-color: #e5e7eb !important; /* gray-200 */
+    color: #374151 !important; /* gray-700 */
+}
+
+.comment-card .text-gray-800 {
+    color: #1f2937 !important; /* gray-800 */
+}
+
+.comment-card .text-gray-700 {
+    color: #374151 !important; /* gray-700 */
+}
+
+.comment-card .text-gray-500 {
+    color: #6b7280 !important; /* gray-500 */
+}
+
+/* Force toolbar buttons to stay light */
+.markdown-body .code-toolbar > .toolbar .toolbar-item > a,
+.markdown-body .code-toolbar > .toolbar .toolbar-item > button,
+.markdown-body .code-toolbar > .toolbar .toolbar-item > span {
+    /* background: white !important; */
+    color: #111827 !important; /* gray-900 */
+    border-color: #e5e7eb !important; /* gray-200 */
+}
+
+.markdown-body .code-toolbar > .toolbar .toolbar-item > a:hover,
+.markdown-body .code-toolbar > .toolbar .toolbar-item > button:hover {
+    background: #f3f4f6 !important; /* gray-100 */
+}

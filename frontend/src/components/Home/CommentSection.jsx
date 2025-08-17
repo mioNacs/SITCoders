@@ -240,7 +240,7 @@ const CommentSection = ({ postId, comments, setComments, commentLoading }) => {
   };
 
   return (
-    <>
+    <div className="comment-container">
       {/* Comments List */}
       <div className="flex-1 py-6 md:px-6">
         {commentLoading ? (
@@ -461,7 +461,7 @@ const CommentSection = ({ postId, comments, setComments, commentLoading }) => {
           </div>
         </div>
       )}
-    </>
+    </div>
   );
 };
 

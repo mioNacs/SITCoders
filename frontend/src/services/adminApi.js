@@ -90,6 +90,29 @@ export const createAdmin = async (email, role) => {
   }
 };
 
+export const removeFromAdmin = async (email) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/admin/remove-from-admin`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email })
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || 'Failed to remove from admin');
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error removing from admin:', error);
+    throw error;
+  }
+};
+
 export const verifyUser = async (email) => {
   try {
     const response = await fetch(`${API_BASE_URL}/admin/verify-user`, {
@@ -134,7 +157,7 @@ export const rejectUser = async (email) => {
   }
 };
 
-export const suspendUser = async (email, duration, durationIn) => {
+export const suspendUser = async (email, duration, durationIn, suspensionReason) => {
   try {
     const response = await fetch(`${API_BASE_URL}/admin/suspend-user`, {
       method: 'POST',
@@ -142,7 +165,7 @@ export const suspendUser = async (email, duration, durationIn) => {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ email, duration, durationIn })
+  body: JSON.stringify({ email, duration, durationIn, suspensionReason })
     });
 
     if (!response.ok) {
@@ -153,6 +176,51 @@ export const suspendUser = async (email, duration, durationIn) => {
     return await response.json();
   } catch (error) {
     console.error('Error suspending user:', error);
+    throw error;
+  }
+};
+
+export const removeSuspension = async (email) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/admin/remove-suspension`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email })
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || 'Failed to remove suspension');
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error removing suspension:', error);
+    throw error;
+  }
+};
+
+export const getSuspendedUsers = async () => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/admin/suspended-users`, {
+      method: 'GET',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+      }
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || 'Failed to fetch suspended users');
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching suspended users:', error);
     throw error;
   }
 };
