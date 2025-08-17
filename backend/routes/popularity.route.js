@@ -1,9 +1,10 @@
 import { Router } from "express";
-import { addPopularityOnPost } from "../controllers/popularity.contoller.js";
+import { addPopularityOnPost, addPopularityOnProfile } from "../controllers/popularity.contoller.js";
 
 const router = Router();
 
 router.post("/add-popularity/:postId", addPopularityOnPost);
+router.post("/add-popularity/profile/:profileId", addPopularityOnProfile);
 
 
 

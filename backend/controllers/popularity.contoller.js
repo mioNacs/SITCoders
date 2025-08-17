@@ -1,4 +1,5 @@
 import Post from "../models/post.model.js";
+import User from "../models/user.model.js";
 
 const addPopularityOnPost = async (req, res) => {
     try {
@@ -33,4 +34,37 @@ const addPopularityOnPost = async (req, res) => {
     }
 }
 
-export { addPopularityOnPost };
+const addPopularityOnProfile = async (req,res) => {
+    try {
+        const profileId = req.params.profileId;
+
+        const userId = req.user._id;
+        if(!profile || !userId){
+            return res.status(400).json({ message: "Profile ID and User ID are required." });
+        }
+        // Find the profile 
+        const profile = await User.findById(profileId);
+
+        if(!profile){
+            return res.status(404).json({ message: "Profile not found." });
+        }
+         const alreadyLiked = profile.popularity.includes(userId);
+
+        if (alreadyLiked) {
+            // User has already liked the profile, remove their like
+            profile.popularity.pull(userId);
+        } else {
+            // User has not liked the profile, add their like
+            profile.popularity.push(userId);
+        }
+
+        await profile.save();
+
+        res.status(200).json({ message: "Profile popularity updated successfully.", popularity: profile.popularity.length });
+    } catch (error) {
+        console.error("Error in addPopularityOnProfile:", error.message);
+        res.status(500).json({ message: "Internal server error" });
+    }
+}
+
+export { addPopularityOnPost, addPopularityOnProfile };

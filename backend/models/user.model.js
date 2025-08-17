@@ -61,8 +61,8 @@ const userSchema = new mongoose.Schema(
     },
 
     popularity: {
-      type: Number,
-      default: 0,
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Post",
     },
     isSuspended: {
       type: Boolean,
