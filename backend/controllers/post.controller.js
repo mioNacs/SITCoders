@@ -1,6 +1,7 @@
 import Post from "../models/post.model.js";
 import Admin from "../models/admin.model.js"; // Import Admin model
 import User from "../models/user.model.js"; // Import User model
+import Comment from "../models/comment.model.js";
 import { uploadPostImageOnCloudinary, deleteFromCloudinary } from "../middlewares/cloudinary.js";
 import fs from "fs";
 

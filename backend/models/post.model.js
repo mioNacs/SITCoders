@@ -12,10 +12,7 @@ const postSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
-    popularity: {
-      type: Number,
-      default: 0,
-    },
+    popularity: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     postImage: {
       url: { type: String, default: "", trim: true },
       public_id: { type: String, default: "", trim: true },
@@ -28,7 +25,7 @@ const postSchema = new mongoose.Schema(
     beenEdited: {
       type: Boolean,
       default: false,
-    }
+    },
   },
   { timestamps: true }
 );

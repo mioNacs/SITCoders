@@ -55,3 +55,8 @@ app.use('/api/posts', verifyUser, isSuspended, postRoutes);
 import commentRoutes from './routes/comment.route.js';
 import verifyAdmin from './middlewares/verifyAdmin.js';
 app.use('/api/comments', verifyUser, isSuspended, commentRoutes);
+
+
+import popularityRoute from './routes/popularity.route.js';
+
+app.use('/api/popularity', verifyUser, isSuspended, popularityRoute);
