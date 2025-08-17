@@ -1,5 +1,3 @@
-import verifyAdmin from "../middlewares/verifyAdmin.js";
-
 import { Router } from "express";
 
 const router = Router();
