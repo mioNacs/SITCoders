@@ -14,7 +14,8 @@ import {
   resetPassword,
   verifyOtpForResetPassword,
   sendOtpForResetPassword,
-  deleteAccount
+  deleteAccount,
+  searchUsersByUsername,
 } from "../controllers/user.controller.js";
 import upload from "../middlewares/multer.middleware.js";
 import verifyUser from "../middlewares/verifyUser.js";
@@ -70,6 +71,11 @@ router.post(
 );
 router.post("/update-bio", verifyUser, updateBio);
 router.post("/get-user", verifyUser, getUser);
+router.post(
+  "/search-users-by-username",
+  verifyUser,
+  searchUsersByUsername
+);
 
 router.delete("/delete-account",verifyUser,deleteAccount);
 
