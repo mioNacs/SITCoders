@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { Link, NavLink } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { FiUser, FiSettings, FiLogOut, FiX } from 'react-icons/fi';
+import { MdOutlineLeaderboard } from 'react-icons/md';
 import { FaRegUserCircle } from 'react-icons/fa';
 import { useEffect } from 'react';
 import { lockBodyScroll, unlockBodyScroll } from '../../utils/scrollLock';
@@ -187,6 +188,21 @@ const MobileMenu = ({ isMenuOpen, setIsMenuOpen }) => {
                     >
                       <FiUser size={20} />
                       Profile
+                    </NavLink>
+
+                    <NavLink
+                      to="/leaderboard"
+                      className={({ isActive }) =>
+                        `flex items-center gap-3 px-4 py-3 text-lg ${
+                          isActive 
+                            ? "text-orange-400 bg-orange-50 border-r-2 border-orange-400" 
+                            : "text-gray-700 hover:text-orange-400 hover:bg-gray-50"
+                        } transition-all duration-200`
+                      }
+                      onClick={closeMenu}
+                    >
+                      <MdOutlineLeaderboard size={20} />
+                      Leaderboard
                     </NavLink>
                     
                     <NavLink

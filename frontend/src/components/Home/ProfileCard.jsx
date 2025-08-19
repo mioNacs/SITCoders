@@ -61,6 +61,12 @@ const ProfileCard = ({ user, isAdmin, adminLoading }) => {
         >
           Your Profile
         </Link>
+        <Link 
+          to={"/leaderboard"} 
+          className="text-center mt-2 w-full bg-gradient-to-r from-orange-400 to-amber-500 text-white py-2 rounded-lg font-medium hover:opacity-90 transition-all"
+        >
+          Leaderboard
+        </Link>
       </div>
     </div>
   );
