@@ -1,4 +1,4 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 /**
  * Toggle popularity (like/unlike) on a post
@@ -11,7 +11,7 @@ export const togglePostPopularity = async (postId) => {
       throw new Error('Post ID is required');
     }
 
-    const response = await fetch(`${API_BASE_URL}/popularity/add-popularity/${postId}`, {
+    const response = await fetch(`${API_BASE_URL}/api/popularity/add-popularity/${postId}`, {
       method: 'POST',
       credentials: 'include',
       headers: {
@@ -42,7 +42,7 @@ export const toggleProfilePopularity = async (profileId) => {
       throw new Error('Profile ID is required');
     }
 
-    const response = await fetch(`${API_BASE_URL}/popularity/add-popularity/profile/${profileId}`, {
+    const response = await fetch(`${API_BASE_URL}/api/popularity/add-popularity/profile/${profileId}`, {
       method: 'POST',
       credentials: 'include',
       headers: {
@@ -73,7 +73,7 @@ export const toggleCommentPopularity = async (commentId) => {
       throw new Error('Comment ID is required');
     }
 
-    const response = await fetch(`${API_BASE_URL}/popularity/add-popularity/comment/${commentId}`, {
+    const response = await fetch(`${API_BASE_URL}/api/popularity/add-popularity/comment/${commentId}`, {
       method: 'POST',
       credentials: 'include',
       headers: {
@@ -106,7 +106,7 @@ export const getUserReputation = async (userId) => {
       throw new Error('User ID is required');
     }
 
-    const response = await fetch(`${API_BASE_URL}/popularity/reputation/${userId}`, {
+    const response = await fetch(`${API_BASE_URL}/api/popularity/reputation/${userId}`, {
       method: 'GET',
       credentials: 'include',
       headers: {
@@ -131,7 +131,7 @@ export const getUserReputation = async (userId) => {
  */
 export const getLeaderboard = async () => {
   try {
-    const response = await fetch(`${API_BASE_URL}/popularity/leaderboard`, {
+    const response = await fetch(`${API_BASE_URL}/api/popularity/leaderboard`, {
       method: 'GET',
       credentials: 'include',
       headers: {

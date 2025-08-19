@@ -1,8 +1,8 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 export const verifyIsAdmin = async(email) => {
     try {
-        const response = await fetch(`${API_BASE_URL}/admin/isAdmin`, {
+        const response = await fetch(`${API_BASE_URL}/api/admin/isAdmin`, {
             method: 'POST',
             credentials: "include",
             headers: {
@@ -26,7 +26,7 @@ export const verifyIsAdmin = async(email) => {
 
 export const getAllUnverifiedUsers = async () => {
   try {
-    const response = await fetch(`${API_BASE_URL}/admin/unverified-users`, {
+    const response = await fetch(`${API_BASE_URL}/api/admin/unverified-users`, {
       method: 'GET',
       credentials: 'include',
       headers: {
@@ -47,7 +47,7 @@ export const getAllUnverifiedUsers = async () => {
 
 export const getVerifiedUsers = async(page =1, limit = 10) => {
   try{
-    const response = await fetch(`${API_BASE_URL}/admin/get-verified-user?page=${page}&limit=${limit}`,{
+    const response = await fetch(`${API_BASE_URL}/api/admin/get-verified-user?page=${page}&limit=${limit}`,{
       method: 'GET',
       credentials: 'include',
       headers: {
@@ -69,7 +69,7 @@ export const getVerifiedUsers = async(page =1, limit = 10) => {
 
 export const createAdmin = async (email, role) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/admin/create`, {
+    const response = await fetch(`${API_BASE_URL}/api/admin/create`, {
       method: 'POST',
       credentials: 'include',
       headers: {
@@ -92,7 +92,7 @@ export const createAdmin = async (email, role) => {
 
 export const removeFromAdmin = async (email) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/admin/remove-from-admin`, {
+    const response = await fetch(`${API_BASE_URL}/api/admin/remove-from-admin`, {
       method: 'POST',
       credentials: 'include',
       headers: {
@@ -115,7 +115,7 @@ export const removeFromAdmin = async (email) => {
 
 export const verifyUser = async (email) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/admin/verify-user`, {
+    const response = await fetch(`${API_BASE_URL}/api/admin/verify-user`, {
       method: 'POST',
       credentials: 'include',
       headers: {
@@ -137,7 +137,7 @@ export const verifyUser = async (email) => {
 
 export const rejectUser = async (email) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/admin/reject-user`, {
+    const response = await fetch(`${API_BASE_URL}/api/admin/reject-user`, {
       method: 'POST',
       credentials: 'include',
       headers: {
@@ -159,7 +159,7 @@ export const rejectUser = async (email) => {
 
 export const suspendUser = async (email, duration, durationIn, suspensionReason) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/admin/suspend-user`, {
+    const response = await fetch(`${API_BASE_URL}/api/admin/suspend-user`, {
       method: 'POST',
       credentials: 'include',
       headers: {
@@ -182,7 +182,7 @@ export const suspendUser = async (email, duration, durationIn, suspensionReason)
 
 export const removeSuspension = async (email) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/admin/remove-suspension`, {
+    const response = await fetch(`${API_BASE_URL}/api/admin/remove-suspension`, {
       method: 'POST',
       credentials: 'include',
       headers: {
@@ -205,7 +205,7 @@ export const removeSuspension = async (email) => {
 
 export const getSuspendedUsers = async () => {
   try {
-    const response = await fetch(`${API_BASE_URL}/admin/suspended-users`, {
+    const response = await fetch(`${API_BASE_URL}/api/admin/suspended-users`, {
       method: 'GET',
       credentials: 'include',
       headers: {
