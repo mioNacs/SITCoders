@@ -18,11 +18,13 @@ function Header() {
           {/* Desktop navigation */}
           <Navigation />
 
+          <div className="flex items-center">
           {/* User Search */}
           <UserSearch />
 
           {/* Desktop User Actions */}
           <UserActions />
+          </div>
 
           {/* Mobile Menu */}
           <MobileMenu 
