@@ -69,7 +69,7 @@ const PostPopularityButton = ({
         ${!isAuthenticated ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
         ${className}
       `}
-      title={isAuthenticated ? (isLiked ? 'Unlike' : 'Like') : 'Login to like'}
+      title={isAuthenticated ? (isLiked ? 'remove Popularity' : 'add Popularity') : 'Login to like'}
     >
       {isLiked ? (
         <FaStar className={`${currentSize.icon} text-orange-500`} />

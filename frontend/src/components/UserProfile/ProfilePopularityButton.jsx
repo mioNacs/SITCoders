@@ -72,15 +72,15 @@ const ProfilePopularityButton = ({
       disabled={!isAuthenticated}
       className={`
         flex items-center ${currentSize.gap} ${currentSize.button}
-        rounded-xl transition-all duration-200 outline
+        rounded-xl transition-all duration-200
         ${isLiked 
-          ? 'bg-orange-50 text-orange-600 hover:bg-orange-100 border-orange-200' 
-          : 'bg-gray-50 text-gray-600 hover:bg-gray-100 border-gray-200 hover:text-orange-500'
+          ? 'bg-orange-50 text-orange-600 hover:bg-orange-100' 
+          : 'bg-gray-50 text-gray-600 hover:bg-gray-100 hover:text-orange-500'
         }
         ${!isAuthenticated ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
         ${className}
       `}
-      title={isAuthenticated ? (isLiked ? 'Unlike Profile' : 'Like Profile') : 'Login to like'}
+      title={isAuthenticated ? (isLiked ? 'Remove Reputation' : 'Add Reputation') : 'Login to like'}
     >
       {isLiked ? (
         <FaStar className={`${currentSize.icon} text-orange-500`} />
