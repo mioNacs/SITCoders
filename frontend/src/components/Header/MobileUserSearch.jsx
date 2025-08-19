@@ -91,7 +91,7 @@ const MobileUserSearch = ({ onUserClick }) => {
                 >
                   <div className="flex items-center space-x-3">
                     <img
-                      src={user.profilePicture || '/default-avatar.png'}
+                      src={user.profilePicture.url || '/default-avatar.png'}
                       alt={user.fullName}
                       className="w-6 h-6 rounded-full object-cover"
                     />
