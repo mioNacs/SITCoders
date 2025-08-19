@@ -37,11 +37,12 @@ const addPopularityOnPost = async (req, res) => {
 const addPopularityOnProfile = async (req,res) => {
     try {
         const profileId = req.params.profileId;
-
         const userId = req.user._id;
-        if(!profile || !userId){
+        
+        if(!profileId || !userId){
             return res.status(400).json({ message: "Profile ID and User ID are required." });
         }
+        
         // Find the profile 
         const profile = await User.findById(profileId);
 

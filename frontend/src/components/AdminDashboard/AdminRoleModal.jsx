@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { FaTimes, FaSpinner, FaCrown } from 'react-icons/fa';
 import { MdAdminPanelSettings } from 'react-icons/md';
 
@@ -50,21 +51,34 @@ const AdminRoleModal = ({
         <div className="p-4 md:p-6">
           {/* User Info */}
           <div className="flex items-center space-x-3 md:space-x-4 p-3 md:p-4 bg-gray-50 rounded-lg mb-4 md:mb-6">
-            <img
-              src={
-                user.profilePicture?.url ||
-                user.profile ||
-                'https://www.iconpacks.net/icons/2/free-user-icon-3296-thumb.png'
-              }
-              alt="Profile"
-              className="w-10 h-10 md:w-12 md:h-12 rounded-full object-cover flex-shrink-0"
-            />
+            <Link 
+              to={`/profile/${user.username}`}
+              className="block hover:opacity-80 transition-opacity flex-shrink-0"
+            >
+              <img
+                src={
+                  user.profilePicture?.url ||
+                  user.profile ||
+                  'https://www.iconpacks.net/icons/2/free-user-icon-3296-thumb.png'
+                }
+                alt="Profile"
+                className="w-10 h-10 md:w-12 md:h-12 rounded-full object-cover"
+              />
+            </Link>
             <div className="min-w-0 flex-1">
-              <h4 className="font-semibold text-gray-800 text-sm md:text-base truncate">
+              <Link 
+                to={`/profile/${user.username}`}
+                className="font-semibold text-gray-800 hover:text-orange-600 transition-colors text-sm md:text-base truncate block"
+              >
                 {user.fullName}
-              </h4>
+              </Link>
               <p className="text-xs md:text-sm text-gray-600 truncate">
-                @{user.username} • {user.email}
+                <Link 
+                  to={`/profile/${user.username}`}
+                  className="hover:text-orange-600 transition-colors"
+                >
+                  @{user.username}
+                </Link> • {user.email}
               </p>
             </div>
           </div>

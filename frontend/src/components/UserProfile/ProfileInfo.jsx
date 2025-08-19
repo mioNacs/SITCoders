@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { FaEnvelope, FaCalendarAlt, FaPen, FaCheck, FaTimes, FaSpinner } from "react-icons/fa";
 import { FaCrown } from "react-icons/fa6";
 import { useAuth } from "../../context/AuthContext";
+import { usePopularity } from "../../context/PopularityContext";
+import ProfilePopularityButton from "./ProfilePopularityButton";
 
 const ProfileInfo = ({ user, isAdmin, adminRole, showDialog, isOwnProfile = true }) => {
   const { updateUser } = useAuth();
@@ -107,6 +109,17 @@ const ProfileInfo = ({ user, isAdmin, adminRole, showDialog, isOwnProfile = true
 
       {/* Username */}
       <p className="text-gray-600 mb-4">@{user?.username || "username"}</p>
+
+      {/* Profile Popularity Button */}
+      {!isOwnProfile && (
+        <div className="mb-4 flex justify-center">
+          <ProfilePopularityButton 
+            profileId={user?._id} 
+            size="default"
+            showCount={true}
+          />
+        </div>
+      )}
 
       {/* Bio Section */}
       <div className="mb-6">

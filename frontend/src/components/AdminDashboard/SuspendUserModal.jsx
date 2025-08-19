@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { FaTimes, FaBan, FaSpinner } from 'react-icons/fa';
 
 const SuspendUserModal = ({ isOpen, user, onClose, onSubmit, submitting }) => {
@@ -33,14 +34,31 @@ const SuspendUserModal = ({ isOpen, user, onClose, onSubmit, submitting }) => {
         <div className="p-4 md:p-6">
           {/* User */}
           <div className="flex items-center space-x-3 mb-4 md:mb-6 p-3 bg-red-50 border border-red-200 rounded-lg">
-            <img
-              src={user.profilePicture?.url || user.profile || 'https://www.iconpacks.net/icons/2/free-user-icon-3296-thumb.png'}
-              alt="Profile"
-              className="w-10 h-10 md:w-12 md:h-12 rounded-full object-cover border-2 border-white shadow-sm flex-shrink-0"
-            />
+            <Link 
+              to={`/profile/${user.username}`}
+              className="block hover:opacity-80 transition-opacity flex-shrink-0"
+            >
+              <img
+                src={user.profilePicture?.url || user.profile || 'https://www.iconpacks.net/icons/2/free-user-icon-3296-thumb.png'}
+                alt="Profile"
+                className="w-10 h-10 md:w-12 md:h-12 rounded-full object-cover border-2 border-white shadow-sm"
+              />
+            </Link>
             <div className="min-w-0 flex-1">
-              <h4 className="font-semibold text-gray-800 text-sm md:text-base truncate">{user.fullName}</h4>
-              <p className="text-xs md:text-sm text-gray-600 truncate">@{user.username} • {user.email}</p>
+              <Link 
+                to={`/profile/${user.username}`}
+                className="font-semibold text-gray-800 hover:text-orange-600 transition-colors text-sm md:text-base truncate block"
+              >
+                {user.fullName}
+              </Link>
+              <p className="text-xs md:text-sm text-gray-600 truncate">
+                <Link 
+                  to={`/profile/${user.username}`}
+                  className="hover:text-orange-600 transition-colors"
+                >
+                  @{user.username}
+                </Link> • {user.email}
+              </p>
             </div>
           </div>
 

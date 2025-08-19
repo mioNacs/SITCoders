@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useAuth } from "../../context/AuthContext";
+import { usePopularity } from "../../context/PopularityContext";
 import { useNavigate, useParams } from "react-router-dom";
 import { verifyIsAdmin } from "../../services/adminApi.js";
 import { getUser } from "../../services/api.js";
@@ -15,6 +16,7 @@ import ShareButton from "./ShareButton";
 
 function UserProfile() {
   const { user: currentUser, isAuthenticated, isLoading: authLoading, updateUser, logout, isSuspended } = useAuth();
+  const { initializeProfilePopularity } = usePopularity();
   const navigate = useNavigate();
   const { username } = useParams();
 
@@ -103,6 +105,13 @@ function UserProfile() {
       setLoading(false);
     }
   }, [username, isOwnProfile, currentUser]);
+
+  // Initialize profile popularity when profile user is loaded
+  useEffect(() => {
+    if (profileUser && currentUser?._id) {
+      initializeProfilePopularity(profileUser._id, profileUser.popularity, currentUser._id);
+    }
+  }, [profileUser, currentUser?._id, initializeProfilePopularity]);
 
   // Check admin status for both own and other profiles
   useEffect(() => {

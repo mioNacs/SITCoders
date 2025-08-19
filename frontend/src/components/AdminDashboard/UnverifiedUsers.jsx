@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { 
   FaUserCheck, 
   FaUserTimes, 
@@ -68,27 +69,35 @@ const UnverifiedUsers = ({
                 <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
                   <div className="flex items-center space-x-4">
                     <div className="relative">
-                      <img
-                        src={
-                          userItem.profilePicture?.url ||
-                          userItem.profile ||
-                          "https://www.iconpacks.net/icons/2/free-user-icon-3296-thumb.png"
-                        }
-                        alt="Profile"
-                        className="w-16 h-16 rounded-full object-cover border-3 border-white shadow-md"
-                      />
-                      <div className="absolute -bottom-1 -right-1 bg-yellow-400 rounded-full p-1">
-                        <MdPendingActions className="text-white" size={12} />
-                      </div>
+                      <Link 
+                        to={`/profile/${userItem.username}`}
+                        className="block hover:opacity-80 transition-opacity"
+                      >
+                        <img
+                          src={
+                            userItem.profilePicture?.url ||
+                            userItem.profile ||
+                            "https://www.iconpacks.net/icons/2/free-user-icon-3296-thumb.png"
+                          }
+                          alt="Profile"
+                          className="w-16 h-16 rounded-full object-cover border-3 border-white shadow-md"
+                        />
+                      </Link>
                     </div>
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
-                        <h3 className="text-lg font-semibold text-gray-800">
+                        <Link 
+                          to={`/profile/${userItem.username}`}
+                          className="text-lg font-semibold text-gray-800 hover:text-orange-600 transition-colors"
+                        >
                           {userItem.fullName}
-                        </h3>
-                        <h3 className="text-md font-semibold text-orange-600">
+                        </Link>
+                        <Link 
+                          to={`/profile/${userItem.username}`}
+                          className="text-md font-semibold text-orange-600 hover:text-orange-700 transition-colors"
+                        >
                           @{userItem.username}
-                        </h3>
+                        </Link>
                       </div>
                       <div className="flex items-center space-x-4 text-sm text-gray-600 mt-1">
                         <span className="flex items-center space-x-1">

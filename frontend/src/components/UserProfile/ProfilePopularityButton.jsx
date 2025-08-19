@@ -4,21 +4,21 @@ import { useAuth } from '../../context/AuthContext';
 import { usePopularity } from '../../context/PopularityContext';
 import { toast } from 'react-toastify';
 
-const PostPopularityButton = ({ 
-  postId, 
+const ProfilePopularityButton = ({ 
+  profileId, 
   className = "",
   showCount = true,
   size = "default" // "small", "default", "large"
 }) => {
   const { user, isAuthenticated } = useAuth();
   const { 
-    togglePopularity, 
-    isPostLiked, 
-    getPopularityCount 
+    toggleProfilePopularity, 
+    isProfileLiked, 
+    getProfilePopularityCount 
   } = usePopularity();
 
-  const isLiked = isPostLiked(postId);
-  const count = getPopularityCount(postId);
+  const isLiked = isProfileLiked(profileId);
+  const count = getProfilePopularityCount(profileId);
 
   // Size variants
   const sizeClasses = {
@@ -43,7 +43,7 @@ const PostPopularityButton = ({
 
   const handleClick = () => {
     if (!isAuthenticated) {
-      toast.error('Please log in to like posts');
+      toast.error('Please log in to like profiles');
       return;
     }
 
@@ -52,8 +52,19 @@ const PostPopularityButton = ({
       return;
     }
 
-    togglePopularity(postId, user._id);
+    // Don't allow users to like their own profile
+    if (profileId === user._id) {
+      toast.error("You can't like your own profile");
+      return;
+    }
+    
+    toggleProfilePopularity(profileId, user._id);
   };
+
+  // Don't show the button for the user's own profile
+  if (profileId === user?._id) {
+    return null;
+  }
 
   return (
     <button
@@ -61,15 +72,15 @@ const PostPopularityButton = ({
       disabled={!isAuthenticated}
       className={`
         flex items-center ${currentSize.gap} ${currentSize.button}
-        rounded-xl transition-all duration-200 outline
+        rounded-xl transition-all duration-200
         ${isLiked 
-          ? 'bg-orange-50 text-orange-500 hover:!bg-orange-100 border-orange-400' 
-          : 'text-gray-500 hover:!text-orange-500 transition-colors bg-gray-50'
+          ? 'bg-orange-50 text-orange-600 hover:bg-orange-100' 
+          : 'bg-gray-50 text-gray-600 hover:bg-gray-100 hover:text-orange-500'
         }
         ${!isAuthenticated ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
         ${className}
       `}
-      title={isAuthenticated ? (isLiked ? 'remove Popularity' : 'add Popularity') : 'Login to like'}
+      title={isAuthenticated ? (isLiked ? 'Remove Reputation' : 'Add Reputation') : 'Login to like'}
     >
       {isLiked ? (
         <FaStar className={`${currentSize.icon} text-orange-500`} />
@@ -85,4 +96,4 @@ const PostPopularityButton = ({
   );
 };
 
-export default PostPopularityButton;
+export default ProfilePopularityButton;
