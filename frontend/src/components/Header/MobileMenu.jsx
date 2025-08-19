@@ -6,6 +6,7 @@ import { MdOutlineLeaderboard } from 'react-icons/md';
 import { FaRegUserCircle } from 'react-icons/fa';
 import { useEffect } from 'react';
 import { lockBodyScroll, unlockBodyScroll } from '../../utils/scrollLock';
+import MobileUserSearch from './MobileUserSearch';
 
 const MobileMenu = ({ isMenuOpen, setIsMenuOpen }) => {
   const { isAuthenticated, user, logout } = useAuth();
@@ -112,6 +113,9 @@ const MobileMenu = ({ isMenuOpen, setIsMenuOpen }) => {
                     <p className="text-sm text-gray-500">@{user?.username}</p>
                   </div>
                 </div>
+
+                  {/* Mobile User Search */}
+                  <MobileUserSearch onUserClick={closeMenu} />
 
                   {/* Navigation Links */}
                   <div className="flex-1 py-2">

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { 
   FaUserCheck, 
@@ -9,6 +9,7 @@ import {
   FaCalendarAlt 
 } from 'react-icons/fa';
 import { MdPendingActions } from 'react-icons/md';
+import UserSearchFilter from './UserSearchFilter';
 
 const UnverifiedUsers = ({ 
   unverifiedUsers, 
@@ -20,6 +21,13 @@ const UnverifiedUsers = ({
   currentAction,
   formatJoinDate 
 }) => {
+  const [filteredUsers, setFilteredUsers] = useState(unverifiedUsers);
+
+  // Update filtered users when unverifiedUsers prop changes
+  useEffect(() => {
+    setFilteredUsers(unverifiedUsers);
+  }, [unverifiedUsers]);
+
   return (
     <div className="bg-white rounded-xl shadow-lg border border-orange-100">
       <div className="p-6 border-b border-gray-200">
@@ -46,22 +54,35 @@ const UnverifiedUsers = ({
         </div>
       </div>
 
+      {/* Search Filter */}
+      <div className="px-6 pb-4">
+        <UserSearchFilter
+          users={unverifiedUsers}
+          onFilteredUsersChange={setFilteredUsers}
+          placeholder="Search unverified users by username, name, or email..."
+          className="w-full max-w-md"
+        />
+      </div>
+
       <div className="p-6">
-        {unverifiedUsers.length === 0 ? (
+        {filteredUsers.length === 0 ? (
           <div className="text-center py-16">
             <div className="bg-gray-100 rounded-full w-24 h-24 flex items-center justify-center mx-auto mb-4">
               <FaUserCheck className="text-gray-400" size={40} />
             </div>
             <h3 className="text-xl font-semibold text-gray-800 mb-2">
-              All Caught Up!
+              {unverifiedUsers.length === 0 ? "All Caught Up!" : "No Users Found"}
             </h3>
             <p className="text-gray-600">
-              No users pending verification at the moment.
+              {unverifiedUsers.length === 0 
+                ? "No users pending verification at the moment."
+                : "No users match your search criteria. Try adjusting your search terms."
+              }
             </p>
           </div>
         ) : (
           <div className="space-y-4">
-            {unverifiedUsers.map((userItem) => (
+            {filteredUsers.map((userItem) => (
               <div
                 key={userItem._id}
                 className="bg-gray-50 rounded-lg p-6 border border-gray-200 hover:border-orange-200 transition-colors"
