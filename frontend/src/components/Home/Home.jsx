@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Navigate } from "react-router-dom";
 import { FaSpinner } from "react-icons/fa";
 import { useAuth } from "../../context/AuthContext";
+import { usePopularity } from "../../context/PopularityContext";
 import { verifyIsAdmin } from "../../services/adminApi";
 import { useHomePosts } from "./hooks/useHomePosts";
 import CreatePostButton from "./CreatePostButton";
@@ -18,6 +19,7 @@ import { useCommentsUI } from "../../context/CommentsUIContext";
 
 function Home() {
   const { user, isAuthenticated, isLoading: authLoading, isSuspended } = useAuth();
+  const { initializeMultiplePostsPopularity } = usePopularity();
   const { registerEditHandler, registerDeleteHandler } = usePostUI();
   const {
     posts,
@@ -46,9 +48,10 @@ function Home() {
 
   // Modal states
   const [showCreatePost, setShowCreatePost] = useState(false);
+  const [showTagDropdown, setShowTagDropdown] = useState(false);
   // Edit/Delete are handled globally by PostUIProvider modals
 
-  // Check admin status
+  // Check admin status and initialize popularity data
   useEffect(() => {
     const checkAdminStatus = async () => {
       if (!isAuthenticated || !user?.email) {
@@ -72,6 +75,25 @@ function Home() {
     }
     checkAdminStatus();
   }, [isAuthenticated, user]);
+
+  // Initialize popularity data when posts are loaded
+  useEffect(() => {
+    if (posts.length > 0 && user?._id) {
+      initializeMultiplePostsPopularity(posts, user._id);
+    }
+  }, [posts, user?._id, initializeMultiplePostsPopularity]);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (showTagDropdown && !event.target.closest('[data-dropdown="tag-selector"]')) {
+        setShowTagDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showTagDropdown]);
 
   // Permissions centralized in PostUIProvider
 
@@ -123,24 +145,75 @@ function Home() {
               onCreatePost={() => setShowCreatePost(true)} 
             />
 
-            {/* Tag Filter */}
-            { !isSuspended && (<div className="flex flex-wrap px-3 py-3 md:py-0 border-y md:border-none border-gray-300  bg-white md:bg-white/0 items-center gap-2">
-              <button
-                className={`px-3 py-1 rounded-full text-md border transition ${!tag ? 'bg-orange-500 text-white border-orange-500' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'}`}
-                onClick={() => changeTag('')}
-              >
-                All
-              </button>
-              {allowedTags.map(t => (
-                <button
-                  key={t}
-                  className={`px-3 py-1 rounded-full text-md capitalize border transition ${tag === t ? 'bg-orange-500 text-white border-orange-500' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'}`}
-                  onClick={() => changeTag(t)}
-                >
-                  {t}
-                </button>
-              ))}
-            </div>
+            {/* Tag Filter - Responsive */}
+            { !isSuspended && (
+              <>
+                {/* Desktop Version - Buttons */}
+                <div className="hidden md:flex flex-wrap px-3 py-3 md:py-0 border-y md:border-none border-gray-300 bg-white md:bg-white/0 items-center gap-2">
+                  <button
+                    className={`px-3 py-1 rounded-full text-md border transition cursor-pointer ${!tag ? 'bg-orange-500 text-white border-orange-500' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'}`}
+                    onClick={() => changeTag('')}
+                  >
+                    All
+                  </button>
+                  {allowedTags.map(t => (
+                    <button
+                      key={t}
+                      className={`px-3 py-1 rounded-full text-md capitalize border transition cursor-pointer ${tag === t ? 'bg-orange-500 text-white border-orange-500' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'}`}
+                      onClick={() => changeTag(t)}
+                    >
+                      {t}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Mobile Version - Dropdown */}
+                <div className="md:hidden ml-auto px-3 w-[50%] border-gray-300 relative" data-dropdown="tag-selector">
+                  <button
+                    className="w-full px-4 py-2 text-left bg-white border border-gray-300 rounded-lg flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-orange-500"
+                    onClick={() => setShowTagDropdown(!showTagDropdown)}
+                  >
+                    <span className="capitalize">
+                      {tag || 'All'}
+                    </span>
+                    <svg
+                      className={`w-5 h-5 transition-transform ${showTagDropdown ? 'transform rotate-180' : ''}`}
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+
+                  {/* Dropdown Menu */}
+                  {showTagDropdown && (
+                    <div className="absolute top-full left-3 right-3 z-10 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg">
+                      <button
+                        className={`w-full px-4 py-2 text-left hover:bg-gray-50 first:rounded-t-lg ${!tag ? 'bg-orange-50 text-orange-600' : ''}`}
+                        onClick={() => {
+                          changeTag('');
+                          setShowTagDropdown(false);
+                        }}
+                      >
+                        All
+                      </button>
+                      {allowedTags.map(t => (
+                        <button
+                          key={t}
+                          className={`w-full px-4 py-2 text-left capitalize hover:bg-gray-50 last:rounded-b-lg ${tag === t ? 'bg-orange-50 text-orange-600' : ''}`}
+                          onClick={() => {
+                            changeTag(t);
+                            setShowTagDropdown(false);
+                          }}
+                        >
+                          {t}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </>
             )}
             <PostsFeed
               posts={posts}

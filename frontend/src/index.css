@@ -220,10 +220,15 @@
     color-scheme: light !important;
 }
 
-/* Force light theme on body and root for posts */
-.post-container,
-.comment-container {
-    background: white !important;
+/* Post and comment containers - force light theme */
+.post-container {
+  color-scheme: light !important;
+  /* Remove the background override to allow custom backgrounds */
+  /* background-color: white !important; */
+}
+
+.post-container * {
+  color-scheme: light !important;
 }
 
 /* Ensure orange backgrounds stay light */

@@ -1,0 +1,65 @@
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+
+/**
+ * Toggle popularity (like/unlike) on a post
+ * @param {string} postId - The ID of the post to like/unlike
+ * @returns {Promise<Object>} Response containing message and popularity count
+ */
+export const togglePostPopularity = async (postId) => {
+  try {
+    if (!postId) {
+      throw new Error('Post ID is required');
+    }
+
+    const response = await fetch(`${API_BASE_URL}/popularity/add-popularity/${postId}`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Failed to update post popularity');
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error toggling post popularity:', error);
+    throw error;
+  }
+};
+
+/**
+ * Toggle popularity (like/unlike) on a user profile
+ * @param {string} profileId - The ID of the profile to like/unlike
+ * @returns {Promise<Object>} Response containing message and popularity count
+ */
+export const toggleProfilePopularity = async (profileId) => {
+  try {
+    if (!profileId) {
+      throw new Error('Profile ID is required');
+    }
+
+    const response = await fetch(`${API_BASE_URL}/popularity/add-popularity/profile/${profileId}`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Failed to update profile popularity');
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error toggling profile popularity:', error);
+    throw error;
+  }
+};
+
+/* Leaderboard API endpoint removed until backend implementation is ready */

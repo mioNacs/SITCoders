@@ -20,7 +20,7 @@ const UserPostsCard = ({ user, userPostsCount, onCreatePost }) => {
       {user.isAdminVerified && !isSuspended && (
         <button
           onClick={onCreatePost}
-          className="mt-4 w-full border border-orange-300 text-orange-500 py-2 rounded-lg font-medium hover:bg-orange-50 transition-all"
+          className="mt-4 w-full border border-orange-300 text-orange-500 py-2 rounded-lg font-medium hover:bg-orange-50 transition-all cursor-pointer"
         >
           Create New Post
         </button>
