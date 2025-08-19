@@ -1,6 +1,6 @@
 /* eslint react-refresh/only-export-components: off */
 import React, { createContext, useContext, useState, useCallback, useRef } from 'react';
-import { togglePostPopularity } from '../services/popularityApi';
+import { togglePostPopularity, toggleProfilePopularity as toggleProfilePopularityAPI } from '../services/popularityApi';
 import { toast } from 'react-toastify';
 
 const PopularityContext = createContext(null);
@@ -15,6 +15,10 @@ export const PopularityProvider = ({ children }) => {
   // Global state for post popularity
   // Structure: { [postId]: { popularity: [userId1, userId2, ...], count: number, isLiked: boolean } }
   const [postPopularity, setPostPopularity] = useState({});
+  
+  // Global state for profile popularity
+  // Structure: { [profileId]: { popularity: [userId1, userId2, ...], count: number, isLiked: boolean } }
+  const [profilePopularity, setProfilePopularity] = useState({});
   
   // Pending requests to avoid duplicate API calls
   const pendingRequests = useRef(new Set());
@@ -177,20 +181,146 @@ export const PopularityProvider = ({ children }) => {
     return postPopularity[postId]?.count || 0;
   }, [postPopularity]);
 
+  // === PROFILE POPULARITY FUNCTIONS ===
+
+  // Initialize or update profile popularity data (only if not already initialized)
+  const initializeProfilePopularity = useCallback((profileId, popularityArray, currentUserId) => {
+    const count = popularityArray?.length || 0;
+    const isLiked = popularityArray?.includes(currentUserId) || false;
+    
+    setProfilePopularity(prev => {
+      // Don't overwrite existing data - only initialize if it doesn't exist
+      if (prev[profileId]) {
+        return prev; // Keep existing data
+      }
+      
+      return {
+        ...prev,
+        [profileId]: {
+          popularity: popularityArray || [],
+          count,
+          isLiked
+        }
+      };
+    });
+  }, []);
+
+  // Smart toggle function for profiles
+  const toggleProfilePopularity = useCallback(async (profileId, currentUserId) => {
+    // Prevent duplicate requests
+    const requestKey = `profile-${profileId}-${currentUserId}`;
+    if (pendingRequests.current.has(requestKey)) {
+      return;
+    }
+
+    const currentState = profilePopularity[profileId];
+    if (!currentState) {
+      console.warn(`Profile ${profileId} not initialized in popularity context`);
+      return;
+    }
+
+    const { isLiked, popularity, count } = currentState;
+    
+    // Optimistic update - always update UI first
+    const newIsLiked = !isLiked;
+    const newPopularity = newIsLiked 
+      ? [...popularity, currentUserId]
+      : popularity.filter(id => id !== currentUserId);
+    const newCount = Math.max(0, newIsLiked ? count + 1 : count - 1); // Prevent negative counts
+
+    // Update UI immediately
+    setProfilePopularity(prev => ({
+      ...prev,
+      [profileId]: {
+        popularity: newPopularity,
+        count: newCount,
+        isLiked: newIsLiked
+      }
+    }));
+
+    // Always make backend call - let backend handle the actual logic
+    try {
+      pendingRequests.current.add(requestKey);
+      const response = await toggleProfilePopularityAPI(profileId);
+      
+      // Sync with server response - this is the source of truth
+      if (response && typeof response.popularity === 'number') {
+        const serverCount = response.popularity;
+        
+        // The backend already handles the toggle logic correctly
+        // So we just need to sync our local state with the server response
+        const isNowLiked = serverCount > count; // If count increased from original, it's liked
+        
+        setProfilePopularity(prev => ({
+          ...prev,
+          [profileId]: {
+            popularity: isNowLiked 
+              ? [...popularity.filter(id => id !== currentUserId), currentUserId]
+              : popularity.filter(id => id !== currentUserId),
+            count: serverCount,
+            isLiked: isNowLiked
+          }
+        }));
+      }
+    } catch (error) {
+      // Revert optimistic update on error
+      setProfilePopularity(prev => ({
+        ...prev,
+        [profileId]: {
+          popularity,
+          count,
+          isLiked
+        }
+      }));
+      
+      toast.error('Failed to update profile popularity. Please try again.');
+      console.error('Error toggling profile popularity:', error);
+    } finally {
+      pendingRequests.current.delete(requestKey);
+    }
+  }, [profilePopularity]);
+
+  // Get popularity data for a specific profile
+  const getProfilePopularityData = useCallback((profileId) => {
+    return profilePopularity[profileId] || { popularity: [], count: 0, isLiked: false };
+  }, [profilePopularity]);
+
+  // Check if a profile is liked by current user
+  const isProfileLiked = useCallback((profileId) => {
+    return profilePopularity[profileId]?.isLiked || false;
+  }, [profilePopularity]);
+
+  // Get popularity count for a profile
+  const getProfilePopularityCount = useCallback((profileId) => {
+    return profilePopularity[profileId]?.count || 0;
+  }, [profilePopularity]);
+
   const value = {
-    // State
+    // Post State
     postPopularity,
     
-    // Actions
+    // Post Actions
     initializePostPopularity,
     initializeMultiplePostsPopularity,
     forceUpdatePostPopularity,
     togglePopularity,
     
-    // Getters
+    // Post Getters
     getPostPopularityData,
     isPostLiked,
     getPopularityCount,
+
+    // Profile State
+    profilePopularity,
+
+    // Profile Actions
+    initializeProfilePopularity,
+    toggleProfilePopularity,
+
+    // Profile Getters
+    getProfilePopularityData,
+    isProfileLiked,
+    getProfilePopularityCount,
   };
 
   return (
