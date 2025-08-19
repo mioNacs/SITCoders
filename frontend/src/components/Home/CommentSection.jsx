@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   FaSpinner,
   FaUser,
@@ -11,6 +11,7 @@ import {
   FaEllipsisH,
 } from "react-icons/fa";
 import { useAuth } from "../../context/AuthContext";
+import { usePopularity } from "../../context/PopularityContext";
 import { createComment, createReply, updateComment } from "../../services/commentApi";
 import { toast } from "react-toastify";
 import EmojiPicker from "emoji-picker-react";
@@ -19,6 +20,7 @@ import { renderSafeMarkdown } from '../../utils/sanitize';
 
 const CommentSection = ({ postId, comments, setComments, commentLoading, onNavigate }) => {
   const { user } = useAuth();
+  const { initializeMultipleCommentsPopularity } = usePopularity();
   const [newComment, setNewComment] = useState("");
   // Central reply target: when set, submitting will create a reply to this parent comment
   const [replyTarget, setReplyTarget] = useState(null); // { parentCommentId, userFullName }
@@ -32,6 +34,21 @@ const CommentSection = ({ postId, comments, setComments, commentLoading, onNavig
 
   const textareaRef = useRef(null);
   const postComments = comments[postId] || [];
+
+  // Initialize comment popularity when comments load
+  useEffect(() => {
+    if (postComments.length > 0 && user?._id) {
+      // Flatten all comments and replies for initialization
+      const allComments = [];
+      postComments.forEach(comment => {
+        allComments.push(comment);
+        if (comment.replies && comment.replies.length > 0) {
+          allComments.push(...comment.replies);
+        }
+      });
+      initializeMultipleCommentsPopularity(allComments, user._id);
+    }
+  }, [postComments, user?._id, initializeMultipleCommentsPopularity]);
 
   // Text formatting functions
   const insertTextAtCursor = (startTag, endTag = "", placeholder = "") => {

@@ -11,6 +11,7 @@ import {
 } from "../../services/commentApi";
 import { toast } from "react-toastify";
 import DeleteConfirmModal from "./DeleteConfirmModal";
+import CommentPopularityButton from "./CommentPopularityButton";
 
 const CommentCard = ({
   comment,
@@ -203,22 +204,27 @@ const CommentCard = ({
         }}
       />
 
-      {/* Reply using main input with @mention */}
-      {user?.isAdminVerified && (
-        <button
-          onClick={() =>
-            onStartReply &&
-            onStartReply(
-              comment._id,
-              comment.user?.fullName || comment.user?.username || "Unknown User"
-            )
-          }
-          className="text-gray-500 mt-1 text-sm hover:!text-orange-500 transition-colors flex items-center gap-1 cursor-pointer"
-        >
-          <FaReply size={12} />
-          <span>Reply</span>
-        </button>
-      )}
+      {/* Comment actions: popularity and reply */}
+      <div className="flex items-center gap-3 mt-2">
+        <CommentPopularityButton commentId={comment._id} size="small" />
+        
+        {/* Reply using main input with @mention */}
+        {user?.isAdminVerified && (
+          <button
+            onClick={() =>
+              onStartReply &&
+              onStartReply(
+                comment._id,
+                comment.user?.fullName || comment.user?.username || "Unknown User"
+              )
+            }
+            className="text-gray-500 text-sm hover:!text-orange-500 transition-colors flex items-center gap-1 cursor-pointer"
+          >
+            <FaReply size={12} />
+            <span>Reply</span>
+          </button>
+        )}
+      </div>
 
       {Array.isArray(comment.replies) && comment.replies.length > 0 && (
         <div className="mt-1">
@@ -322,23 +328,28 @@ const CommentCard = ({
                     }}
                   />
 
-                  {user?.isAdminVerified && (
-                    <button
-                      onClick={() =>
-                        onStartReply &&
-                        onStartReply(
-                          comment._id,
-                          reply.user?.fullName ||
-                            reply.user?.username ||
-                            "Unknown User"
-                        )
-                      }
-                      className="text-gray-500 mt-1 text-xs hover:!text-orange-500 transition-colors flex items-center gap-1 cursor-pointer"
-                    >
-                      <FaReply size={10} />
-                      <span>Reply</span>
-                    </button>
-                  )}
+                  {/* Reply actions: popularity and reply */}
+                  <div className="flex items-center gap-2 mt-2">
+                    <CommentPopularityButton commentId={reply._id} size="small" />
+                    
+                    {user?.isAdminVerified && (
+                      <button
+                        onClick={() =>
+                          onStartReply &&
+                          onStartReply(
+                            comment._id,
+                            reply.user?.fullName ||
+                              reply.user?.username ||
+                              "Unknown User"
+                          )
+                        }
+                        className="text-gray-500 text-xs hover:!text-orange-500 transition-colors flex items-center gap-1 cursor-pointer"
+                      >
+                        <FaReply size={10} />
+                        <span>Reply</span>
+                      </button>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>

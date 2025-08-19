@@ -1,6 +1,6 @@
 /* eslint react-refresh/only-export-components: off */
 import React, { createContext, useContext, useState, useCallback, useRef } from 'react';
-import { togglePostPopularity, toggleProfilePopularity as toggleProfilePopularityAPI } from '../services/popularityApi';
+import { togglePostPopularity, toggleProfilePopularity as toggleProfilePopularityAPI, toggleCommentPopularity as toggleCommentPopularityAPI } from '../services/popularityApi';
 import { toast } from 'react-toastify';
 
 const PopularityContext = createContext(null);
@@ -19,6 +19,10 @@ export const PopularityProvider = ({ children }) => {
   // Global state for profile popularity
   // Structure: { [profileId]: { popularity: [userId1, userId2, ...], count: number, isLiked: boolean } }
   const [profilePopularity, setProfilePopularity] = useState({});
+  
+  // Global state for comment popularity
+  // Structure: { [commentId]: { popularity: [userId1, userId2, ...], count: number, isLiked: boolean } }
+  const [commentPopularity, setCommentPopularity] = useState({});
   
   // Pending requests to avoid duplicate API calls
   const pendingRequests = useRef(new Set());
@@ -295,6 +299,145 @@ export const PopularityProvider = ({ children }) => {
     return profilePopularity[profileId]?.count || 0;
   }, [profilePopularity]);
 
+  // === COMMENT POPULARITY FUNCTIONS ===
+
+  // Initialize or update comment popularity data (only if not already initialized)
+  const initializeCommentPopularity = useCallback((commentId, popularityArray, currentUserId) => {
+    const count = popularityArray?.length || 0;
+    const isLiked = popularityArray?.includes(currentUserId) || false;
+    
+    setCommentPopularity(prev => {
+      // Don't overwrite existing data - only initialize if it doesn't exist
+      if (prev[commentId]) {
+        return prev; // Keep existing data
+      }
+      
+      return {
+        ...prev,
+        [commentId]: {
+          popularity: popularityArray || [],
+          count,
+          isLiked
+        }
+      };
+    });
+  }, []);
+
+  // Initialize multiple comments at once (useful for comment feeds)
+  const initializeMultipleCommentsPopularity = useCallback((comments, currentUserId) => {
+    const updates = {};
+    comments.forEach(comment => {
+      const count = comment.popularity?.length || 0;
+      const isLiked = comment.popularity?.includes(currentUserId) || false;
+      updates[comment._id] = {
+        popularity: comment.popularity || [],
+        count,
+        isLiked
+      };
+    });
+    
+    setCommentPopularity(prev => {
+      const newState = { ...prev };
+      // Only add comments that don't already exist in the state
+      Object.keys(updates).forEach(commentId => {
+        if (!newState[commentId]) {
+          newState[commentId] = updates[commentId];
+        }
+      });
+      return newState;
+    });
+  }, []);
+
+  // Smart toggle function for comments
+  const toggleCommentPopularity = useCallback(async (commentId, currentUserId) => {
+    // Prevent duplicate requests
+    const requestKey = `comment-${commentId}-${currentUserId}`;
+    if (pendingRequests.current.has(requestKey)) {
+      return;
+    }
+
+    const currentState = commentPopularity[commentId];
+    if (!currentState) {
+      console.warn(`Comment ${commentId} not initialized in popularity context`);
+      return;
+    }
+
+    const { isLiked, popularity, count } = currentState;
+    
+    // Optimistic update - always update UI first
+    const newIsLiked = !isLiked;
+    const newPopularity = newIsLiked 
+      ? [...popularity, currentUserId]
+      : popularity.filter(id => id !== currentUserId);
+    const newCount = Math.max(0, newIsLiked ? count + 1 : count - 1); // Prevent negative counts
+
+    // Update UI immediately
+    setCommentPopularity(prev => ({
+      ...prev,
+      [commentId]: {
+        popularity: newPopularity,
+        count: newCount,
+        isLiked: newIsLiked
+      }
+    }));
+
+    // Always make backend call - let backend handle the actual logic
+    try {
+      pendingRequests.current.add(requestKey);
+      const response = await toggleCommentPopularityAPI(commentId);
+      
+      // Sync with server response - this is the source of truth
+      if (response && typeof response.popularity === 'number') {
+        const serverCount = response.popularity;
+        
+        // The backend already handles the toggle logic correctly
+        // So we just need to sync our local state with the server response
+        const isNowLiked = serverCount > count; // If count increased from original, it's liked
+        
+        setCommentPopularity(prev => ({
+          ...prev,
+          [commentId]: {
+            popularity: isNowLiked 
+              ? [...popularity.filter(id => id !== currentUserId), currentUserId]
+              : popularity.filter(id => id !== currentUserId),
+            count: serverCount,
+            isLiked: isNowLiked
+          }
+        }));
+      }
+    } catch (error) {
+      // Revert optimistic update on error
+      setCommentPopularity(prev => ({
+        ...prev,
+        [commentId]: {
+          popularity,
+          count,
+          isLiked
+        }
+      }));
+      
+      toast.error('Failed to update comment popularity. Please try again.');
+      console.error('Error toggling comment popularity:', error);
+    } finally {
+      pendingRequests.current.delete(requestKey);
+    }
+  }, [commentPopularity]);
+
+  // Get popularity data for a specific comment
+  const getCommentPopularityData = useCallback((commentId) => {
+    return commentPopularity[commentId] || { popularity: [], count: 0, isLiked: false };
+  }, [commentPopularity]);
+
+  // Check if a comment is liked by current user
+  const isCommentLiked = useCallback((commentId) => {
+    return commentPopularity[commentId]?.isLiked || false;
+  }, [commentPopularity]);
+
+  // Get popularity count for a comment
+  const getCommentPopularityCount = useCallback((commentId) => {
+    return commentPopularity[commentId]?.count || 0;
+  }, [commentPopularity]);
+
   const value = {
     // Post State
     postPopularity,
@@ -321,6 +464,19 @@ export const PopularityProvider = ({ children }) => {
     getProfilePopularityData,
     isProfileLiked,
     getProfilePopularityCount,
+
+    // Comment State
+    commentPopularity,
+
+    // Comment Actions
+    initializeCommentPopularity,
+    initializeMultipleCommentsPopularity,
+    toggleCommentPopularity,
+
+    // Comment Getters
+    getCommentPopularityData,
+    isCommentLiked,
+    getCommentPopularityCount,
   };
 
   return (
