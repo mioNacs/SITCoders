@@ -1,6 +1,6 @@
 /* eslint react-refresh/only-export-components: off */
 import React, { createContext, useContext, useState, useCallback, useRef } from 'react';
-import { togglePostPopularity, toggleProfilePopularity as toggleProfilePopularityAPI, toggleCommentPopularity as toggleCommentPopularityAPI, getUserReputation } from '../services/popularityApi';
+import { togglePostPopularity, toggleProfilePopularity as toggleProfilePopularityAPI, toggleCommentPopularity as toggleCommentPopularityAPI, getUserReputation, getLeaderboard} from '../services/popularityApi';
 import { toast } from 'react-toastify';
 
 const PopularityContext = createContext(null);
@@ -27,6 +27,32 @@ export const PopularityProvider = ({ children }) => {
   // Global state for user reputation
   // Structure: { [userId]: { totalReputation: number, profilePopularity: number, totalPostsPopularity: number, totalCommentsPopularity: number, ... } }
   const [userReputation, setUserReputation] = useState({});
+
+  // Global state for leaderboard
+  // Structure: leaderboard: [ { userId, fullName, username, profilePicture, totalReputation, ... }, ... ]
+  const [leaderboard, setLeaderboard] = useState([]);
+  const [leaderboardLoading, setLeaderboardLoading] = useState(false);
+  const [leaderboardError, setLeaderboardError] = useState(null);
+
+  // Fetch leaderboard from backend
+  const fetchLeaderboard = useCallback(async () => {
+    setLeaderboardLoading(true);
+    setLeaderboardError(null);
+    try {
+      const response = await getLeaderboard();
+      if (response && Array.isArray(response.leaderboard)) {
+        setLeaderboard(response.leaderboard);
+      } else {
+        setLeaderboard([]);
+        setLeaderboardError('No leaderboard data found');
+      }
+    } catch (error) {
+      setLeaderboard([]);
+      setLeaderboardError(error.message || 'Failed to fetch leaderboard');
+    } finally {
+      setLeaderboardLoading(false);
+    }
+  }, []);
   
   // Pending requests to avoid duplicate API calls
   const pendingRequests = useRef(new Set());
@@ -562,17 +588,25 @@ export const PopularityProvider = ({ children }) => {
     isCommentLiked,
     getCommentPopularityCount,
 
-    // Reputation State
-    userReputation,
+  // Reputation State
+  userReputation,
 
-    // Reputation Actions
-    fetchUserReputation,
-    refreshUserReputation,
+  // Reputation Actions
+  fetchUserReputation,
+  refreshUserReputation,
 
-    // Reputation Getters
-    getUserReputationData,
-    getTotalReputation,
-    getReputationBreakdown,
+  // Reputation Getters
+  getUserReputationData,
+  getTotalReputation,
+  getReputationBreakdown,
+
+  // Leaderboard State
+  leaderboard,
+  leaderboardLoading,
+  leaderboardError,
+
+  // Leaderboard Actions
+  fetchLeaderboard,
   };
 
   return (

@@ -104,7 +104,77 @@ const addPopularityOnComment = async (req, res) => {
     }
 }
 
-const leaderBoard = async (req, res) =>{}
+const leaderBoard = async (req, res) => {
+    try {
+        // Aggregation pipeline to calculate reputation for all users
+        const leaderboardData = await User.aggregate([
+            {
+                $lookup: {
+                    from: "posts",
+                    localField: "_id",
+                    foreignField: "author",
+                    as: "userPosts"
+                }
+            },
+            {
+                $lookup: {
+                    from: "comments",
+                    localField: "_id",
+                    foreignField: "user",
+                    as: "userComments"
+                }
+            },
+            {
+                $project: {
+                    fullName: 1,
+                    username: 1,
+                    email: 1,
+                    profilePicture: 1,
+                    profilePopularity: { $size: { $ifNull: ["$popularity", []] } },
+                    totalPostsPopularity: {
+                        $sum: {
+                            $map: {
+                                input: "$userPosts",
+                                as: "post",
+                                in: { $size: { $ifNull: ["$$post.popularity", []] } }
+                            }
+                        }
+                    },
+                    totalCommentsPopularity: {
+                        $sum: {
+                            $map: {
+                                input: "$userComments",
+                                as: "comment",
+                                in: { $size: { $ifNull: ["$$comment.popularity", []] } }
+                            }
+                        }
+                    },
+                }
+            },
+            {
+                $addFields: {
+                    totalReputation: {
+                        $add: [
+                            "$profilePopularity",
+                            "$totalPostsPopularity",
+                            "$totalCommentsPopularity"
+                        ]
+                    }
+                }
+            },
+            { $sort: { totalReputation: -1 } },
+            { $limit: 20 }
+        ]);
+
+        res.status(200).json({
+            message: "Leaderboard fetched successfully.",
+            leaderboard: leaderboardData
+        });
+    } catch (error) {
+        console.error("Error fetching leaderboard:", error.message);
+        res.status(500).json({ message: "Internal server error" });
+    }
+}
 
 const getReputation = async (req, res) => {
     try {
@@ -247,4 +317,4 @@ const getReputation = async (req, res) => {
     }
 }
 
-export { addPopularityOnPost, addPopularityOnProfile, addPopularityOnComment, getReputation };
+export { addPopularityOnPost, addPopularityOnProfile, addPopularityOnComment, getReputation, leaderBoard };
