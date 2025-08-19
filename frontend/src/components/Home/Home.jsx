@@ -168,7 +168,7 @@ function Home() {
                 </div>
 
                 {/* Mobile Version - Dropdown */}
-                <div className="md:hidden ml-auto px-3 w-1/2 border-gray-300 relative" data-dropdown="tag-selector">
+                <div className="z-20 md:hidden ml-auto px-3 w-1/2 border-gray-300 relative" data-dropdown="tag-selector">
                   <button
                     className="w-full px-4 py-2 text-left bg-white border border-gray-300 rounded-lg flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-orange-500"
                     onClick={() => setShowTagDropdown(!showTagDropdown)}
