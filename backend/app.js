@@ -60,8 +60,3 @@ app.use('/api/comments', verifyUser, isSuspended, commentRoutes);
 import popularityRoute from './routes/popularity.route.js';
 
 app.use('/api/popularity', verifyUser, isSuspended, popularityRoute);
-
-// Serve index.html for all non-API routes (for React Router)
-app.get(/^\/(?!api).*/, (req, res) => {
-  res.sendFile('index.html', { root: 'public' });
-});
