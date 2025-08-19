@@ -14,7 +14,7 @@ const SharePostButton = ({ post, className = '' }) => {
     <>
       <button
         onClick={handleShareClick}
-        className={`flex items-center gap-2 px-3 py-2 text-gray-600 hover:text-orange-600 transition-colors rounded-lg hover:bg-gray-50 ${className}`}
+        className={`flex items-center gap-2 px-3 py-2 text-gray-600 cursor-pointer hover:text-orange-600 transition-colors rounded-lg hover:bg-gray-50 ${className}`}
         title="Share this post"
       >
         <FaShare size={14} />

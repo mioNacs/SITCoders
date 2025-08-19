@@ -8,6 +8,7 @@ import {
   FaExpand
 } from 'react-icons/fa';
 import { useAuth } from '../../context/AuthContext';
+import { usePopularity } from '../../context/PopularityContext';
 import { getUserPosts, deletePost, getPostsByUserId, editPost } from '../../services/postApi';
 import { getComments } from '../../services/commentApi';
 import { toast } from 'react-toastify';
@@ -20,7 +21,8 @@ import { useCommentsUI } from '../../context/CommentsUIContext';
 // PostUIProvider is provided at App level
 
 const PostsSection = ({ user, isOwnProfile = true }) => {
-  const { isSuspended, suspensionEnd, isAdmin } = useAuth();
+  const { user: currentUser, isSuspended, suspensionEnd, isAdmin } = useAuth();
+  const { initializeMultiplePostsPopularity } = usePopularity();
   const [posts, setPosts] = useState([]);
   const [allPosts, setAllPosts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -63,6 +65,11 @@ const PostsSection = ({ user, isOwnProfile = true }) => {
       setPosts(data.posts || []);
       setTotalPosts(data.totalPosts || 0);
       
+      // Initialize popularity data for loaded posts
+      if (data.posts && data.posts.length > 0 && currentUser?._id) {
+        initializeMultiplePostsPopularity(data.posts, currentUser._id);
+      }
+      
       // Fetch comments for the latest post
       if (data.posts && data.posts.length > 0) {
         fetchCommentsForPosts(data.posts.map(post => post._id));
@@ -96,6 +103,11 @@ const PostsSection = ({ user, isOwnProfile = true }) => {
         setAllPosts(data.posts || []);
       } else {
         setAllPosts(prev => [...prev, ...(data.posts || [])]);
+      }
+      
+      // Initialize popularity data for all posts
+      if (data.posts && data.posts.length > 0 && currentUser?._id) {
+        initializeMultiplePostsPopularity(data.posts, currentUser._id);
       }
       
       setCurrentPage(data.currentPage || 1);

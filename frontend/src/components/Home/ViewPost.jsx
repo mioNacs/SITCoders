@@ -1,6 +1,9 @@
 import {useEffect} from "react";
 import { FaTimes, FaComments, FaUser } from "react-icons/fa";
 import CommentSection from "./CommentSection";
+import PostPopularityButton from "./PostPopularityButton";
+import { useAuth } from "../../context/AuthContext";
+import { usePopularity } from "../../context/PopularityContext";
 import { renderSafeMarkdown } from "../../utils/sanitize";
 import { Link } from "react-router-dom";
 import { formatRelativeDate as formatDate } from "../../utils/formatters";
@@ -14,8 +17,18 @@ function ViewPost({
   commentLoading,
   showComments,
 }) {
+  const { user } = useAuth();
+  const { initializePostPopularity } = usePopularity();
+  
   // Find the current post
   const currentPost = posts.find((post) => post._id === showComments);
+
+  // Initialize popularity data for the current post
+  useEffect(() => {
+    if (currentPost && user?._id) {
+      initializePostPopularity(currentPost._id, currentPost.popularity, user._id);
+    }
+  }, [currentPost, user?._id, initializePostPopularity]);
 
   if (!currentPost) {
     return null;
@@ -46,7 +59,7 @@ function ViewPost({
           <div className="flex items-center gap-3 mb-3">
             <Link
               to={`/profile/${currentPost.author.username}`}
-              className="cursor-pointer"
+              className="cursor-pointer hover:opacity-80 transition-opacity"
             >
               {currentPost.author?.profilePicture?.url ? (
                 <img
@@ -95,7 +108,12 @@ function ViewPost({
           )}
           {/* Post Stats */}
           <div className="flex items-center justify-between pt-4 mt-4 border-t border-gray-100">
-            <div className="flex items-center gap-2 text-gray-600">
+            <PostPopularityButton 
+              postId={currentPost._id} 
+              size="default"
+              showCount={true}
+            />
+            <div className="flex items-center gap-2 text-gray-500">
               <FaComments size={16} />
               <span className="text-sm">
                 {comments[currentPost._id]?.length || 0} Comments
@@ -110,6 +128,7 @@ function ViewPost({
           comments={comments}
           setComments={setComments}
           commentLoading={commentLoading}
+          onNavigate={() => setShowComments(null)}
         />
       </div>
     </div>

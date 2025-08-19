@@ -25,7 +25,7 @@ const PostMenu = ({ post }) => {
           e.stopPropagation();
           toggleMenu(post._id);
         }}
-        className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+        className="p-2 hover:bg-gray-100 rounded-full transition-colors cursor-pointer"
       >
         <FaEllipsisV className="text-gray-500" size={14} />
       </button>
@@ -41,7 +41,7 @@ const PostMenu = ({ post }) => {
                 requestEdit(post);
                 closeMenu();
               }}
-              className="w-full flex items-center gap-2 px-4 py-2 text-blue-600 hover:bg-blue-50 transition-colors text-sm"
+              className="w-full flex items-center gap-2 px-4 py-2 text-blue-600 hover:bg-blue-50 transition-colors text-sm cursor-pointer"
             >
               <FaEdit size={12} />
               <span>Edit</span>
@@ -55,7 +55,7 @@ const PostMenu = ({ post }) => {
                 requestDelete(post._id);
                 closeMenu();
               }}
-              className="w-full flex items-center gap-2 px-4 py-2 text-red-600 hover:bg-red-50 transition-colors text-sm"
+              className="w-full flex items-center gap-2 px-4 py-2 text-red-600 hover:bg-red-50 transition-colors text-sm cursor-pointer"
             >
               <FaTrash size={12} />
               <span>Delete</span>

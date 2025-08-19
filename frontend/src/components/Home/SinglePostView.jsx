@@ -5,8 +5,10 @@ import { toast } from "react-toastify";
 import { getPostById, deletePost, editPost } from "../../services/postApi";
 import { getComments } from "../../services/commentApi";
 import { useAuth } from "../../context/AuthContext";
+import { usePopularity } from "../../context/PopularityContext";
 import CommentSection from "./CommentSection";
 import SharePostButton from "./SharePostButton";
+import PostPopularityButton from "./PostPopularityButton";
 import { renderSafeMarkdown } from "../../utils/sanitize";
 import PostMenu from "./PostMenu";
 // Edit/Delete modals are centralized in PostUIContext
@@ -16,8 +18,9 @@ import { formatRelativeDate as formatDate } from "../../utils/formatters";
 const SinglePostView = () => {
   const { postId } = useParams();
   const navigate = useNavigate();
-  const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const { isAuthenticated, isLoading: authLoading, user } = useAuth();
   const { registerEditHandler, registerDeleteHandler } = usePostUI();
+  const { initializePostPopularity } = usePopularity();
 
   const [post, setPost] = useState(null);
   const [comments, setComments] = useState({});
@@ -50,13 +53,17 @@ const SinglePostView = () => {
         const postData = await getPostById(postId);
         setPost(postData.post);
 
+        // Initialize popularity data for this post
+        if (postData.post && user?._id) {
+          initializePostPopularity(postData.post._id, postData.post.popularity, user._id);
+        }
+
         // Fetch comments for this post
         const commentsData = await getComments(postId);
         setComments({ [postId]: commentsData.parentComment || [] });
       } catch (error) {
         console.error("Error fetching post:", error);
         toast.error("Failed to load post");
-        navigate("/home");
       } finally {
         setLoading(false);
       }
@@ -69,7 +76,7 @@ const SinglePostView = () => {
       }
       fetchPost();
     }
-  }, [postId, navigate, isAuthenticated, authLoading]);
+  }, [postId, navigate, isAuthenticated, authLoading, user?._id, initializePostPopularity]);
 
   // Register handlers for centralized modals
   useEffect(() => {
@@ -150,7 +157,7 @@ const SinglePostView = () => {
               <div className="flex items-center gap-3">
                 <Link
                   to={`/profile/${post.author.username}`}
-                  className="cursor-pointer"
+                  className="cursor-pointer hover:opacity-80 transition-opacity"
                 >
                   {post.author?.profilePicture?.url ? (
                     <img
@@ -167,7 +174,7 @@ const SinglePostView = () => {
                 <div>
                   <Link
                     to={`/profile/${post.author?.username}`}
-                    className="font-semibold text-gray-800 hover:text-orange-600 transition-colors"
+                    className="font-semibold text-gray-800 hover:!text-orange-600 transition-colors"
                   >
                     {post.author?.fullName || "Unknown User"}
                   </Link>
@@ -218,7 +225,12 @@ const SinglePostView = () => {
 
             {/* Post Stats */}
             <div className="flex items-center justify-between pt-4 mt-4 border-t border-gray-100">
-              <div className="flex items-center gap-2 text-gray-600">
+              <PostPopularityButton 
+                postId={post._id} 
+                size="default"
+                showCount={true}
+              />
+              <div className="flex items-center gap-2 text-gray-500">
                 <FaComments size={16} />
                 <span className="text-sm">
                   {comments[post._id]?.length || 0} Comments

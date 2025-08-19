@@ -17,7 +17,7 @@ import EmojiPicker from "emoji-picker-react";
 import CommentCard from "./CommentCard";
 import { renderSafeMarkdown } from '../../utils/sanitize';
 
-const CommentSection = ({ postId, comments, setComments, commentLoading }) => {
+const CommentSection = ({ postId, comments, setComments, commentLoading, onNavigate }) => {
   const { user } = useAuth();
   const [newComment, setNewComment] = useState("");
   // Central reply target: when set, submitting will create a reply to this parent comment
@@ -264,6 +264,7 @@ const CommentSection = ({ postId, comments, setComments, commentLoading }) => {
                 onStartReply={(parentCommentId, userFullName) =>
                   handleSetReplyTarget({ parentCommentId, userFullName })
                 }
+                onNavigate={onNavigate}
               />
             ))}
           </div>

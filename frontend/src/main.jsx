@@ -7,6 +7,7 @@ import {Login, Signup, VerifyOTP, Landing, Home, Resources, ContactAdmin, Collab
 import { AuthProvider } from './context/AuthContext.jsx'
 import { PostUIProvider } from './context/PostUIContext.jsx'
 import { CommentsUIProvider } from './context/CommentsUIContext.jsx'
+import { PopularityProvider } from './context/PopularityContext.jsx'
 
 const router = createBrowserRouter(
   createRoutesFromElements(
@@ -31,11 +32,13 @@ const router = createBrowserRouter(
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <AuthProvider>
-      <PostUIProvider>
-        <CommentsUIProvider>
-          <RouterProvider router={router}/>
-        </CommentsUIProvider>
-      </PostUIProvider>
+      <PopularityProvider>
+        <PostUIProvider>
+          <CommentsUIProvider>
+            <RouterProvider router={router}/>
+          </CommentsUIProvider>
+        </PostUIProvider>
+      </PopularityProvider>
     </AuthProvider>
   </StrictMode>
 )

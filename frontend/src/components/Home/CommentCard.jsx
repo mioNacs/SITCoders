@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { FaUser, FaReply, FaEllipsisV, FaTrash, FaEdit } from "react-icons/fa";
+import { Link } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { renderSafeMarkdown } from "../../utils/sanitize";
 import { formatRelativeDate as formatDate } from "../../utils/formatters";
@@ -17,6 +18,7 @@ const CommentCard = ({
   setComments,
   onStartReply,
   onStartEdit,
+  onNavigate,
 }) => {
   const { user, isAdmin } = useAuth();
   const [showReplies, setShowReplies] = useState(false);
@@ -126,18 +128,30 @@ const CommentCard = ({
         confirmLabel="Delete"
       />
       <div className="flex items-center gap-3 mb-2">
-        {comment.user?.profilePicture?.url ? (
-          <img
-            src={comment.user.profilePicture.url}
-            alt="Commenter"
-            className="w-8 h-8 rounded-full object-cover"
-          />
-        ) : (
-          <FaUser className="w-8 h-8 text-gray-400 bg-gray-100 rounded-full p-1" />
-        )}
+        <Link 
+          to={`/profile/${comment.user?.username}`}
+          className="cursor-pointer"
+          onClick={onNavigate}
+        >
+          {comment.user?.profilePicture?.url ? (
+            <img
+              src={comment.user.profilePicture.url}
+              alt="Commenter"
+              className="w-8 h-8 rounded-full object-cover hover:opacity-80 transition-opacity"
+            />
+          ) : (
+            <FaUser className="w-8 h-8 text-gray-400 bg-gray-100 rounded-full p-1 hover:bg-gray-200 transition-colors" />
+          )}
+        </Link>
         <div className="flex-1">
           <h5 className="font-medium text-gray-800">
-            {comment.user?.fullName || comment.user?.username || "Unknown User"}
+            <Link 
+              to={`/profile/${comment.user?.username}`}
+              className="hover:text-orange-600 transition-colors cursor-pointer"
+              onClick={onNavigate}
+            >
+              {comment.user?.fullName || comment.user?.username || "Unknown User"}
+            </Link>
             {(comment.createdAt < comment.updatedAt) && (
               <span className="pl-2 text-xs text-gray-500">(Edited)</span>
             )}
@@ -199,7 +213,7 @@ const CommentCard = ({
               comment.user?.fullName || comment.user?.username || "Unknown User"
             )
           }
-          className="text-orange-500 text-sm hover:text-orange-600 transition-colors flex items-center gap-1"
+          className="text-gray-500 mt-1 text-sm hover:!text-orange-500 transition-colors flex items-center gap-1 cursor-pointer"
         >
           <FaReply size={12} />
           <span>Reply</span>
@@ -207,10 +221,10 @@ const CommentCard = ({
       )}
 
       {Array.isArray(comment.replies) && comment.replies.length > 0 && (
-        <div className="mt-3">
+        <div className="mt-1">
           <button
             onClick={() => setShowReplies((v) => !v)}
-            className="text-blue-500 text-sm hover:text-blue-600 transition-colors"
+            className="text-gray-500 text-sm hover:!text-orange-500 transition-colors cursor-pointer"
           >
             {showReplies ? "Hide" : "Show"} {comment.replies.length}{" "}
             {comment.replies.length === 1 ? "reply" : "replies"}
@@ -222,19 +236,31 @@ const CommentCard = ({
                 <div key={reply._id} className="rounded p-3">
                   <div className="flex items-center justify-between mb-1">
                     <div className="flex items-center gap-2">
-                      {reply.user?.profilePicture?.url ? (
-                        <img
-                          src={reply.user.profilePicture.url}
-                          alt="Replier"
-                          className="w-6 h-6 rounded-full object-cover"
-                        />
-                      ) : (
-                        <FaUser className="w-6 h-6 text-gray-400 bg-gray-200 rounded-full p-1" />
-                      )}
+                      <Link 
+                        to={`/profile/${reply.user?.username}`}
+                        className="cursor-pointer"
+                        onClick={onNavigate}
+                      >
+                        {reply.user?.profilePicture?.url ? (
+                          <img
+                            src={reply.user.profilePicture.url}
+                            alt="Replier"
+                            className="w-6 h-6 rounded-full object-cover hover:opacity-80 transition-opacity"
+                          />
+                        ) : (
+                          <FaUser className="w-6 h-6 text-gray-400 bg-gray-200 rounded-full p-1 hover:bg-gray-300 transition-colors" />
+                        )}
+                      </Link>
                       <h6 className="font-medium text-gray-800 text-sm">
-                        {reply.user?.fullName ||
-                          reply.user?.username ||
-                          "Unknown User"}
+                        <Link 
+                          to={`/profile/${reply.user?.username}`}
+                          className="hover:text-orange-600 transition-colors cursor-pointer"
+                          onClick={onNavigate}
+                        >
+                          {reply.user?.fullName ||
+                            reply.user?.username ||
+                            "Unknown User"}
+                        </Link>
                         {(reply.createdAt < reply.updatedAt) && (
                           <span className="pl-2 text-xs text-gray-500">(Edited)</span>
                         )}
@@ -307,7 +333,7 @@ const CommentCard = ({
                             "Unknown User"
                         )
                       }
-                      className="text-orange-400 text-xs hover:text-orange-500 transition-colors flex items-center gap-1"
+                      className="text-gray-500 mt-1 text-xs hover:!text-orange-500 transition-colors flex items-center gap-1 cursor-pointer"
                     >
                       <FaReply size={10} />
                       <span>Reply</span>
