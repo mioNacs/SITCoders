@@ -284,6 +284,7 @@ export const AuthProvider = ({ children }) => {
     resetPassword,
     deleteAccount,
     isAdmin,
+    isAdminVerified: user?.isAdminVerified,
     adminLoading,
     isLoggedIn: isAuthenticated, // For backward compatibility
     isSuspended: user?.isSuspended || false, // Add suspension status check

@@ -224,7 +224,7 @@ function ForgotPassword() {
           value={formData.otp}
           onChange={handleInputChange}
           type="text"
-          placeholder="Enter 6-digit OTP"
+          placeholder="0 0 0 0 0 0"
           maxLength={6}
           required
           disabled={loading}

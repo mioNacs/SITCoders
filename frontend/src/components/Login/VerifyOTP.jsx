@@ -9,6 +9,7 @@ function VerifyOTP() {
   const [error, setError] = React.useState("");
   const [success, setSuccess] = React.useState("");
   const [resending, setResending] = React.useState(false);
+  const [cooldown, setCooldown] = React.useState(120);
   
   const location = useLocation();
   const navigate = useNavigate();
@@ -62,10 +63,10 @@ function VerifyOTP() {
 
     try {
       const result = await resendOtp(email);
-      
       if (result.success) {
         setSuccess("OTP resent successfully!");
         setTimeout(() => setSuccess(""), 3000);
+        setCooldown(120);
       } else {
         setError(result.message);
       }
@@ -76,6 +77,14 @@ function VerifyOTP() {
     }
   };
 
+  // Countdown effect for cooldown
+  React.useEffect(() => {
+    if (cooldown > 0) {
+      const timer = setTimeout(() => setCooldown(cooldown - 1), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [cooldown]);
+
   // Show loading while checking auth status
   if (authLoading) {
     return (
@@ -84,6 +93,13 @@ function VerifyOTP() {
       </div>
     );
   }
+
+  // Helper to format cooldown as mm:ss
+  const formatCooldown = (seconds) => {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+  };
 
   return (
     <div className="font-Jost flex h-screen justify-center items-center text-gray-600 bg-orange-100/30">
@@ -146,10 +162,14 @@ function VerifyOTP() {
               Didn't receive the OTP?{" "}
               <button
                 onClick={handleResendOTP}
-                disabled={resending}
-                className="text-orange-400 hover:text-orange-500 cursor-pointer disabled:opacity-50"
+                disabled={resending || cooldown > 0}
+                className="text-orange-400 hover:text-orange-500 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
               >
-                {resending ? 'Resending...' : 'Resend OTP'}
+                {resending
+                  ? 'Resending...'
+                  : cooldown > 0
+                  ? `Resend OTP (${formatCooldown(cooldown)})`
+                  : 'Resend OTP'}
               </button>
             </p>
           </div>

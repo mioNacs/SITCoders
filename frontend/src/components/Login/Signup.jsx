@@ -271,12 +271,12 @@ function Signup() {
                     Confirm Password:
                   </label>
                   <input
-                    className="bg-gray-50 caret-orange-400 px-4 py-2 rounded-md outline-none border border-gray-300 focus:border-orange-400 focus:shadow-lg shadow-orange-400/10"
+                    className={`bg-gray-50 caret-orange-400 px-4 py-2 rounded-md outline-none border focus:shadow-lg shadow-orange-400/10 ${formData.confirmPassword && formData.confirmPassword !== formData.password ? 'border-red-500 focus:border-red-500 bg-red-100' : 'border-gray-300 focus:border-orange-400'}`}
                     id="confirmPassword"
                     name="confirmPassword"
                     value={formData.confirmPassword}
                     onChange={handleInputChange}
-                    type="text"
+                    type="password"
                     placeholder="Re-enter your password"
                     required
                     disabled={loading}

@@ -9,7 +9,7 @@ const CommentPopularityButton = ({
   className = "",
   size = "small" // "small", "default", "large"
 }) => {
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, isAdminVerified } = useAuth();
   const { 
     toggleCommentPopularity, 
     isCommentLiked, 
@@ -57,7 +57,7 @@ const CommentPopularityButton = ({
   return (
     <button
       onClick={handleClick}
-      disabled={!isAuthenticated}
+      disabled={!isAuthenticated || !isAdminVerified}
       className={`
         flex items-center ${currentSize.gap} ${currentSize.button}
         rounded-lg transition-all duration-200 hover:bg-gray-100
@@ -65,10 +65,10 @@ const CommentPopularityButton = ({
           ? 'text-orange-600 hover:bg-orange-50' 
           : 'text-gray-500 hover:text-orange-500'
         }
-        ${!isAuthenticated ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
+        disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer}
         ${className}
       `}
-      title={isAuthenticated ? (isLiked ? 'Unlike' : 'Like') : 'Login to like'}
+      title={isAuthenticated ? (isAdminVerified ? (isLiked ? 'remove Popularity' : 'add Popularity'): "you are not verified yet" ) : 'Login to add popularity'}
     >
       {isLiked ? (
         <FaStar className={`${currentSize.icon} text-orange-500`} />
