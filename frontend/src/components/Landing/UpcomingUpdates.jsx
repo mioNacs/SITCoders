@@ -7,14 +7,14 @@ function UpcomingUpdates() {
       description:
         "Access a comprehensive library of educational resources, tutorials, and study materials curated by the community.",
       expectedRelease: "Q3 2025",
-      icon: "�", // Books icon
+      icon: "📚", // Books icon
     },
     {
       feature: "Contact Admin System",
       description:
         "Direct communication channel with administrators for support, feedback, and platform-related inquiries.",
       expectedRelease: "Q3 2025",
-      icon: "📞", // Phone icon
+      icon: "✉️", // Envelope icon
     },
     {
       feature: "Collaboration Platform",
@@ -24,30 +24,16 @@ function UpcomingUpdates() {
       icon: "🤝", // Handshake icon
     },
     {
-      feature: "Enhanced Star-popularity System",
-      description:
-        "Advanced rating system with detailed analytics to track your contributions and community impact over time.",
-      expectedRelease: "Q4 2025",
-      icon: "⭐", // Star icon
-    },
-    {
       feature: "Real-time Notifications",
       description:
         "Stay updated with instant notifications for comments, likes, collaboration requests, and admin announcements.",
       expectedRelease: "Q1 2026",
       icon: "🔔", // Bell icon
     },
-    {
-      feature: "Mobile Application",
-      description:
-        "Native mobile app for iOS and Android with full feature parity and optimized user experience.",
-      expectedRelease: "Q2 2026",
-      icon: "📱", // Mobile phone icon
-    },
   ];
 
   return (
-    <div className="py-20 bg-gradient-to-br from-gray-50 to-white">
+    <div className="py-20 font-Jost relative slide-in">
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Background decorative elements */}
         <div
@@ -76,11 +62,14 @@ function UpcomingUpdates() {
         </div>
 
         {/* Updates Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {plannedUpdates.map((update, index) => (
             <div
               key={index}
-              className="group relative bg-white/70 backdrop-blur-sm rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 ease-in-out transform hover:scale-105 hover:-translate-y-2 border border-gray-100"
+              className="group mx-auto hover:bg-white/70 bg-white/40 rounded-lg 
+              scroll-view backdrop-blur-sm shadow-2xl flex flex-col items-center
+              transition-all duration-300 ease-in-out transform hover:scale-105
+              grayscale-25 hover:filter-none"
             >
               <div className="p-6">
                 <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 mb-4 group-hover:scale-110 transition-transform duration-300">
@@ -109,13 +98,6 @@ function UpcomingUpdates() {
           ))}
         </div>
 
-        {/* Call to Action */}
-        <div className="text-center mt-16">
-          <div className="inline-flex items-center space-x-2 bg-gradient-to-r from-green-600 to-blue-600 text-white px-8 py-4 rounded-full font-Jost font-semibold text-lg hover:from-green-700 hover:to-blue-700 transform hover:scale-105 transition-all duration-300 cursor-pointer shadow-lg hover:shadow-xl">
-            <span>Stay Tuned for Updates</span>
-            <span className="text-xl">🚀</span>
-          </div>
-        </div>
       </div>
     </div>
   );

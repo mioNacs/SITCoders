@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 
 function Features() {
   const siteFeatures = [
@@ -24,41 +25,27 @@ function Features() {
       color: "bg-yellow-400/20"
     },
     {
-      title: "User Profiles",
-      description:
-        "Create personalized profiles, showcase your expertise, and track your contributions to the community.",
-      icon: "👤",
-      color: "bg-purple-400/20"
-    },
-    {
       title: "Admin Moderation",
       description:
         "Enjoy a safe and well-moderated environment with active admin supervision and user verification.",
       icon: "🛡️",
       color: "bg-red-400/20"
     },
-    {
-      title: "Real-time Updates",
-      description:
-        "Stay updated with real-time notifications and live updates on posts and comments.",
-      icon: "⚡",
-      color: "bg-orange-400/20"
-    }
   ];
 
   return (
-    <div className="relative py-20 bg-gradient-to-br from-gray-50 to-white">
+    <div className="font-Jost relative slide-in">
       {/* Background decorative elements */}
       <div
-        className="absolute top-[20%] left-[10%] w-48 h-48 bg-teal-400/10 rounded-full animate-pulse blur-xl"
+        className="absolute top-[20%] left-[20%] w-48 h-48 bg-teal-400/20 rounded-full animate-bounce blur-xl"
         style={{ animationDuration: "6s" }}
       ></div>
       <div
-        className="absolute bottom-[20%] right-[10%] w-56 h-56 bg-pink-400/10 rounded-full animate-bounce blur-xl"
+        className="absolute bottom-[30%] right-[20%] w-80 h-80 bg-pink-400/20 rounded-full animate-pulse blur-xl"
         style={{ animationDuration: "8s" }}
       ></div>
       <div
-        className="absolute top-[50%] left-[5%] w-32 h-32 bg-indigo-400/10 rounded-tr-[50%] rounded-bl-[50%] animate-spin blur-lg"
+        className="absolute top-[40%] left-[5%] w-72 h-72 bg-indigo-400/20 rounded-tr-[50%] rounded-bl-[50%] animate-spin blur-lg"
         style={{ animationDuration: "12s" }}
       ></div>
 
@@ -74,11 +61,14 @@ function Features() {
         </div>
 
         {/* Features Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {siteFeatures.map((feature, index) => (
             <div
               key={index}
-              className="group relative bg-white/70 backdrop-blur-sm rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 ease-in-out transform hover:scale-105 hover:-translate-y-2 border border-gray-100"
+              className="group mx-auto hover:bg-white/70 bg-white/40 rounded-lg 
+              scroll-view backdrop-blur-sm shadow-2xl flex flex-col items-center
+              transition-all duration-300 ease-in-out transform hover:scale-105
+              grayscale-25 hover:filter-none"
             >
               {/* Feature card content */}
               <div className="p-8">
@@ -102,12 +92,14 @@ function Features() {
         </div>
 
         {/* Call to Action */}
+        <Link to={'/login'}>
         <div className="text-center mt-16">
           <div className="inline-flex items-center space-x-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-full font-Jost font-semibold text-lg hover:from-blue-700 hover:to-purple-700 transform hover:scale-105 transition-all duration-300 cursor-pointer shadow-lg hover:shadow-xl">
             <span>Experience These Features</span>
             <span className="text-xl">🚀</span>
           </div>
         </div>
+        </Link>
       </div>
     </div>
   );
