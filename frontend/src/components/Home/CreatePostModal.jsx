@@ -208,7 +208,7 @@ const CreatePostModal = ({ isOpen, onClose, onSubmit, isAdmin }) => {
   return (
     <>
       <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 animate-fade-in">
-        <div className="bg-white rounded-xl shadow-2xl w-full max-w-md md:max-w-lg lg:max-w-2xl max-h-[90vh] overflow-y-auto">
+        <div className="bg-white md:rounded-xl shadow-2xl w-full md:max-w-lg lg:max-w-2xl max-h-[90vh] overflow-y-auto">
           {/* Modal Header */}
           <div className="sticky top-0 bg-white z-20 px-6 py-4 border-b border-gray-200">
             <div className="flex items-center justify-between">
@@ -225,7 +225,7 @@ const CreatePostModal = ({ isOpen, onClose, onSubmit, isAdmin }) => {
           </div>
 
           {/* Modal Body */}
-          <form onSubmit={handleSubmit} className="px-6 pt-2">
+          <form onSubmit={handleSubmit} className="px-3 md:px-6 pt-2">
             {/* Formatting Toolbar */}
             <div className="flex items-center gap-2 mb-4 p-3 bg-gray-50 rounded-lg border">
               <button
