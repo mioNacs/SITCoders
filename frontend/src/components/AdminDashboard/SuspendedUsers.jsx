@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { FaSpinner, FaBan } from 'react-icons/fa';
 import { removeSuspension, getSuspendedUsers } from '../../services/adminApi';
 
@@ -78,15 +79,30 @@ const SuspendedUsers = ({ showDialog, adminStatus, onCountChange, onUpdateUserSu
           {(Array.isArray(users) ? users : []).map((u) => (
             <div key={u._id || u.email} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
               <div className="flex items-start gap-3">
-                <img
-                  src={u.profilePicture?.url || u.profile || 'https://www.iconpacks.net/icons/2/free-user-icon-3296-thumb.png'}
-                  alt="Profile"
-                  className="w-12 h-12 rounded-full object-cover border-2 border-white shadow-sm"
-                />
+                <Link 
+                  to={`/profile/${u.username}`}
+                  className="block hover:opacity-80 transition-opacity"
+                >
+                  <img
+                    src={u.profilePicture?.url || u.profile || 'https://www.iconpacks.net/icons/2/free-user-icon-3296-thumb.png'}
+                    alt="Profile"
+                    className="w-12 h-12 rounded-full object-cover border-2 border-white shadow-sm"
+                  />
+                </Link>
                 <div className="flex-1 min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
-                    <div className="font-semibold text-gray-800">{u.fullName}</div>
-                    <div className="text-orange-600 font-semibold">@{u.username}</div>
+                    <Link 
+                      to={`/profile/${u.username}`}
+                      className="font-semibold text-gray-800 hover:text-orange-600 transition-colors"
+                    >
+                      {u.fullName}
+                    </Link>
+                    <Link 
+                      to={`/profile/${u.username}`}
+                      className="text-orange-600 font-semibold hover:text-orange-700 transition-colors"
+                    >
+                      @{u.username}
+                    </Link>
                   </div>
                   <div className="text-sm text-gray-600 mt-1 break-all">{u.email}</div>
                   {u.suspensionEnd ? (

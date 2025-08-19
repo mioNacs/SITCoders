@@ -32,7 +32,7 @@ function AdminDashboard() {
   const [verifyLoading, setVerifyLoading] = useState(false);
   const [rejectLoading, setRejectLoading] = useState(false);
   const [currentAction, setCurrentAction] = useState(null);
-  const [showUsers, setShowUsers] = useState("");
+  const [showUsers, setShowUsers] = useState("verified"); // Set verified as default
   const [suspendedCount, setSuspendedCount] = useState(0);
 
   const handleShowUsers = (type) => {
@@ -356,35 +356,6 @@ function AdminDashboard() {
               </div>
             </div>
           </div>
-
-          {/* Show instruction if no section is selected */}
-          {!showUsers && (
-            <div className="bg-white rounded-xl shadow-lg p-6 md:p-8 border border-orange-100 text-center">
-              <div className="bg-gray-100 rounded-full w-16 h-16 md:w-24 md:h-24 flex items-center justify-center mx-auto mb-4">
-                <MdAdminPanelSettings className="text-gray-400" size={32} />
-              </div>
-              <h3 className="text-lg md:text-xl font-semibold text-gray-800 mb-2">
-                Welcome to Admin Dashboard
-              </h3>
-              <p className="text-gray-600 text-sm md:text-base mb-4">
-                Select a section above to manage users and system settings
-              </p>
-              <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                <button
-                  onClick={() => handleShowUsers("unverified")}
-                  className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors text-sm md:text-base cursor-pointer"
-                >
-                  View Pending Users
-                </button>
-                <button
-                  onClick={() => handleShowUsers("verified")}
-                  className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors text-sm md:text-base cursor-pointer"
-                >
-                  View Verified Users
-                </button>
-              </div>
-            </div>
-          )}
 
           {/* Unverified Users Component */}
           {showUsers === "unverified" && (

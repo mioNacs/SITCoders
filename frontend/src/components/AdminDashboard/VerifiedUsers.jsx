@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import {
-  FaUserCheck,
   FaSpinner,
   FaEnvelope,
   FaUsers,
@@ -327,31 +327,35 @@ const VerifiedUsers = ({
                       <div className="flex flex-col space-y-4">
                         <div className="flex items-start space-x-3 md:space-x-4">
                           <div className="relative flex-shrink-0">
-                            <img
-                              src={
-                                userItem.profilePicture?.url ||
-                                userItem.profile ||
-                                "https://www.iconpacks.net/icons/2/free-user-icon-3296-thumb.png"
-                              }
-                              alt="Profile"
-                              className="w-12 h-12 md:w-16 md:h-16 rounded-full object-cover border-2 md:border-3 border-white shadow-md"
-                            />
-                            <div className="absolute -bottom-1 -right-1 bg-green-500 rounded-full p-1">
-                              <FaUserCheck
-                                className="text-white"
-                                size={10}
-                                md:size={12}
+                            <Link 
+                              to={`/profile/${userItem.username}`}
+                              className="block hover:opacity-80 transition-opacity"
+                            >
+                              <img
+                                src={
+                                  userItem.profilePicture?.url ||
+                                  userItem.profile ||
+                                  "https://www.iconpacks.net/icons/2/free-user-icon-3296-thumb.png"
+                                }
+                                alt="Profile"
+                                className="w-12 h-12 md:w-16 md:h-16 rounded-full object-cover border-2 md:border-3 border-white shadow-md"
                               />
-                            </div>
+                            </Link>
                           </div>
                           <div className="flex-1 min-w-0">
                             <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
-                              <h3 className="text-base md:text-lg font-semibold text-gray-800 truncate">
+                              <Link 
+                                to={`/profile/${userItem.username}`}
+                                className="text-base md:text-lg font-semibold text-gray-800 hover:text-orange-600 transition-colors truncate"
+                              >
                                 {userItem.fullName}
-                              </h3>
-                              <h3 className="text-sm md:text-md font-semibold text-orange-600 truncate">
+                              </Link>
+                              <Link 
+                                to={`/profile/${userItem.username}`}
+                                className="text-sm md:text-md font-semibold text-orange-600 hover:text-orange-700 transition-colors truncate"
+                              >
                                 @{userItem.username}
-                              </h3>
+                              </Link>
                             </div>
                             <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-4 text-xs md:text-sm text-gray-600 mt-1 space-y-1 sm:space-y-0">
                               <span className="flex items-center space-x-1 truncate">
