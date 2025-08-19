@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { searchUsersByUsername } from '../../services/api';
+import { FaUser } from 'react-icons/fa6';
 
 const UserSearch = () => {
   const { isAuthenticated } = useAuth();
@@ -113,14 +114,18 @@ const UserSearch = () => {
                 <li key={user._id}>
                   <button
                     onClick={() => handleUserClick(user.username)}
-                    className="w-full px-4 py-2 text-left hover:bg-gray-50 focus:bg-gray-50 focus:outline-none transition-colors"
+                    className="w-full px-4 py-2 text-left cursor-pointer hover:bg-gray-50 focus:bg-gray-50 focus:outline-none transition-colors"
                   >
                     <div className="flex items-center space-x-3">
-                      <img
-                        src={user.profilePicture || '/default-avatar.png'}
+                      {user.profilePicture.url ? (
+                        <img
+                        src={user.profilePicture.url || '/default-avatar.png'}
                         alt={user.fullName}
                         className="w-8 h-8 rounded-full object-cover"
                       />
+                      ): 
+                      <FaUser/>
+                      }
                       <div className="flex-1 min-w-0">
                         <div className="text-sm font-medium text-gray-900 truncate">
                           {user.fullName}
