@@ -19,7 +19,6 @@ const PostActions = ({ post, comments, onShowComments }) => {
         >
           <FaComments /> 
           {comments[post._id]?.length || 0}
-          {/* <FaArrowRight /> */}
         </button>
     </div>
     <div>
