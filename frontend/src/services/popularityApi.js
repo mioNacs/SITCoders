@@ -94,3 +94,34 @@ export const toggleCommentPopularity = async (commentId) => {
 };
 
 /* Leaderboard API endpoint removed until backend implementation is ready */
+
+/**
+ * Get user reputation (sum of profile, posts, and comments popularity)
+ * @param {string} userId - The ID of the user to get reputation for
+ * @returns {Promise<Object>} Response containing detailed reputation data
+ */
+export const getUserReputation = async (userId) => {
+  try {
+    if (!userId) {
+      throw new Error('User ID is required');
+    }
+
+    const response = await fetch(`${API_BASE_URL}/popularity/reputation/${userId}`, {
+      method: 'GET',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Failed to get user reputation');
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error getting user reputation:', error);
+    throw error;
+  }
+};

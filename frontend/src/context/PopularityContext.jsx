@@ -1,6 +1,6 @@
 /* eslint react-refresh/only-export-components: off */
 import React, { createContext, useContext, useState, useCallback, useRef } from 'react';
-import { togglePostPopularity, toggleProfilePopularity as toggleProfilePopularityAPI, toggleCommentPopularity as toggleCommentPopularityAPI } from '../services/popularityApi';
+import { togglePostPopularity, toggleProfilePopularity as toggleProfilePopularityAPI, toggleCommentPopularity as toggleCommentPopularityAPI, getUserReputation } from '../services/popularityApi';
 import { toast } from 'react-toastify';
 
 const PopularityContext = createContext(null);
@@ -23,6 +23,10 @@ export const PopularityProvider = ({ children }) => {
   // Global state for comment popularity
   // Structure: { [commentId]: { popularity: [userId1, userId2, ...], count: number, isLiked: boolean } }
   const [commentPopularity, setCommentPopularity] = useState({});
+  
+  // Global state for user reputation
+  // Structure: { [userId]: { totalReputation: number, profilePopularity: number, totalPostsPopularity: number, totalCommentsPopularity: number, ... } }
+  const [userReputation, setUserReputation] = useState({});
   
   // Pending requests to avoid duplicate API calls
   const pendingRequests = useRef(new Set());
@@ -438,6 +442,86 @@ export const PopularityProvider = ({ children }) => {
     return commentPopularity[commentId]?.count || 0;
   }, [commentPopularity]);
 
+  // ===== REPUTATION FUNCTIONS =====
+  
+  // Fetch and cache user reputation
+  const fetchUserReputation = useCallback(async (userId) => {
+    try {
+      // Check if we already have fresh data (within last 5 minutes)
+      const existingData = userReputation[userId];
+      if (existingData && existingData.calculatedAt) {
+        const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+        const dataTime = new Date(existingData.calculatedAt);
+        if (dataTime > fiveMinutesAgo) {
+          return existingData;
+        }
+      }
+
+      // Prevent duplicate requests
+      const requestKey = `reputation-${userId}`;
+      if (pendingRequests.current.has(requestKey)) {
+        return existingData;
+      }
+
+      pendingRequests.current.add(requestKey);
+
+      const response = await getUserReputation(userId);
+      
+      if (response && response.reputation) {
+        setUserReputation(prev => ({
+          ...prev,
+          [userId]: response.reputation
+        }));
+        
+        return response.reputation;
+      }
+
+    } catch (error) {
+      console.error('Error fetching user reputation:', error);
+      toast.error('Failed to load reputation');
+    } finally {
+      pendingRequests.current.delete(`reputation-${userId}`);
+    }
+  }, [userReputation]);
+
+  // Get cached reputation data
+  const getUserReputationData = useCallback((userId) => {
+    return userReputation[userId] || null;
+  }, [userReputation]);
+
+  // Get total reputation score
+  const getTotalReputation = useCallback((userId) => {
+    return userReputation[userId]?.totalReputation || 0;
+  }, [userReputation]);
+
+  // Get reputation breakdown
+  const getReputationBreakdown = useCallback((userId) => {
+    const data = userReputation[userId];
+    if (!data) return null;
+    
+    return {
+      profilePopularity: data.profilePopularity || 0,
+      postsPopularity: data.totalPostsPopularity || 0,
+      commentsPopularity: data.totalCommentsPopularity || 0,
+      totalPosts: data.totalPosts || 0,
+      totalComments: data.totalComments || 0,
+      avgPostPopularity: data.avgPostPopularity || 0,
+      avgCommentPopularity: data.avgCommentPopularity || 0
+    };
+  }, [userReputation]);
+
+  // Refresh reputation data (force fetch)
+  const refreshUserReputation = useCallback(async (userId) => {
+    // Remove cached data to force fresh fetch
+    setUserReputation(prev => {
+      const newState = { ...prev };
+      delete newState[userId];
+      return newState;
+    });
+    
+    return await fetchUserReputation(userId);
+  }, [fetchUserReputation]);
+
   const value = {
     // Post State
     postPopularity,
@@ -477,6 +561,18 @@ export const PopularityProvider = ({ children }) => {
     getCommentPopularityData,
     isCommentLiked,
     getCommentPopularityCount,
+
+    // Reputation State
+    userReputation,
+
+    // Reputation Actions
+    fetchUserReputation,
+    refreshUserReputation,
+
+    // Reputation Getters
+    getUserReputationData,
+    getTotalReputation,
+    getReputationBreakdown,
   };
 
   return (
