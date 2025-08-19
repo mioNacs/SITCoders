@@ -10,7 +10,7 @@ const ProfilePopularityButton = ({
   showCount = true,
   size = "default" // "small", "default", "large"
 }) => {
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, isAdminVerified } = useAuth();
   const { 
     toggleProfilePopularity, 
     isProfileLiked, 
@@ -69,7 +69,7 @@ const ProfilePopularityButton = ({
   return (
     <button
       onClick={handleClick}
-      disabled={!isAuthenticated}
+      disabled={!isAuthenticated || !isAdminVerified}
       className={`
         flex items-center ${currentSize.gap} ${currentSize.button}
         rounded-xl transition-all duration-200
@@ -77,10 +77,10 @@ const ProfilePopularityButton = ({
           ? 'bg-orange-50 text-orange-600 hover:bg-orange-100' 
           : 'bg-gray-50 text-gray-600 hover:bg-gray-100 hover:text-orange-500'
         }
-        ${!isAuthenticated ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
+        disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer}
         ${className}
       `}
-      title={isAuthenticated ? (isLiked ? 'Remove Reputation' : 'Add Reputation') : 'Login to like'}
+      title={isAuthenticated ? (isAdminVerified ? (isLiked ? 'Remove Reputation' : 'Add Reputation'): "you are not verified yet" ) : 'Login to add popularity'}
     >
       {isLiked ? (
         <FaStar className={`${currentSize.icon} text-orange-500`} />
