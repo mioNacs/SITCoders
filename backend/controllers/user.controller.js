@@ -327,9 +327,10 @@ const loginUser = async (req, res) => {
     }
     res.cookie("accessToken", accessToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: true, // since you’re on https in production
+      sameSite: "None", // must be None for cross-site
       maxAge: 24 * 60 * 60 * 1000, // 1 day
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      path: "/",
     });
     res.status(200).json({
       message: "Login successful",
