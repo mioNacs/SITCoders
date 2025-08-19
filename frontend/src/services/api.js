@@ -98,3 +98,13 @@ export const getUser = async (username) => {
   }
 };
 
+// Real-time User Search API
+export const searchUsersByUsername = async (username) => {
+  try {
+    const response = await api.post('/users/search-users-by-username', { username });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+

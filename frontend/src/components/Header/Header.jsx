@@ -2,6 +2,7 @@ import { useState } from "react";
 import Logo from "./Logo";
 import Navigation from "./Navigation";
 import UserActions from "./UserActions";
+import UserSearch from "./UserSearch";
 import MobileMenu from "./MobileMenu";
 
 function Header() {
@@ -16,6 +17,9 @@ function Header() {
 
           {/* Desktop navigation */}
           <Navigation />
+
+          {/* User Search */}
+          <UserSearch />
 
           {/* Desktop User Actions */}
           <UserActions />

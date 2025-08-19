@@ -2,11 +2,18 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { FaSpinner, FaBan } from 'react-icons/fa';
 import { removeSuspension, getSuspendedUsers } from '../../services/adminApi';
+import UserSearchFilter from './UserSearchFilter';
 
 const SuspendedUsers = ({ showDialog, adminStatus, onCountChange, onUpdateUserSuspension }) => {
   const [loading, setLoading] = useState(true);
   const [users, setUsers] = useState([]);
+  const [filteredUsers, setFilteredUsers] = useState([]);
   const [removing, setRemoving] = useState(null); // email
+
+  // Update filtered users when users change
+  useEffect(() => {
+    setFilteredUsers(users);
+  }, [users]);
 
   const extractUsers = (payload) => {
     if (Array.isArray(payload)) return payload;
@@ -61,22 +68,39 @@ const SuspendedUsers = ({ showDialog, adminStatus, onCountChange, onUpdateUserSu
         </div>
       </div>
 
+      {/* Search Filter */}
+      <div className="mb-4">
+        <UserSearchFilter
+          users={users}
+          onFilteredUsersChange={setFilteredUsers}
+          placeholder="Search suspended users by username, name, or email..."
+          className="w-full max-w-md"
+        />
+      </div>
+
       {loading ? (
         <div className="text-center py-12">
           <FaSpinner className="animate-spin text-orange-500 mx-auto mb-4" size={32} />
           <p className="text-gray-600">Loading suspended users...</p>
         </div>
-      ) : users.length === 0 ? (
+      ) : filteredUsers.length === 0 ? (
         <div className="text-center py-12">
           <div className="bg-gray-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
             <FaBan className="text-gray-400" size={28} />
           </div>
-          <h3 className="text-lg font-semibold text-gray-800 mb-2">No Suspended Users</h3>
-          <p className="text-gray-600">All clear! No users are suspended right now.</p>
+          <h3 className="text-lg font-semibold text-gray-800 mb-2">
+            {users.length === 0 ? "No Suspended Users" : "No Users Found"}
+          </h3>
+          <p className="text-gray-600">
+            {users.length === 0 
+              ? "All clear! No users are suspended right now."
+              : "No users match your search criteria. Try adjusting your search terms."
+            }
+          </p>
         </div>
       ) : (
         <div className="space-y-4">
-          {(Array.isArray(users) ? users : []).map((u) => (
+          {(Array.isArray(filteredUsers) ? filteredUsers : []).map((u) => (
             <div key={u._id || u.email} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
               <div className="flex items-start gap-3">
                 <Link 
