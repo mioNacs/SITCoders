@@ -24,7 +24,7 @@ const ProfileCard = ({ user, isAdmin, adminLoading }) => {
         <div className="mt-2 flex items-center gap-2 text-amber-500">
           <FaStar />
           <span className="text-gray-700">
-            Reputation: <span className="font-medium">{user?.popularity.length || 0}</span>
+            Reputation: <span className="font-medium">{Array.isArray(user?.popularity) ? user.popularity.length : 0}</span>
           </span>
         </div>
         {!adminLoading && isAdmin && (
