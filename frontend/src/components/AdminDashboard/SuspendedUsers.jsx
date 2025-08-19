@@ -30,11 +30,12 @@ const SuspendedUsers = ({ showDialog, adminStatus, onCountChange, onUpdateUserSu
     try {
       setLoading(true);
       const data = await getSuspendedUsers();
-      setUsers(extractUsers(data));
-      if (typeof onCountChange === 'function') onCountChange(extractUsers(data).length);
+      const list = extractUsers(data);
+      setUsers(list);
+      if (typeof onCountChange === 'function') onCountChange(list.length);
     } catch (e) {
       console.error('Error fetching suspended users', e);
-      showDialog('Error', e.message || 'Failed to fetch suspended users', 'error');
+      showDialog('Error', e?.message || 'Failed to fetch suspended users', 'error');
     } finally {
       setLoading(false);
     }
@@ -45,7 +46,7 @@ const SuspendedUsers = ({ showDialog, adminStatus, onCountChange, onUpdateUserSu
   const handleRemove = async (email) => {
     try {
       setRemoving(email);
-  await removeSuspension(email);
+      await removeSuspension(email);
       showDialog('Success', 'Suspension removed successfully', 'success');
       if (typeof onUpdateUserSuspension === 'function') {
         onUpdateUserSuspension(email, false);
@@ -53,7 +54,7 @@ const SuspendedUsers = ({ showDialog, adminStatus, onCountChange, onUpdateUserSu
       await load();
     } catch (e) {
       console.error('Error removing suspension', e);
-      showDialog('Error', e.message || 'Failed to remove suspension', 'error');
+      showDialog('Error', e?.message || 'Failed to remove suspension', 'error');
     } finally {
       setRemoving(null);
     }
@@ -79,7 +80,7 @@ const SuspendedUsers = ({ showDialog, adminStatus, onCountChange, onUpdateUserSu
       </div>
 
       {loading ? (
-        <div className="text-center py-12">
+        <div className="text-center py-12" aria-busy="true">
           <FaSpinner className="animate-spin text-orange-500 mx-auto mb-4" size={32} />
           <p className="text-gray-600">Loading suspended users...</p>
         </div>
@@ -92,7 +93,7 @@ const SuspendedUsers = ({ showDialog, adminStatus, onCountChange, onUpdateUserSu
             {users.length === 0 ? "No Suspended Users" : "No Users Found"}
           </h3>
           <p className="text-gray-600">
-            {users.length === 0 
+            {users.length === 0
               ? "All clear! No users are suspended right now."
               : "No users match your search criteria. Try adjusting your search terms."
             }
@@ -100,57 +101,83 @@ const SuspendedUsers = ({ showDialog, adminStatus, onCountChange, onUpdateUserSu
         </div>
       ) : (
         <div className="space-y-4">
-          {(Array.isArray(filteredUsers) ? filteredUsers : []).map((u) => (
-            <div key={u._id || u.email} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-              <div className="flex items-start gap-3">
-                <Link 
-                  to={`/profile/${u.username}`}
-                  className="block hover:opacity-80 transition-opacity"
-                >
-                  <img
-                    src={u.profilePicture?.url || u.profile || 'https://www.iconpacks.net/icons/2/free-user-icon-3296-thumb.png'}
-                    alt="Profile"
-                    className="w-12 h-12 rounded-full object-cover border-2 border-white shadow-sm"
-                  />
-                </Link>
-                <div className="flex-1 min-w-0">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <Link 
-                      to={`/profile/${u.username}`}
-                      className="font-semibold text-gray-800 hover:text-orange-600 transition-colors"
-                    >
-                      {u.fullName}
-                    </Link>
-                    <Link 
-                      to={`/profile/${u.username}`}
-                      className="text-orange-600 font-semibold hover:text-orange-700 transition-colors"
-                    >
-                      @{u.username}
-                    </Link>
+          {(Array.isArray(filteredUsers) ? filteredUsers : []).map((u) => {
+            const key = u._id || u.email || u.username;
+            const profileSrc = u.profilePicture?.url || u.profile || 'https://www.iconpacks.net/icons/2/free-user-icon-3296-thumb.png';
+            const displayName = u.fullName || u.name || u.username || 'Unknown';
+            return (
+              <div key={key} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                {/* Mobile-first: stack content; on md+ show row with avatar, info and action */}
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                  {/* Avatar */}
+                  <div className='flex items-center gap-2'>
+                  <Link
+                    to={`/profile/${u.username}`}
+                    className="md:self-auto"
+                    aria-label={`Open profile of ${displayName}`}
+                  >
+                    <img
+                      src={profileSrc}
+                      alt={`${displayName} profile`}
+                      className="w-14 h-14 md:w-12 md:h-12 rounded-full object-cover border-2 border-white shadow-sm"
+                      loading="lazy"
+                      draggable="false"
+                    />
+                  </Link>
+
+                  {/* Info */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <Link
+                        to={`/profile/${u.username}`}
+                        className="font-semibold text-gray-800 hover:text-orange-600 transition-colors truncate"
+                        title={displayName}
+                      >
+                        {displayName}
+                      </Link>
+                      <Link
+                        to={`/profile/${u.username}`}
+                        className="text-orange-600 font-semibold hover:text-orange-700 transition-colors text-sm"
+                        title={`@${u.username}`}
+                      >
+                        @{u.username}
+                      </Link>
+                    </div>
+
+                    <div className="text-sm text-gray-600 mt-1 break-words">{u.email}</div>
+
+                    <div className="mt-1">
+                      {u.suspensionEnd ? (
+                        <div className="text-xs text-orange-500">Suspended until {new Date(u.suspensionEnd).toLocaleString()}</div>
+                      ) : (
+                        <div className="text-xs text-orange-500">Suspended permanently</div>
+                      )}
+                      {u.suspensionReason && (
+                        <div className="text-xs text-gray-500 mt-1">Reason: {u.suspensionReason}</div>
+                      )}
+                    </div>
                   </div>
-                  <div className="text-sm text-gray-600 mt-1 break-all">{u.email}</div>
-                  {u.suspensionEnd ? (
-                    <div className="text-xs text-orange-500 mt-1">Suspended until {new Date(u.suspensionEnd).toLocaleString()}</div>
-                  ) : (
-                    <div className="text-xs text-orange-500 mt-1">Suspended permanently</div>
-                  )}
-                  {u.suspensionReason && (
-                    <div className="text-xs text-gray-500 mt-1">Reason: {u.suspensionReason}</div>
+                  </div>
+
+                  {/* Action: full-width on small screens, inline on md+ */}
+                  {adminStatus?.isAdmin && (
+                    <div className="w-full md:w-auto mt-3 md:mt-0 md:ml-3 flex-shrink-0">
+                      <button
+                        onClick={() => handleRemove(u.email)}
+                        disabled={removing === u.email}
+                        aria-disabled={removing === u.email}
+                        aria-label={`Remove suspension for ${u.email}`}
+                        className="w-full md:w-auto flex items-center justify-center space-x-2 bg-green-600 text-white px-3 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm disabled:opacity-50"
+                      >
+                        {removing === u.email ? <FaSpinner className="animate-spin" size={14} /> : null}
+                        <span>Remove Suspension</span>
+                      </button>
+                    </div>
                   )}
                 </div>
-                {adminStatus?.isAdmin && (
-                  <button
-                    onClick={() => handleRemove(u.email)}
-                    disabled={removing === u.email}
-                    className="flex items-center justify-center space-x-2 bg-green-600 text-white px-3 py-2 rounded-lg hover:bg-green-700 transition-colors text-xs disabled:opacity-50"
-                  >
-                    {removing === u.email && <FaSpinner className="animate-spin" size={14} />}
-                    <span>Remove Suspension</span>
-                  </button>
-                )}
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>
