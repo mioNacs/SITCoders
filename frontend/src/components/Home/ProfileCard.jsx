@@ -1,8 +1,31 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import { Link } from 'react-router-dom';
 import { FaUserCircle, FaStar } from 'react-icons/fa';
+import { usePopularity } from '../../context/PopularityContext';
 
 const ProfileCard = ({ user, isAdmin, adminLoading }) => {
+  const [isLoading, setIsLoading] = useState(false);
+  const {fetchUserReputation, getTotalReputation} = usePopularity();
+
+  useEffect(() => {
+      if (user._id) {
+        loadReputation();
+      }
+    }, [user._id]);
+  
+    const loadReputation = async () => {
+      try {
+        setIsLoading(true);
+        await fetchUserReputation(user._id);
+      } catch (err) {
+        console.error("Error loading reputation:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+  const totalReputation = getTotalReputation(user._id);
+
   return (
     <div className="bg-white rounded-2xl shadow-md border border-orange-100 p-6">
       <div className="flex flex-col items-center">
@@ -24,7 +47,7 @@ const ProfileCard = ({ user, isAdmin, adminLoading }) => {
         <div className="mt-2 flex items-center gap-2 text-amber-500">
           <FaStar />
           <span className="text-gray-700">
-            Reputation: <span className="font-medium">{Array.isArray(user?.popularity) ? user.popularity.length : 0}</span>
+            Reputation: {isLoading ? "..." : totalReputation}
           </span>
         </div>
         {!adminLoading && isAdmin && (

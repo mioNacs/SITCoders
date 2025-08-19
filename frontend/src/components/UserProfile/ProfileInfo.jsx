@@ -3,7 +3,7 @@ import { FaEnvelope, FaCalendarAlt, FaPen, FaCheck, FaTimes, FaSpinner } from "r
 import { FaCrown } from "react-icons/fa6";
 import { useAuth } from "../../context/AuthContext";
 import { usePopularity } from "../../context/PopularityContext";
-import ProfilePopularityButton from "./ProfilePopularityButton";
+import ReputationDisplay from "./ReputationDisplay";
 
 const ProfileInfo = ({ user, isAdmin, adminRole, showDialog, isOwnProfile = true }) => {
   const { updateUser } = useAuth();
@@ -89,7 +89,7 @@ const ProfileInfo = ({ user, isAdmin, adminRole, showDialog, isOwnProfile = true
   };
 
   return (
-    <div className="text-center">
+  <div className="text-center">
       {/* User Name with Admin Badge */}
       <div className="flex items-center justify-center gap-2 mb-2">
         <h1 className="text-2xl font-bold text-gray-900">
@@ -108,18 +108,13 @@ const ProfileInfo = ({ user, isAdmin, adminRole, showDialog, isOwnProfile = true
       </div>
 
       {/* Username */}
-      <p className="text-gray-600 mb-4">@{user?.username || "username"}</p>
 
-      {/* Profile Popularity Button */}
-      {!isOwnProfile && (
-        <div className="mb-4 flex justify-center">
-          <ProfilePopularityButton 
-            profileId={user?._id} 
-            size="default"
-            showCount={true}
-          />
-        </div>
-      )}
+      <p className="text-gray-600 mb-2">@{user?.username || "username"}</p>
+
+      {/* Reputation Display */}
+      <div className="mb-4 flex justify-center">
+        <ReputationDisplay userId={user?._id} compact={false} isOwnProfile = {isOwnProfile} />
+      </div>
 
       {/* Bio Section */}
       <div className="mb-6">

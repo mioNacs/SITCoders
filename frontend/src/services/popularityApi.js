@@ -62,4 +62,66 @@ export const toggleProfilePopularity = async (profileId) => {
   }
 };
 
+/**
+ * Toggle popularity (like/unlike) on a comment
+ * @param {string} commentId - The ID of the comment to like/unlike
+ * @returns {Promise<Object>} Response containing message and popularity count
+ */
+export const toggleCommentPopularity = async (commentId) => {
+  try {
+    if (!commentId) {
+      throw new Error('Comment ID is required');
+    }
+
+    const response = await fetch(`${API_BASE_URL}/popularity/add-popularity/comment/${commentId}`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Failed to update comment popularity');
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error toggling comment popularity:', error);
+    throw error;
+  }
+};
+
 /* Leaderboard API endpoint removed until backend implementation is ready */
+
+/**
+ * Get user reputation (sum of profile, posts, and comments popularity)
+ * @param {string} userId - The ID of the user to get reputation for
+ * @returns {Promise<Object>} Response containing detailed reputation data
+ */
+export const getUserReputation = async (userId) => {
+  try {
+    if (!userId) {
+      throw new Error('User ID is required');
+    }
+
+    const response = await fetch(`${API_BASE_URL}/popularity/reputation/${userId}`, {
+      method: 'GET',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Failed to get user reputation');
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error getting user reputation:', error);
+    throw error;
+  }
+};
