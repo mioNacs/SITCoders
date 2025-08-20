@@ -29,16 +29,16 @@ function ViewPost({
       initializePostPopularity(currentPost._id, currentPost.popularity, user._id);
     }
   }, [currentPost, user?._id, initializePostPopularity]);
-
-  if (!currentPost) {
-    return null;
-  }
-
+  
   // Lock body while the comments modal is mounted
   useEffect(() => {
     lockBodyScroll();
     return () => unlockBodyScroll();
   }, []);
+  
+  if (!currentPost) {
+    return null;
+  }
 
   return (
     <div className="bg-white md:rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col animate-fade-in">
