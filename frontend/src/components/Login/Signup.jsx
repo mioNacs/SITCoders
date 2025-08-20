@@ -32,7 +32,7 @@ function Signup() {
     if (name === "profilePicture") {
       setFormData(prev => ({ ...prev, [name]: files[0] }));
     } else {
-      setFormData(prev => ({ ...prev, [name]: value }));
+      setFormData(prev => ({ ...prev, [name]: value.replace(/\s/g, "") }));
     }
   };
 
@@ -276,12 +276,19 @@ function Signup() {
                     name="confirmPassword"
                     value={formData.confirmPassword}
                     onChange={handleInputChange}
-                    type="password"
+                    type="text"
                     placeholder="Re-enter your password"
                     required
                     disabled={loading}
                   />
                 </div>
+                {(formData.confirmPassword && formData.confirmPassword !== formData.password ) && (
+                  <div>
+                    <p className="text-red-500 text-sm">
+                      Passwords do not match
+                    </p>
+                  </div>
+                )}
                 <div className="flex flex-col gap-2">
                   <button type="button" onClick={handlePrevPhase} disabled={loading}>
                     <div className="bg-gray-400 shadow-md hover:shadow-lg font-Saira text-lg sm:text-xl text-white px-4 py-2 rounded-md mt-2 hover:bg-gray-500 transition-all duration-200 ease-in-out cursor-pointer">

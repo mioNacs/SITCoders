@@ -3,6 +3,7 @@ import HeroSection from './HeroSection'
 import Footer from '../Footer/Footer'
 import MeetTheDevs from './MeetTheDevs'
 import UpcomingUpdates from './UpcomingUpdates'
+import Features from './Features'
 
 function Landing() {
   return (
@@ -11,6 +12,7 @@ function Landing() {
         </div>
       <HeroSection />
       <MeetTheDevs />
+      <Features />
       <UpcomingUpdates />
       <Footer />
     </div>

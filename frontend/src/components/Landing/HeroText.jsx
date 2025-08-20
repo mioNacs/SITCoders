@@ -11,7 +11,6 @@ function HeroText() {
         className='text-center no-scrollbar cursor-pointer'
         onClick={() => setIsExpanded(!isExpanded)}
         onMouseEnter={() => setIsExpanded(true)}
-        onMouseLeave={() => setIsExpanded(false)}
       >
         <h1 
           className='font-Saira font-bold text-shadow-lg 

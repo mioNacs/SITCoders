@@ -284,18 +284,18 @@ const PostsSection = ({ user, isOwnProfile = true }) => {
   <>
       <div className="w-full">
         <div className="flex items-center justify-between mb-4 border-b border-orange-200 pb-2">
-          <h2 className="text-2xl font-bold text-orange-600 flex items-center gap-2">
+          <h2 className="text-lg md:text-2xl font-bold text-orange-600 flex items-center gap-2">
             <FaClipboard />
             {isOwnProfile ? 'Your Posts' : `${user?.fullName}'s Posts`}
           </h2>
           <div className="flex items-center gap-3">
-            <span className="text-sm text-gray-500">
+            <span className="hidden md:block text-sm text-gray-500">
               {totalPosts} post{totalPosts !== 1 ? 's' : ''}
             </span>
             {totalPosts > 1 && (
               <button
                 onClick={handleShowAllPosts}
-                className="flex items-center gap-2 px-3 py-1 text-md bg-orange-400 text-white rounded-lg hover:bg-orange-500 transition-colors cursor-pointer"
+                className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1 text-sm md:text-md bg-orange-400 text-white rounded-lg hover:bg-orange-500 transition-colors cursor-pointer"
               >
                 <FaExpand size={12} />
                 <span>Show All</span>
@@ -363,10 +363,10 @@ const PostsSection = ({ user, isOwnProfile = true }) => {
 
       {/* All Posts Modal */}
       {showAllPostsModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4 animate-fade-in">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] flex flex-col">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] md:p-4 animate-fade-in">
+          <div className="bg-white md:rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] flex flex-col">
             {/* Modal Header */}
-            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+            <div className="flex items-center justify-between p-4 md:p-6 border-b border-gray-200">
               <h3 className="text-xl font-bold text-gray-800 flex items-center gap-2">
                 <FaClipboard className="text-orange-500" />
                 {isOwnProfile ? `All Your Posts (${totalPosts})` : `All ${user?.fullName}'s Posts (${totalPosts})`}
@@ -380,7 +380,7 @@ const PostsSection = ({ user, isOwnProfile = true }) => {
             </div>
 
             {/* Modal Content */}
-            <div className="flex-1 overflow-y-auto p-6">
+            <div className="flex-1 overflow-y-auto px-0 py-3 md:p-6">
               {allPostsLoading && allPosts.length === 0 ? (
                 <div className="flex items-center justify-center h-64">
                   <FaSpinner className="animate-spin text-orange-500 mr-2" size={24} />

@@ -327,9 +327,10 @@ const loginUser = async (req, res) => {
     }
     res.cookie("accessToken", accessToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: true, // since you’re on https in production
+      sameSite: "None", // must be None for cross-site
       maxAge: 24 * 60 * 60 * 1000, // 1 day
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      path: "/",
     });
     res.status(200).json({
       message: "Login successful",
@@ -622,6 +623,36 @@ const getUser = async (req, res) => {
       .json({ message: "Internal server error in getUser" });
   }
 };
+const searchUsersByUsername = async (req, res) => {
+  try {
+    const { username } = req.body;
+
+    // Validate username input
+    if (!username || typeof username !== "string" || !username.trim()) {
+      return res.status(400).json({ message: "Username is required" });
+    }
+
+    // Avoid regex injection or unnecessary regex usage
+    const cleanUsername = username.trim();
+
+    const regex = new RegExp(`^${cleanUsername}`, "i"); // Case-insensitive exact match
+
+    const user = await User.find({ username: regex }).select(
+      "_id username fullName profilePicture popularity bio createdAt email"
+    );
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    return res.status(200).json({ user });
+  } catch (error) {
+    console.error("Error in getUser:", error.message);
+    return res
+      .status(500)
+      .json({ message: "Internal server error in getUser" });
+  }
+};
 
 const sendOtpForResetPassword = async (req, res) => {
   const session = await mongoose.startSession();
@@ -866,4 +897,5 @@ export {
   verifyOtpForResetPassword,
   resetPassword,
   deleteAccount,
+  searchUsersByUsername,
 };

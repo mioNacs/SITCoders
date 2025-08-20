@@ -19,6 +19,7 @@ import {
 } from "../../services/adminApi";
 import SuspendUserModal from "./SuspendUserModal";
 import AdminRoleModal from "./AdminRoleModal";
+import UserSearchFilter from "./UserSearchFilter";
 import { useAuth } from "../../context/AuthContext";
 
 const VerifiedUsers = ({
@@ -44,6 +45,12 @@ const VerifiedUsers = ({
   const [removingSuspension, setRemovingSuspension] = useState(false);
   const [userAdminStatus, setUserAdminStatus] = useState({}); // Store admin status for each user
   const [checkingAdminStatus, setCheckingAdminStatus] = useState(false);
+  const [filteredUsers, setFilteredUsers] = useState(verifiedUsers);
+
+  // Update filtered users when verifiedUsers prop changes
+  useEffect(() => {
+    setFilteredUsers(verifiedUsers);
+  }, [verifiedUsers]);
 
   // Check admin status for all verified users
   useEffect(() => {
@@ -279,6 +286,16 @@ const VerifiedUsers = ({
           </div>
         </div>
 
+        {/* Search Filter */}
+        <div className="px-4 md:px-6 pb-4">
+          <UserSearchFilter
+            users={verifiedUsers}
+            onFilteredUsersChange={setFilteredUsers}
+            placeholder="Search verified users by username, name, or email..."
+            className="w-full max-w-md"
+          />
+        </div>
+
         <div className="p-4 md:p-6">
           {verifiedLoading ? (
             <div className="text-center py-12 md:py-16">
@@ -291,7 +308,7 @@ const VerifiedUsers = ({
                 Loading verified users...
               </p>
             </div>
-          ) : verifiedUsers.length === 0 ? (
+          ) : filteredUsers.length === 0 ? (
             <div className="text-center py-12 md:py-16">
               <div className="bg-gray-100 rounded-full w-16 h-16 md:w-24 md:h-24 flex items-center justify-center mx-auto mb-4">
                 <MdVerifiedUser
@@ -301,16 +318,19 @@ const VerifiedUsers = ({
                 />
               </div>
               <h3 className="text-lg md:text-xl font-semibold text-gray-800 mb-2">
-                No Verified Users Yet
+                {verifiedUsers.length === 0 ? "No Verified Users Yet" : "No Users Found"}
               </h3>
               <p className="text-gray-600 text-sm md:text-base px-4">
-                Start verifying users to see them here.
+                {verifiedUsers.length === 0 
+                  ? "Start verifying users to see them here."
+                  : "No users match your search criteria. Try adjusting your search terms."
+                }
               </p>
             </div>
           ) : (
             <>
               <div className="space-y-4">
-                {verifiedUsers.map((userItem) => {
+                {filteredUsers.map((userItem) => {
                   const currentUserAdminStatus = userAdminStatus[
                     userItem.email
                   ] || { isAdmin: false, role: null };

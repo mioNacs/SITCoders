@@ -1,8 +1,8 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 export const createPost = async (formData) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/posts/create`, {
+    const response = await fetch(`${API_BASE_URL}/api/posts/create`, {
       method: 'POST',
       credentials: 'include', 
       body: formData, 
@@ -22,7 +22,7 @@ export const createPost = async (formData) => {
 
 export const deletePost = async (postId) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/posts/delete/${postId}`, {
+    const response = await fetch(`${API_BASE_URL}/api/posts/delete/${postId}`, {
       method: 'DELETE',
       credentials: 'include',
       headers: {
@@ -44,7 +44,7 @@ export const deletePost = async (postId) => {
 
 export const editPost = async (postId, postData) => {
   try{
-    const response = await fetch(`${API_BASE_URL}/posts/edit/${postId}`,{
+    const response = await fetch(`${API_BASE_URL}/api/posts/edit/${postId}`,{
       method: 'PUT',
       credentials: 'include',
       headers: {
@@ -69,7 +69,7 @@ export const getAllPosts = async (page = 1, limit = 10, tag) => {
   try {
   const params = new URLSearchParams({ page: String(page), limit: String(limit) });
   if (tag) params.set('tag', tag);
-  const response = await fetch(`${API_BASE_URL}/posts/get-posts?${params.toString()}`, {
+  const response = await fetch(`${API_BASE_URL}/api/posts/get-posts?${params.toString()}`, {
       method: 'GET',
       credentials: 'include',
       headers: {
@@ -93,7 +93,7 @@ export const getUserPosts = async (page = 1, limit = 10, tag) => {
   try {
   const params = new URLSearchParams({ page: String(page), limit: String(limit) });
   if (tag) params.set('tag', tag);
-  const response = await fetch(`${API_BASE_URL}/posts/get-user-posts?${params.toString()}`, {
+  const response = await fetch(`${API_BASE_URL}/api/posts/get-user-posts?${params.toString()}`, {
       method: 'GET',
       credentials: 'include',
       headers: {
@@ -117,7 +117,7 @@ export const getPostsByUserId = async (userId, page = 1, limit = 10, tag) => {
   try {
   const params = new URLSearchParams({ page: String(page), limit: String(limit) });
   if (tag) params.set('tag', tag);
-  const response = await fetch(`${API_BASE_URL}/posts/user/${userId}?${params.toString()}`, {
+  const response = await fetch(`${API_BASE_URL}/api/posts/user/${userId}?${params.toString()}`, {
       method: 'GET',
       credentials: 'include',
       headers: {
@@ -139,7 +139,7 @@ export const getPostsByUserId = async (userId, page = 1, limit = 10, tag) => {
 
 export const getPostById = async (postId) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/posts/${postId}`, {
+    const response = await fetch(`${API_BASE_URL}/api/posts/${postId}`, {
       method: 'GET',
       credentials: 'include',
         headers: {

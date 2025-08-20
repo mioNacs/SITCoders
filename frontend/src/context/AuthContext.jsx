@@ -14,7 +14,7 @@ export const useAuth = () => {
 
 // Create axios instance with credentials
 const api = axios.create({
-  baseURL:  'http://localhost:3000/api',
+  baseURL:  import.meta.env.VITE_API_URL || 'http://localhost:3000',
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
@@ -46,7 +46,7 @@ export const AuthProvider = ({ children }) => {
   const checkAuthStatus = async () => {
     try {
       setIsLoading(true);
-      const response = await api.get('/users/current-user');
+      const response = await api.get('/api/users/current-user');
       
       if (response.data && response.data.user) {
         setUser(response.data.user);
@@ -79,7 +79,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (credentials) => {
     try {
-      const response = await api.post('/users/login', credentials);
+      const response = await api.post('/api/users/login', credentials);
       
       if (response.data && response.data.user) {
         setUser(response.data.user);
@@ -97,7 +97,7 @@ export const AuthProvider = ({ children }) => {
 
   const logout = async () => {
     try {
-      await api.get('/users/logout');
+      await api.get('/api/users/logout');
     } catch (error) {
       console.error('Logout error:', error);
     } finally {
@@ -108,7 +108,7 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (userData) => {
     try {
-      const response = await api.post('/users/create', userData, {
+      const response = await api.post('/api/users/create', userData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
@@ -128,7 +128,7 @@ export const AuthProvider = ({ children }) => {
 
   const verifyOtp = async (email, otp) => {
     try {
-      const response = await api.post('/users/verify-otp', { email, otp });
+      const response = await api.post('/api/users/verify-otp', { email, otp });
       
       if (response.data) {
         return { success: true, message: response.data.message };
@@ -144,7 +144,7 @@ export const AuthProvider = ({ children }) => {
 
   const resendOtp = async (email) => {
     try {
-      const response = await api.post('/users/resend-otp', { email });
+      const response = await api.post('/api/users/resend-otp', { email });
       
       if (response.data) {
         return { success: true, message: response.data.message };
@@ -164,20 +164,20 @@ export const AuthProvider = ({ children }) => {
       
       // Check if it's FormData (for profile picture)
       if (updatedUserData instanceof FormData) {
-        response = await api.post('/users/update-profile-picture', updatedUserData, {
+        response = await api.post('/api/users/update-profile-picture', updatedUserData, {
           headers: {
             'Content-Type': 'multipart/form-data',
           },
         });
       } else if (updatedUserData.username || updatedUserData.fullName) {
-        response = await api.post('/users/update-text-details', updatedUserData);
+        response = await api.post('/api/users/update-text-details', updatedUserData);
       } else if (updatedUserData.bio !== undefined) {
-        response = await api.post('/users/update-bio', updatedUserData);
+        response = await api.post('/api/users/update-bio', updatedUserData);
       } else if (updatedUserData.profilePicture) {
         // Handle object with profilePicture file
         const formData = new FormData();
         formData.append('profilePicture', updatedUserData.profilePicture);
-        response = await api.post('/users/update-profile-picture', formData, {
+        response = await api.post('/api/users/update-profile-picture', formData, {
           headers: {
             'Content-Type': 'multipart/form-data',
           },
@@ -201,7 +201,7 @@ export const AuthProvider = ({ children }) => {
 
   const sendResetPasswordOtp = async (email) => {
     try {
-      const response = await api.post('/users/send-otp-for-reset-password', { email });
+      const response = await api.post('/api/users/send-otp-for-reset-password', { email });
       
       if (response.data) {
         return { success: true, message: response.data.message };
@@ -217,7 +217,7 @@ export const AuthProvider = ({ children }) => {
 
   const verifyResetPasswordOtp = async (email, otp) => {
     try {
-      const response = await api.post('/users/verify-otp-for-reset-password', { email, otp });
+      const response = await api.post('/api/users/verify-otp-for-reset-password', { email, otp });
       
       if (response.data) {
         return { success: true, message: response.data.message };
@@ -233,7 +233,7 @@ export const AuthProvider = ({ children }) => {
 
   const resetPassword = async (newPassword, confirmPassword) => {
     try {
-      const response = await api.post('/users/reset-password', { newPassword, confirmPassword });
+      const response = await api.post('/api/users/reset-password', { newPassword, confirmPassword });
       
       if (response.data) {
         return { success: true, message: response.data.message };
@@ -249,7 +249,7 @@ export const AuthProvider = ({ children }) => {
 
   const deleteAccount = async (password) => {
     try {
-      const response = await api.delete('/users/delete-account', {
+      const response = await api.delete('/api/users/delete-account', {
         data: { password }
       });
       

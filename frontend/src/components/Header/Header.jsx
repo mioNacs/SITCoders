@@ -2,6 +2,7 @@ import { useState } from "react";
 import Logo from "./Logo";
 import Navigation from "./Navigation";
 import UserActions from "./UserActions";
+import UserSearch from "./UserSearch";
 import MobileMenu from "./MobileMenu";
 
 function Header() {
@@ -17,8 +18,13 @@ function Header() {
           {/* Desktop navigation */}
           <Navigation />
 
+          <div className="flex items-center">
+          {/* User Search */}
+          <UserSearch />
+
           {/* Desktop User Actions */}
           <UserActions />
+          </div>
 
           {/* Mobile Menu */}
           <MobileMenu 
