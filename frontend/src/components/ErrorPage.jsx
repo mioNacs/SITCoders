@@ -13,7 +13,7 @@ function ErrorPage() {
             {error.statusText || error.message}
           </pre>
         )}
-        <Link to="/home" className="text-orange-500 hover:text-orange-600 font-medium">
+        <Link to="/" className="text-orange-500 hover:text-orange-600 font-medium">
           Go back to Home
         </Link>
       </div>
