@@ -8,6 +8,7 @@ import {
 } from "react-router-dom";
 import "./index.css";
 import App from "./App.jsx";
+import ErrorPage from "./components/ErrorPage.jsx";
 import {
   Login,
   Signup,
@@ -31,7 +32,7 @@ import { PopularityProvider } from "./context/PopularityContext.jsx";
 
 const router = createBrowserRouter(
   createRoutesFromElements(
-    <Route path="/" element={<App />}>
+    <Route path="/" element={<App />} errorElement={<ErrorPage />}>
       <Route path="" element={<Landing />} />
       <Route path="home" element={<Home />} />
       <Route path="login" element={<Login />} />
