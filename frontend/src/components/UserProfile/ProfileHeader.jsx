@@ -17,7 +17,7 @@ const ProfileHeader = ({ showDialog, profileUser }) => {
     setIsEditing(true);
     setFormData({
       fullName: user?.fullName || "",
-      username: user?.username || "",
+      username: user?.username.replace(/\s/g, "") || "",
     });
   };
 
@@ -39,6 +39,7 @@ const ProfileHeader = ({ showDialog, profileUser }) => {
 
   const handleSave = async () => {
     // Validation
+    formData.username = formData.username.replace(/\s/g, "");
     if (!formData.fullName.trim()) {
       showDialog(
         "Validation Error",
@@ -175,7 +176,7 @@ const ProfileHeader = ({ showDialog, profileUser }) => {
                   type="text"
                   id="username"
                   name="username"
-                  value={formData.username}
+                  value={formData.username.replace(/\s/g, "")}
                   onChange={handleInputChange}
                   className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all duration-200"
                   placeholder="Enter your username"

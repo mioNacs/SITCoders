@@ -289,13 +289,13 @@ const PostsSection = ({ user, isOwnProfile = true }) => {
             {isOwnProfile ? 'Your Posts' : `${user?.fullName}'s Posts`}
           </h2>
           <div className="flex items-center gap-3">
-            <span className="text-sm text-gray-500">
+            <span className="hidden md:block text-sm text-gray-500">
               {totalPosts} post{totalPosts !== 1 ? 's' : ''}
             </span>
             {totalPosts > 1 && (
               <button
                 onClick={handleShowAllPosts}
-                className="flex items-center gap-2 px-3 py-1 text-sm md:text-md bg-orange-400 text-white rounded-lg hover:bg-orange-500 transition-colors cursor-pointer"
+                className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1 text-sm md:text-md bg-orange-400 text-white rounded-lg hover:bg-orange-500 transition-colors cursor-pointer"
               >
                 <FaExpand size={12} />
                 <span>Show All</span>

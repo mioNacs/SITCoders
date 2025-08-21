@@ -152,53 +152,59 @@ const SinglePostView = () => {
         <div className="post-card bg-white md:rounded-xl shadow-md border border-orange-100">
           <div className="overflow-visible rounded-t-xl">
           {/* Post Header */}
-          <div className="p-6 border-b border-gray-100">
+          <div className="p-3 px-2 md:p-6 border-b border-gray-100">
             <div className="flex items-start justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <Link
-                  to={`/profile/${post.author.username}`}
-                  className="cursor-pointer hover:opacity-80 transition-opacity"
-                >
-                  {post.author?.profilePicture?.url ? (
-                    <img
-                      src={post.author.profilePicture.url}
-                      alt={post.author.fullName}
-                      className="w-12 h-12 rounded-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-12 h-12 bg-orange-500 rounded-full flex items-center justify-center text-white font-bold">
-                      {post.author?.fullName?.charAt(0) || <FaUser />}
-                    </div>
-                  )}
-                </Link>
-                <div>
+              <div className="flex flex-col sm:flex-row sm:items-center gap-3 w-full">
+                {/* Author Info */}
+                <div className="flex items-center justify-between gap-3 w-full">
+                  <div className="flex gap-3">
                   <Link
-                    to={`/profile/${post.author?.username}`}
-                    className="font-semibold text-gray-800 hover:!text-orange-600 transition-colors"
+                    to={`/profile/${post.author.username}`}
+                    className="cursor-pointer hover:opacity-80 transition-opacity"
                   >
-                    {post.author?.fullName || "Unknown User"}
-                  </Link>
-                  <p className="text-sm text-gray-500">
-                    {formatDate(post.createdAt)}
-                    {post.beenEdited && (
-                      <span className="ml-2 text-orange-500">(edited)</span>
+                    {post.author?.profilePicture?.url ? (
+                      <img
+                        src={post.author.profilePicture.url}
+                        alt={post.author.fullName}
+                        className="w-12 h-12 rounded-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-12 h-12 bg-orange-500 rounded-full flex items-center justify-center text-white font-bold">
+                        {post.author?.fullName?.charAt(0) || <FaUser />}
+                      </div>
                     )}
-                  </p>
+                  </Link>
+                  <div className="flex flex-col">
+                    <Link
+                      to={`/profile/${post.author?.username}`}
+                      className="font-semibold text-gray-800 hover:!text-orange-600 transition-colors"
+                    >
+                      {post.author?.fullName || "Unknown User"}
+                    </Link>
+                    <p className="text-sm text-gray-500">
+                      {formatDate(post.createdAt)}
+                      {post.beenEdited && (
+                        <span className="ml-2 text-orange-500">(edited)</span>
+                      )}
+                    </p>
+                  </div>
+                  </div>
+                  <PostMenu post={post} />
                 </div>
-              </div>
 
-              <div className="flex items-center gap-2 relative">
-                {post.tag && (
-                  <span
-                    className={`px-3 py-1 rounded-full text-sm font-medium ${getTagStyle(
-                      post.tag
-                    )}`}
-                  >
-                    {post.tag.charAt(0).toUpperCase() + post.tag.slice(1)}
-                  </span>
-                )}
-                <PostMenu post={post} />
-                <SharePostButton post={post} />
+                {/* Tag & Actions - stack on mobile */}
+                <div className="flex items-center justify-end gap-2 relative  sm:mt-0 sm:ml-auto">
+                  {post.tag && (
+                    <span
+                      className={`px-3 py-1 rounded-full text-sm font-medium ${getTagStyle(
+                        post.tag
+                      )}`}
+                    >
+                      {post.tag.charAt(0).toUpperCase() + post.tag.slice(1)}
+                    </span>
+                  )}
+                  <SharePostButton post={post} />
+                </div>
               </div>
             </div>
 
