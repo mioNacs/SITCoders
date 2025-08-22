@@ -25,7 +25,7 @@ function App() {
     }
   }, [isLoggedIn, location.pathname, navigate, isLoading]); // Added isLoading to dependencies
 
-  if (!isLoading) {
+  if (isLoading) {
     return (
       <Loading/>
     );
