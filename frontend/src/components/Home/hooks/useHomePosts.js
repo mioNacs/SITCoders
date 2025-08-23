@@ -76,8 +76,9 @@ export const useHomePosts = () => {
   const handleCreatePost = async (formData) => {
     try {
       await createPost(formData);
-      // After creating a post, go back to first page to see the new post
-      goToPage(1);
+      // After creating, explicitly refetch posts for the first page
+      await fetchPosts(1, tag);
+      goToPage(1); // Also update the URL to page 1
       toast.success("Post created successfully!");
       return { success: true };
     } catch (error) {
@@ -91,7 +92,6 @@ export const useHomePosts = () => {
     try {
       await deletePost(postId);
       
-      // Remove post from current posts
       setPosts(prevPosts => prevPosts.filter((post) => post._id !== postId));
       setComments(prev => {
         const newComments = { ...prev };
@@ -99,13 +99,10 @@ export const useHomePosts = () => {
         return newComments;
       });
 
-      // If this was the only post on the current page and we're not on page 1,
-      // go back to the previous page
       if (posts.length === 1 && currentPage > 1) {
         goToPage(currentPage - 1);
       } else {
-        // Otherwise, refresh the current page to get accurate pagination
-        fetchPosts(currentPage);
+        fetchPosts(currentPage, tag);
       }
       
       toast.success("Post deleted successfully!");
@@ -117,22 +114,17 @@ export const useHomePosts = () => {
     }
   };
 
-  const handleEditPost = async (postId, postData) => {
+  const handleEditPost = async (postId, formData) => {
     try {
-      const response = await editPost(postId, postData);
-      
-      // Update the post in the local state while preserving author info
-      setPosts(prevPosts => 
-        prevPosts.map(post => 
-          post._id === postId 
-            ? { 
-                ...post, 
-                content: postData.content,
-                tag: postData.tag || post.tag,
-                beenEdited: true,
-                updatedAt: new Date().toISOString() 
-              }
-            : post
+      const response = await editPost(postId, formData);
+      console.log("Edit post response:", response.post);
+
+      // Update the post in the local state with the full object from the server
+      setPosts(prevPosts =>
+        prevPosts.map(post =>
+          post._id === postId
+        ? { ...post, ...response.post, author: post.author } // Explicitly keep old author field
+        : post
         )
       );
       
@@ -166,7 +158,6 @@ export const useHomePosts = () => {
     }
   };
 
-  // Fetch posts when page changes
   useEffect(() => {
     if(!isSuspended){
       fetchPosts(currentPage, tag);
@@ -175,11 +166,9 @@ export const useHomePosts = () => {
     )
   }, [currentPage, tag]);
 
-  // Keep URL in sync when tag changes
   const updateTagInUrl = (newTag) => {
     const params = new URLSearchParams(location.search);
     if (newTag) params.set('tag', newTag); else params.delete('tag');
-    // Reset to first page when tag changes
     params.delete('page');
     navigate(`${location.pathname}?${params.toString()}`, { replace: true });
   };
@@ -191,7 +180,6 @@ export const useHomePosts = () => {
     updateTagInUrl(normalized);
   };
 
-  // Keep local tag state in sync if URL changes externally (e.g., back/forward)
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const urlTag = (params.get('tag') || '').toLowerCase();
@@ -217,9 +205,9 @@ export const useHomePosts = () => {
     handleShowComments,
     pagination,
     currentPage,
-  goToPage,
-  tag,
-  changeTag,
-  allowedTags
+    goToPage,
+    tag,
+    changeTag,
+    allowedTags
   };
 };
