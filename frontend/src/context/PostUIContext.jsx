@@ -1,7 +1,7 @@
 /* eslint react-refresh/only-export-components: off */
 import React, { createContext, useContext, useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { useAuth } from './AuthContext';
-import EditPostModal from '../components/Home/EditPostModal';
+import PostFormModal from '../components/Home/PostFormModal';
 import DeleteConfirmModal from '../components/Home/DeleteConfirmModal';
 import SharePostModal from '../components/Home/SharePostModal';
 
@@ -115,13 +115,14 @@ export const PostUIProvider = ({ children, onEditPost, onDeleteConfirm }) => {
     <PostUIContext.Provider value={value}>
       {children}
 
-      {/* Centralized Edit Modal */}
-      <EditPostModal
+      {/* Centralized Post Form Modal for both Create and Edit */}
+      <PostFormModal
         isOpen={!!editingPost}
         onClose={() => setEditingPost(null)}
-        onSubmit={async (postId, data) => {
+        onSubmit={async (formData, postId) => {
           if (!editHandlerRef.current) return { success: false, message: 'No edit handler registered' };
-          const result = await editHandlerRef.current(postId, data);
+          // Pass both formData and postId to the handler
+          const result = await editHandlerRef.current(postId, formData);
           if (result?.success) setEditingPost(null);
           return result;
         }}
