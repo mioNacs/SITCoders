@@ -26,6 +26,14 @@ const ReputationDisplay = ({
     }
   }, [userId]);
 
+  // Handler for scroll
+  useEffect(() => {
+    if (!showBreakdown) return;
+    const handleScroll = () => setShowBreakdown(false);
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [showBreakdown]);
+  
   const loadReputation = async () => {
     try {
       setIsLoading(true);
@@ -72,6 +80,15 @@ const ReputationDisplay = ({
   }
 
   // Full display with optional breakdown
+  // Handler for background click
+  const handleBackgroundClick = (e) => {
+    // Only close if clicking outside the breakdown box
+    if (showBreakdown && e.target.classList.contains('breakdown-bg')) {
+      setShowBreakdown(false);
+    }
+  };
+
+
   return (
     <div>
       <div className="flex items-center md:text-lg justify-center gap-3 mb-3">
@@ -94,55 +111,53 @@ const ReputationDisplay = ({
         </button>
       </div>
       {showBreakdown && breakdown && (
-        <div className="fixed left-[5%] mr-[5%] bg-white z-20 rounded-lg p-3 border">
-          <div className="gap-y-2">
-            <h4 className="font-medium text-gray-700 mb-2 underline">
-              Reputation Breakdown
-            </h4>
-
-            <div className="sm:grid flex grid-cols-1 sm:grid-cols-3 text-center gap-3 text-sm">
-              <div className="flex items-start gap-2">
-                <div>
-                  <div className="font-medium">Profile Popularity</div>
-                  <div className="text-gray-600">
-                    {breakdown.profilePopularity}
+        <div className="fixed inset-0 z-20 breakdown-bg" onClick={handleBackgroundClick} style={{cursor:'pointer'}}>
+          <div className="fixed left-[5%] mr-[5%] top-100 bg-white rounded-lg p-3 border" onClick={e => e.stopPropagation()}>
+            <div className="gap-y-2">
+              <h4 className="font-medium text-gray-700 mb-2 underline">
+                Reputation Breakdown
+              </h4>
+              <div className="sm:grid flex grid-cols-1 sm:grid-cols-3 text-center gap-3 text-sm">
+                <div className="flex items-start gap-2">
+                  <div>
+                    <div className="font-medium">Profile Popularity</div>
+                    <div className="text-gray-600">
+                      {breakdown.profilePopularity}
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-start gap-2">
+                  <div>
+                    <div className="font-medium">Post Popularity</div>
+                    <div className="text-gray-600">
+                      {breakdown.postsPopularity}
+                      {breakdown.totalPosts > 0 && (
+                        <span className="text-xs text-gray-500 block">
+                          ({breakdown.avgPostPopularity} avg)
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-start gap-2">
+                  <div>
+                    <div className="font-medium">Comment Popularity</div>
+                    <div className="text-gray-600">
+                      {breakdown.commentsPopularity}
+                      {breakdown.totalComments > 0 && (
+                        <span className="text-xs text-gray-500 block">
+                          ({breakdown.avgCommentPopularity} avg)
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
-
-              <div className="flex items-start gap-2">
-                <div>
-                  <div className="font-medium">Post Popularity</div>
-                  <div className="text-gray-600">
-                    {breakdown.postsPopularity}
-                    {breakdown.totalPosts > 0 && (
-                      <span className="text-xs text-gray-500 block">
-                        ({breakdown.avgPostPopularity} avg)
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-2">
-                <div>
-                  <div className="font-medium">Comment Popularity</div>
-                  <div className="text-gray-600">
-                    {breakdown.commentsPopularity}
-                    {breakdown.totalComments > 0 && (
-                      <span className="text-xs text-gray-500 block">
-                        ({breakdown.avgCommentPopularity} avg)
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </div>
+              {/* <div className="pt-2 text-xs text-gray-500">
+                Based on {breakdown.totalPosts} posts and{" "}
+                {breakdown.totalComments} comments
+              </div> */}
             </div>
-
-            {/* <div className="pt-2 text-xs text-gray-500">
-              Based on {breakdown.totalPosts} posts and{" "}
-              {breakdown.totalComments} comments
-            </div> */}
           </div>
         </div>
       )}

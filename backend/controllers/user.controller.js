@@ -633,20 +633,35 @@ const searchUsersByUsername = async (req, res) => {
       return res.status(400).json({ message: "Username is required" });
     }
 
-    // Avoid regex injection or unnecessary regex usage
     const cleanUsername = username.trim();
 
-    const regex = new RegExp(`^${cleanUsername}`, "i"); // Case-insensitive exact match
+    // Create a regular expression to find usernames that contain the search string
+    const regex = new RegExp(cleanUsername, "i"); // Case-insensitive match
 
-    const user = await User.find({ username: regex }).select(
-      "_id username fullName profilePicture popularity bio createdAt email"
-    );
+    const users = await User.find({ username: regex })
+      .select("_id username fullName profilePicture popularity bio createdAt email")
+      .sort({ username: 1 }); // Sort alphabetically
 
-    if (!user) {
+    // Separate users into two groups: those that start with the search string and those that don't
+    const startsWith = [];
+    const contains = [];
+
+    for (const user of users) {
+      if (user.username.toLowerCase().startsWith(cleanUsername.toLowerCase())) {
+        startsWith.push(user);
+      } else {
+        contains.push(user);
+      }
+    }
+
+    // Combine the two groups, with the "startsWith" group first
+    const sortedUsers = [...startsWith, ...contains];
+
+    if (!sortedUsers.length) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    return res.status(200).json({ user });
+    return res.status(200).json({ user: sortedUsers });
   } catch (error) {
     console.error("Error in getUser:", error.message);
     return res
