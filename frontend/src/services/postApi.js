@@ -4,8 +4,8 @@ export const createPost = async (formData) => {
   try {
     const response = await fetch(`${API_BASE_URL}/api/posts/create`, {
       method: 'POST',
-      credentials: 'include', 
-      body: formData, 
+      credentials: 'include',
+      body: formData,
     });
 
     if (!response.ok) {
@@ -42,15 +42,12 @@ export const deletePost = async (postId) => {
   }
 };
 
-export const editPost = async (postId, postData) => {
+export const editPost = async (postId, formData) => {
   try{
     const response = await fetch(`${API_BASE_URL}/api/posts/edit/${postId}`,{
       method: 'PUT',
       credentials: 'include',
-      headers: {
-        'content-type': 'application/json',
-      },
-      body: JSON.stringify(postData),
+      body: formData, // Send formData directly
     })
 
     if(!response.ok){
