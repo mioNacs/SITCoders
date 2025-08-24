@@ -1,6 +1,6 @@
 import React from 'react'
 
-function Loading() {
+function Loading({ size = "default" }) {
   const [dot, setDot] = React.useState(0);
   React.useEffect(() => {
     const interval = setInterval(() => {
@@ -9,6 +9,14 @@ function Loading() {
     return () => clearInterval(interval);
   }, []);
 
+  // Inline loading spinner for small usage
+  if (size === "sm") {
+    return (
+      <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-l-2 border-orange-400"></div>
+    );
+  }
+
+  // Full screen loading for default usage
   return (
     <div className="flex items-center justify-center h-screen bg-orange-50">
       <div className="flex flex-col items-center">
