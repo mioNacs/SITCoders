@@ -1,24 +1,31 @@
 import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { getAllPosts, createPost, deletePost, editPost } from '../../../services/postApi';
-import { getComments } from '../../../services/commentApi';
+import { createPost, deletePost, editPost } from '../../../services/postApi';
 import { toast } from 'react-toastify';
 import { useUrlPagination } from '../../../hooks/useUrlPagination';
 import { useAuth } from '../../../context/AuthContext';
+import { usePosts } from '../../../context/PostsContext';
 
 export const useHomePosts = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const [posts, setPosts] = useState([]);
-  const [postsLoading, setPostsLoading] = useState(true);
-  const [comments, setComments] = useState({});
   const [commentLoading, setCommentLoading] = useState(false);
   const [showComments, setShowComments] = useState(null);
-  const [pagination, setPagination] = useState({
-    totalPages: 1,
-    hasMore: false,
-    totalPosts: 0
-  });
+  
+  // Use global posts context
+  const {
+    posts,
+    loading: postsLoading,
+    comments,
+    pagination,
+    hasFetched,
+    fetchPosts,
+    forceRefreshPosts,
+    updateSinglePost,
+    removePost,
+    updateComments,
+    fetchCommentsForPosts
+  } = usePosts();
 
   const { currentPage, limit, goToPage } = useUrlPagination(1, 15);
   const allowedTags = ['general','query','announcement','event','project'];
@@ -28,56 +35,13 @@ export const useHomePosts = () => {
   const [tag, setTag] = useState(initialTag);
   const {isSuspended, suspensionEnd} = useAuth()
 
-  const fetchPosts = async (page = currentPage, activeTag = tag) => {
-    try {
-      setPostsLoading(true);
-      const data = await getAllPosts(page, limit, activeTag || undefined);
-      setPosts(data.posts || []);
-      
-      // Update pagination info
-      setPagination({
-        totalPages: data.pagination?.totalPages || 1,
-        hasMore: data.pagination?.hasMore || false,
-        totalPosts: data.pagination?.totalPosts || 0
-      });
-      
-      if (data.posts && data.posts.length > 0) {
-        fetchCommentsForPosts(data.posts.map(post => post._id));
-      }
-    } catch (error) {
-      console.error("Error fetching posts:", error);
-      toast.error("Failed to load posts. Please try again.");
-    } finally {
-      setPostsLoading(false);
-    }
-  };
-
-  const fetchCommentsForPosts = async (postIds) => {
-    if (!postIds || postIds.length === 0) return;
-
-    setCommentLoading(true);
-    try {
-      const allComments = await Promise.all(
-        postIds.map((postId) => getComments(postId))
-      );
-      const commentsMap = {};
-      allComments.forEach((data, index) => {
-        commentsMap[postIds[index]] = data.parentComment || [];
-      });
-      setComments(commentsMap);
-    } catch (error) {
-      console.error("Error fetching comments:", error);
-      toast.error("Failed to load comments. Please try again.");
-    } finally {
-      setCommentLoading(false);
-    }
-  };
+  
 
   const handleCreatePost = async (formData) => {
     try {
       await createPost(formData);
-      // After creating, explicitly refetch posts for the first page
-      await fetchPosts(1, tag);
+      // After creating, force refresh posts for the first page
+      await forceRefreshPosts(1, limit, tag);
       goToPage(1); // Also update the URL to page 1
       toast.success("Post created successfully!");
       return { success: true };
@@ -92,17 +56,14 @@ export const useHomePosts = () => {
     try {
       await deletePost(postId);
       
-      setPosts(prevPosts => prevPosts.filter((post) => post._id !== postId));
-      setComments(prev => {
-        const newComments = { ...prev };
-        delete newComments[postId];
-        return newComments;
-      });
+      // Use context functions to update state
+      removePost(postId);
 
       if (posts.length === 1 && currentPage > 1) {
         goToPage(currentPage - 1);
       } else {
-        fetchPosts(currentPage, tag);
+        // Force refresh to get updated data
+        await forceRefreshPosts(currentPage, limit, tag);
       }
       
       toast.success("Post deleted successfully!");
@@ -119,14 +80,8 @@ export const useHomePosts = () => {
       const response = await editPost(postId, formData);
       console.log("Edit post response:", response.post);
 
-      // Update the post in the local state with the full object from the server
-      setPosts(prevPosts =>
-        prevPosts.map(post =>
-          post._id === postId
-        ? { ...post, ...response.post, author: post.author } // Explicitly keep old author field
-        : post
-        )
-      );
+      // Update the post in the global context
+      updateSinglePost(postId, response.post);
       
       toast.success("Post updated successfully!");
       return { success: true, data: response };
@@ -141,30 +96,24 @@ export const useHomePosts = () => {
     setShowComments((prev) => (prev === postId ? null : postId));
     if (!comments[postId]) {
       setCommentLoading(true);
-      getComments(postId)
-        .then((data) => {
-          setComments((prev) => ({
-            ...prev,
-            [postId]: data.parentComment || [],
-          }));
+      // Use the context function to fetch comments
+      fetchCommentsForPosts([postId])
+        .then(() => {
+          setCommentLoading(false);
         })
         .catch((error) => {
           console.error("Error fetching comments:", error);
           toast.error("Failed to load comments. Please try again.");
-        })
-        .finally(() => {
           setCommentLoading(false);
         });
     }
   };
 
   useEffect(() => {
-    if(!isSuspended){
-      fetchPosts(currentPage, tag);
-    }else(
-      setPostsLoading(false)
-    )
-  }, [currentPage, tag]);
+    if (!isSuspended && !hasFetched) {
+      fetchPosts(currentPage, limit, tag);
+    }
+  }, [currentPage, tag, hasFetched, fetchPosts, limit, isSuspended]);
 
   const updateTagInUrl = (newTag) => {
     const params = new URLSearchParams(location.search);
@@ -196,9 +145,7 @@ export const useHomePosts = () => {
     commentLoading,
     showComments,
     setShowComments,
-    setComments,
     setCommentLoading,
-    fetchPosts,
     handleCreatePost,
     handleDeletePost,
     handleEditPost,
