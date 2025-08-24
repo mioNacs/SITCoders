@@ -409,6 +409,27 @@ const getSuspendedAccount = async (req, res) => {
   }
 }
 
+const getAllAdmins = async (req, res) => {
+  try {
+    const admins = await Admin.find().populate({
+      path: 'admin',
+      select: 'fullName email username profilePicture'
+    });
+    
+    return res.status(200).json({
+      message: "Admins fetched successfully", 
+      admins: admins.map(admin => ({
+        _id: admin._id,
+        role: admin.role,
+        user: admin.admin
+      }))
+    });
+  } catch (error) {
+    console.error("Error fetching admins:", error.message);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+}
+
 export {
   createAdmin,
   getAllUnverifiedUsers,
@@ -421,4 +442,5 @@ export {
   removeSuspension,
   deleteCommentAndReplyByAdmin,
   getSuspendedAccount,
+  getAllAdmins,
 };

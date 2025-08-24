@@ -60,3 +60,6 @@ app.use('/api/comments', verifyUser, isSuspended, commentRoutes);
 import popularityRoute from './routes/popularity.route.js';
 
 app.use('/api/popularity', verifyUser, isSuspended, popularityRoute);
+
+import contactRoutes from './routes/contact.route.js';
+app.use('/api/contact', verifyUser, contactRoutes);
