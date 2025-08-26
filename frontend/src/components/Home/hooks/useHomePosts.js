@@ -101,12 +101,7 @@ export const useHomePosts = () => {
   };
   
   const handleShowComments = (postId) => {
-    setShowComments((prev) => (prev === postId ? null : postId));
-    if (!comments[postId]) {
-      setCommentLoading(true);
-      fetchCommentsForPosts([postId])
-        .finally(() => setCommentLoading(false));
-    }
+    setShowComments((prev) => (prev === postId ? null : postId));    
   };
   
   return {
