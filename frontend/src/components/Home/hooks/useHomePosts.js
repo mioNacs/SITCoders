@@ -12,7 +12,6 @@ export const useHomePosts = () => {
   const [commentLoading, setCommentLoading] = useState(false);
   const [showComments, setShowComments] = useState(null);
   
-  // Use global posts context
   const {
     posts,
     loading: postsLoading,
@@ -23,26 +22,48 @@ export const useHomePosts = () => {
     forceRefreshPosts,
     updateSinglePost,
     removePost,
-    updateComments,
-    fetchCommentsForPosts
+    setComments: updateComments,
+    fetchCommentsForPosts,
+    tag,
+    changeFilterTag
   } = usePosts();
 
   const { currentPage, limit, goToPage } = useUrlPagination(1, 15);
+  const { isSuspended } = useAuth();
   const allowedTags = ['general','query','announcement','event','project'];
-  const searchParams = new URLSearchParams(location.search);
-  const tagFromUrl = (searchParams.get('tag') || '').toLowerCase();
-  const initialTag = allowedTags.includes(tagFromUrl) ? tagFromUrl : '';
-  const [tag, setTag] = useState(initialTag);
-  const {isSuspended, suspensionEnd} = useAuth()
 
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    const tagFromUrl = (searchParams.get('tag') || '').toLowerCase();
+    
+    if (!isSuspended) {
+      // Always trigger a fetch based on the URL's state
+      fetchPosts(currentPage, limit, tagFromUrl, !hasFetched);
+    }
+  }, [currentPage, location.search, isSuspended, hasFetched, fetchPosts, limit]);
+
+  const changeTag = (newTag) => {
+    const normalized = (newTag || '').toLowerCase();
+    if (normalized !== tag) {
+        changeFilterTag(normalized, limit);
+        
+        // Update URL to reflect the new state
+        const params = new URLSearchParams(location.search);
+        if (normalized) {
+            params.set('tag', normalized);
+        } else {
+            params.delete('tag');
+        }
+        params.delete('page');
+        navigate(`${location.pathname}?${params.toString()}`, { replace: true });
+    }
+  };
   
-
   const handleCreatePost = async (formData) => {
     try {
       await createPost(formData);
-      // After creating, force refresh posts for the first page
-      await forceRefreshPosts(1, limit, tag);
-      goToPage(1); // Also update the URL to page 1
+      forceRefreshPosts(1, limit, tag); 
+      goToPage(1);
       toast.success("Post created successfully!");
       return { success: true };
     } catch (error) {
@@ -55,17 +76,8 @@ export const useHomePosts = () => {
   const handleDeletePost = async (postId) => {
     try {
       await deletePost(postId);
-      
-      // Use context functions to update state
       removePost(postId);
-
-      if (posts.length === 1 && currentPage > 1) {
-        goToPage(currentPage - 1);
-      } else {
-        // Force refresh to get updated data
-        await forceRefreshPosts(currentPage, limit, tag);
-      }
-      
+      forceRefreshPosts(currentPage, limit, tag); 
       toast.success("Post deleted successfully!");
       return { success: true };
     } catch (error) {
@@ -78,11 +90,7 @@ export const useHomePosts = () => {
   const handleEditPost = async (postId, formData) => {
     try {
       const response = await editPost(postId, formData);
-      console.log("Edit post response:", response.post);
-
-      // Update the post in the global context
       updateSinglePost(postId, response.post);
-      
       toast.success("Post updated successfully!");
       return { success: true, data: response };
     } catch (error) {
@@ -91,61 +99,24 @@ export const useHomePosts = () => {
       return { success: false };
     }
   };
-
+  
   const handleShowComments = (postId) => {
     setShowComments((prev) => (prev === postId ? null : postId));
     if (!comments[postId]) {
       setCommentLoading(true);
-      // Use the context function to fetch comments
       fetchCommentsForPosts([postId])
-        .then(() => {
-          setCommentLoading(false);
-        })
-        .catch((error) => {
-          console.error("Error fetching comments:", error);
-          toast.error("Failed to load comments. Please try again.");
-          setCommentLoading(false);
-        });
+        .finally(() => setCommentLoading(false));
     }
   };
-
-  useEffect(() => {
-    if (!isSuspended && !hasFetched) {
-      fetchPosts(currentPage, limit, tag);
-    }
-  }, [currentPage, tag, hasFetched, fetchPosts, limit, isSuspended]);
-
-  const updateTagInUrl = (newTag) => {
-    const params = new URLSearchParams(location.search);
-    if (newTag) params.set('tag', newTag); else params.delete('tag');
-    params.delete('page');
-    navigate(`${location.pathname}?${params.toString()}`, { replace: true });
-  };
-
-  const changeTag = (newTag) => {
-    const normalized = (newTag || '').toLowerCase();
-    if (normalized && !allowedTags.includes(normalized)) return;
-    setTag(normalized);
-    updateTagInUrl(normalized);
-  };
-
-  useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const urlTag = (params.get('tag') || '').toLowerCase();
-    const normalized = allowedTags.includes(urlTag) ? urlTag : '';
-    if (normalized !== tag) {
-      setTag(normalized);
-    }
-  }, [location.search]);
-
+  
   return {
     posts,
     postsLoading,
     comments,
+    setComments: updateComments,
     commentLoading,
     showComments,
     setShowComments,
-    setCommentLoading,
     handleCreatePost,
     handleDeletePost,
     handleEditPost,
