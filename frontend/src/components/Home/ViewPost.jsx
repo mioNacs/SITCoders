@@ -1,10 +1,12 @@
-import {useEffect} from "react";
+import {useEffect, useState} from "react";
 import { FaTimes, FaComments, FaUser } from "react-icons/fa";
 import CommentSection from "./CommentSection";
 import PostPopularityButton from "./PostPopularityButton";
 import { useAuth } from "../../context/AuthContext";
 import { usePopularity } from "../../context/PopularityContext";
 import { renderSafeMarkdown } from "../../utils/sanitize";
+import { getComments } from "../../services/commentApi";
+import { toast } from "react-toastify";
 import { Link } from "react-router-dom";
 import { formatRelativeDate as formatDate } from "../../utils/formatters";
 import { lockBodyScroll, unlockBodyScroll } from '../../utils/scrollLock';
@@ -14,11 +16,11 @@ function ViewPost({
   comments,
   setShowComments,
   setComments,
-  commentLoading,
   showComments,
 }) {
   const { user } = useAuth();
   const { initializePostPopularity } = usePopularity();
+  const [commentLoading, setCommentLoading] = useState(false);
   
   // Find the current post
   const currentPost = posts.find((post) => post._id === showComments);
@@ -28,7 +30,26 @@ function ViewPost({
     if (currentPost && user?._id) {
       initializePostPopularity(currentPost._id, currentPost.popularity, user._id);
     }
-  }, [currentPost, user?._id, initializePostPopularity]);
+    
+    // Fetch comments if they are not already loaded
+    if (showComments && !comments[showComments]) {
+      setCommentLoading(true);
+      getComments(showComments)
+        .then((data) => {
+          setComments((prev) => ({
+            ...prev,
+            [showComments]: data.parentComment || [],
+          }));
+        })
+        .catch((error) => {
+          console.error("Error fetching comments:", error);
+          toast.error("Failed to load comments for this post.");
+        })
+        .finally(() => {
+          setCommentLoading(false);
+        });
+    }
+  }, [currentPost, user?._id, initializePostPopularity, showComments, comments, setComments]);
   
   // Lock body while the comments modal is mounted
   useEffect(() => {

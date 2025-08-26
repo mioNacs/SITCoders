@@ -56,9 +56,6 @@ export const PostsProvider = ({ children }) => {
         currentPage: page,
       });
       setTag(currentTag);
-      if (data.posts && data.posts.length > 0) {
-        await fetchCommentsForPosts(data.posts.map(post => post._id));
-      }
       setHasFetched(true);
     } catch (error) {
       console.error("Error fetching posts:", error);
@@ -66,7 +63,7 @@ export const PostsProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  }, [loading, hasFetched, tag, pagination.currentPage, fetchCommentsForPosts]);
+  }, [loading, hasFetched, tag, pagination.currentPage]);
   
   const changeFilterTag = useCallback((newTag, limit) => {
     setTag(newTag);
