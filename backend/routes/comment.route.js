@@ -23,7 +23,7 @@ router.post("/create/:postId", isVarifiedByAdmin, createComment);
 router.post("/reply/:commentId", isVarifiedByAdmin, createReply);
 router.post("/get-comments/:postId", getParentComment);
 router.delete("/delete-comment/:commentId", isVarifiedByAdmin, deleteComment);
-router.post("/update-comment/:commentId", isVarifiedByAdmin, updateComment); // Fallback for client
+router.put("/update-comment/:commentId", isVarifiedByAdmin, updateComment); // Fallback for client
 router.delete("/admin-delete-comment/:commentId", verifyAdmin, adminDeleteComment);
 
 export default router;

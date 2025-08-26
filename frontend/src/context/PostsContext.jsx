@@ -82,7 +82,14 @@ export const PostsProvider = ({ children }) => {
   const updatePosts = useCallback((newPosts) => { setPosts(newPosts); }, []);
   const updateSinglePost = useCallback((postId, updatedPost) => { setPosts(prev => prev.map(p => (p._id === postId ? { ...p, ...updatedPost, author: p.author } : p))); }, []);
   const removePost = useCallback((postId) => { setPosts(prev => prev.filter(p => p._id !== postId)); setComments(prev => { const newComments = { ...prev }; delete newComments[postId]; return newComments; }); }, []);
-  const updateComments = useCallback((postId, newComments) => { setComments(prev => ({ ...prev, [postId]: newComments })); }, []);
+  const updateComments = useCallback((updater) => {
+    setComments(prev => {
+      if (typeof updater === 'function') {
+        return updater(prev);
+      }
+      return updater;
+    });
+  }, []);
 
   const value = {
     posts,
