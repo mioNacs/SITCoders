@@ -58,7 +58,7 @@ const PostCard = ({ post, comments, onShowComments }) => {
 
       {/* Post Content */}
       <div
-        className="markdown-body text-gray-700 mb-3 break-words"
+        className="markdown-body text-gray-700 pb-3 break-words"
         dangerouslySetInnerHTML={{
           __html: renderSafeMarkdown(post.content),
         }}
