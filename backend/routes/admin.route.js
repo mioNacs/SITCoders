@@ -14,7 +14,6 @@ import {
   removeSuspension,
   getSuspendedAccount,
   deleteCommentAndReplyByAdmin,
-  getAllAdmins,
 } from "../controllers/admin.controller.js";
 import verifySuperAdmin from "../middlewares/verifySuperAdmin.js";
 
@@ -39,8 +38,6 @@ router.post(
 );
 
 router.get("/suspended-users", getSuspendedAccount);
-
-router.get("/all-admins", getAllAdmins);
 
 router.delete("/delete-comment/:commentId", deleteCommentAndReplyByAdmin);
 
