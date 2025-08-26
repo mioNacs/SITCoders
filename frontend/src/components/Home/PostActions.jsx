@@ -18,7 +18,7 @@ const PostActions = ({ post, comments, onShowComments }) => {
           title='View Comments'
         >
           <FaComments /> 
-          {comments[post._id]?.length || 0}
+          {typeof post.commentCount === 'number' ? post.commentCount : (comments[post._id]?.length || 0)}
         </button>
     </div>
     <div>

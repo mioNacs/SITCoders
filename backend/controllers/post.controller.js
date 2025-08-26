@@ -183,6 +183,7 @@ const getALLPosts = async (req, res) => {
     // Fetch posts with pagination
     const posts = await Post.find(findQuery)
       .populate("author", "fullName username rollNo profilePicture") // Fixed field name
+      .populate("commentCount") // populate virtual count
       .sort({ createdAt: -1 }) // Sort by creation date, newest first
       .skip(skip)
       .limit(limit);
@@ -353,9 +354,10 @@ const getPostById = async (req, res) => {
       return res.status(400).json({ message: "Post ID is required" });
     }
 
-    // Find the post by ID and populate author
+    // Find the post by ID and populate author and virtual commentCount
     const post = await Post.findById(postId)
-      .populate("author", "fullName username profilePicture rollNo");
+      .populate("author", "fullName username profilePicture rollNo")
+      .populate("commentCount");
 
     if (!post) {
       return res.status(404).json({ message: "Post not found" });

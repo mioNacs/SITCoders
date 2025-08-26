@@ -66,6 +66,8 @@ function ViewPost({
                   src={currentPost.author.profilePicture.url}
                   alt="user"
                   className="w-10 h-10 rounded-full object-cover"
+                  loading="lazy"
+                  decoding="async"
                 />
               ) : (
                 <FaUser className="w-10 h-10 text-gray-400 bg-gray-100 rounded-full p-2" />
@@ -104,6 +106,8 @@ function ViewPost({
               src={currentPost.postImage.url}
               alt="Post"
               className="w-full max-w-md object-cover rounded-lg"
+              loading="lazy"
+              decoding="async"
             />
           )}
           {/* Post Stats */}
@@ -116,7 +120,7 @@ function ViewPost({
             <div className="flex items-center gap-2 text-gray-500">
               <FaComments size={16} />
               <span className="text-sm">
-                {comments[currentPost._id]?.length || 0} Comments
+                {(typeof currentPost.commentCount === 'number' ? currentPost.commentCount : (comments[currentPost._id]?.length || 0))} Comments
               </span>
             </div>
           </div>

@@ -22,6 +22,8 @@ const PostCard = ({ post, comments, onShowComments }) => {
               src={post.author.profilePicture.url}
               alt="Author"
               className="w-10 h-10 rounded-full object-cover"
+              loading="lazy"
+              decoding="async"
             />
           ) : (
             <FaUserCircle className="w-10 h-10 text-gray-400" />
@@ -68,6 +70,8 @@ const PostCard = ({ post, comments, onShowComments }) => {
           src={post.postImage.url}
           alt="Post"
           className="w-full object-cover rounded-lg mb-3"
+          loading="lazy"
+          decoding="async"
         />
       )}
 

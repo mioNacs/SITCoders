@@ -49,6 +49,7 @@ const UserSearch = () => {
     } catch (error) {
       console.error('Error searching users:', error);
       setSearchResults([]);
+      setShowResults(true);
     } finally {
       setIsLoading(false);
     }
