@@ -3,7 +3,7 @@ import { api } from '../context/AuthContext';
 // Get all admins for contact form
 export const getAllAdmins = async () => {
   try {
-    const response = await api.get('/api/admin/all-admins');
+    const response = await api.get('/api/contact/all-admins');
     return response.data;
   } catch (error) {
     throw error;

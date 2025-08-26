@@ -22,7 +22,7 @@ export const useHomePosts = () => {
     forceRefreshPosts,
     updateSinglePost,
     removePost,
-    setComments: updateComments,
+    updateComments,
     fetchCommentsForPosts,
     tag,
     changeFilterTag

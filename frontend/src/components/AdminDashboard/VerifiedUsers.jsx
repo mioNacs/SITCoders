@@ -21,6 +21,7 @@ import SuspendUserModal from "./SuspendUserModal";
 import AdminRoleModal from "./AdminRoleModal";
 import UserSearchFilter from "./UserSearchFilter";
 import { useAuth } from "../../context/AuthContext";
+import { searchUsersInAdmin } from "../../services/adminApi";
 
 const VerifiedUsers = ({
   verifiedUsers,
@@ -46,6 +47,7 @@ const VerifiedUsers = ({
   const [userAdminStatus, setUserAdminStatus] = useState({}); // Store admin status for each user
   const [checkingAdminStatus, setCheckingAdminStatus] = useState(false);
   const [filteredUsers, setFilteredUsers] = useState(verifiedUsers);
+  const [isSearching, setIsSearching] = useState(false);
 
   // Update filtered users when verifiedUsers prop changes
   useEffect(() => {
@@ -98,6 +100,24 @@ const VerifiedUsers = ({
 
     checkAllUsersAdminStatus();
   }, [verifiedUsers]);
+
+  const handleFilteredUsersChange = (filtered) => {
+    if (filtered === null) {
+      setFilteredUsers(verifiedUsers);
+    } else {
+      setFilteredUsers(filtered);
+    }
+  };
+
+  const handleSearch = async (query) => {
+    setIsSearching(true);
+    try {
+      const results = await searchUsersInAdmin(query);
+      return results.user.filter((u) => u.isAdminVerified);
+    } finally {
+      setIsSearching(false);
+    }
+  };
 
   const openCreateAdminModal = (user) => {
     setSelectedUser(user);
@@ -258,8 +278,8 @@ const VerifiedUsers = ({
   return (
     <>
       <div className="bg-white rounded-xl shadow-lg border border-orange-100">
-        <div className="p-4 md:p-6 border-b border-gray-200">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="p-4 md:p-6 border-gray-200">
+          <div className="flex sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-center space-x-3">
               <div className="bg-green-100 p-2 rounded-lg">
                 <MdVerifiedUser
@@ -272,14 +292,11 @@ const VerifiedUsers = ({
                 <h2 className="text-xl md:text-2xl font-bold text-gray-800">
                   Verified Users
                 </h2>
-                <p className="text-sm md:text-base text-gray-600">
-                  Users who have been approved and verified
-                </p>
               </div>
             </div>
             <div className="bg-green-50 px-3 py-2 md:px-4 md:py-2 rounded-lg self-start sm:self-auto">
               <span className="text-green-600 font-semibold text-sm md:text-base">
-                {pagination.totalUsers} Total{" "}
+                {pagination.totalUsers}{" "}
                 {pagination.totalUsers === 1 ? "User" : "Users"}
               </span>
             </div>
@@ -290,7 +307,8 @@ const VerifiedUsers = ({
         <div className="px-4 md:px-6 pb-4">
           <UserSearchFilter
             users={verifiedUsers}
-            onFilteredUsersChange={setFilteredUsers}
+            onSearch={handleSearch}
+            onFilteredUsersChange={handleFilteredUsersChange}
             placeholder="Search verified users by username, name, or email..."
             className="w-full max-w-md"
           />

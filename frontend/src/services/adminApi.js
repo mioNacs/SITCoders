@@ -224,3 +224,25 @@ export const getSuspendedUsers = async () => {
     throw error;
   }
 };
+
+export const searchUsersInAdmin = async (username) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/admin/search-users`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ username })
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to search users');
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error searching users:', error);
+    throw error;
+  }
+};
