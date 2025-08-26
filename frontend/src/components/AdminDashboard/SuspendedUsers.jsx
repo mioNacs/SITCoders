@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { FaSpinner, FaBan } from 'react-icons/fa';
 import { removeSuspension, getSuspendedUsers } from '../../services/adminApi';
 import UserSearchFilter from './UserSearchFilter';
+import { searchUsersInAdmin } from '../../services/adminApi';
 
 const SuspendedUsers = ({ showDialog, adminStatus, onCountChange, onUpdateUserSuspension }) => {
   const [loading, setLoading] = useState(true);
@@ -14,6 +15,19 @@ const SuspendedUsers = ({ showDialog, adminStatus, onCountChange, onUpdateUserSu
   useEffect(() => {
     setFilteredUsers(users);
   }, [users]);
+
+  const handleFilteredUsersChange = (filtered) => {
+    if (filtered === null) {
+      setFilteredUsers(users);
+    } else {
+      setFilteredUsers((Array.isArray(filtered) ? filtered : []).filter(u => u.isSuspended));
+    }
+  };
+
+  const handleSearch = async (query) => {
+    const results = await searchUsersInAdmin(query);
+    return results.user.filter(u => u.isSuspended);
+  };
 
   const extractUsers = (payload) => {
     if (Array.isArray(payload)) return payload;
@@ -63,7 +77,16 @@ const SuspendedUsers = ({ showDialog, adminStatus, onCountChange, onUpdateUserSu
   return (
     <div className="bg-white rounded-xl shadow-lg border border-orange-100 p-4 md:p-6">
       <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center space-x-3">
+        <div className="bg-red-100 p-2 rounded-lg">
+                        <FaBan
+                          className="text-red-600"
+                          size={20}
+                          md:size={24}
+                        />
+                      </div>
         <h2 className="text-xl md:text-2xl font-bold text-gray-800">Suspended Users</h2>
+        </div>
         <div className="bg-red-50 px-3 py-2 rounded-lg text-red-700 font-semibold text-sm md:text-base">
           {users.length} {users.length === 1 ? 'User' : 'Users'}
         </div>
@@ -73,7 +96,8 @@ const SuspendedUsers = ({ showDialog, adminStatus, onCountChange, onUpdateUserSu
       <div className="mb-4">
         <UserSearchFilter
           users={users}
-          onFilteredUsersChange={setFilteredUsers}
+          onSearch={handleSearch}
+          onFilteredUsersChange={handleFilteredUsersChange}
           placeholder="Search suspended users by username, name, or email..."
           className="w-full max-w-md"
         />
