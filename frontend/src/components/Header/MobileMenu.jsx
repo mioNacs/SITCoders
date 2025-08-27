@@ -1,12 +1,12 @@
-import { useNavigate } from 'react-router-dom';
-import { Link, NavLink } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
-import { FiUser, FiSettings, FiLogOut, FiX } from 'react-icons/fi';
-import { MdOutlineLeaderboard } from 'react-icons/md';
-import { FaRegUserCircle } from 'react-icons/fa';
-import { useEffect } from 'react';
-import { lockBodyScroll, unlockBodyScroll } from '../../utils/scrollLock';
-import MobileUserSearch from './MobileUserSearch';
+import { useNavigate } from "react-router-dom";
+import { Link, NavLink } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
+import { FiX, FiUser, FiSettings, FiLogOut} from "react-icons/fi";
+import { MdOutlineLeaderboard } from "react-icons/md";
+import { FaRegUserCircle } from "react-icons/fa";
+import { useEffect } from "react";
+import { lockBodyScroll, unlockBodyScroll } from "../../utils/scrollLock";
+import MobileUserSearch from "./MobileUserSearch";
 
 const MobileMenu = ({ isMenuOpen, setIsMenuOpen }) => {
   const { isAuthenticated, user, logout } = useAuth();
@@ -15,7 +15,7 @@ const MobileMenu = ({ isMenuOpen, setIsMenuOpen }) => {
   useEffect(() => {
     if (!isMenuOpen) return;
     // Lock body scroll when menu is open
-    lockBodyScroll()
+    lockBodyScroll();
     return () => {
       unlockBodyScroll();
     };
@@ -27,7 +27,7 @@ const MobileMenu = ({ isMenuOpen, setIsMenuOpen }) => {
 
   const handleLogout = async () => {
     await logout();
-    navigate('/')
+    navigate("/");
     setIsMenuOpen(false);
   };
 
@@ -43,23 +43,14 @@ const MobileMenu = ({ isMenuOpen, setIsMenuOpen }) => {
           onClick={toggleMenu}
           className="text-gray-600 hover:text-orange-400 transition-colors duration-300 p-2"
         >
-          {isMenuOpen ? (
-            <FiX className="h-6 w-6" />
+          {user.profilePicture.url ? (
+            <img
+              src={user.profilePicture.url || "/default-avatar.png"}
+              alt={user.fullName}
+              className="w-8 h-8 rounded-full object-cover"
+            />
           ) : (
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-6 w-6"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M4 6h16M4 12h16M4 18h16"
-              />
-            </svg>
+            <FiUser />
           )}
         </button>
       </div>
@@ -68,20 +59,26 @@ const MobileMenu = ({ isMenuOpen, setIsMenuOpen }) => {
       {isMenuOpen && (
         <div className="fixed inset-0 z-50 md:hidden">
           {/* Backdrop */}
-          <div 
+          <div
             className="fixed inset-0 bg-black/30 transition-opacity"
             onClick={closeMenu}
           />
-          
+
           {/* Slide-in Menu */}
-          <div className={`fixed left-0 top-0 h-full w-80 bg-white shadow-xl transform transition-transform duration-300 ease-out ${
-            isMenuOpen ? 'translate-x-0' : '-translate-x-full'
-          }`}>
+          <div
+            className={`fixed left-0 top-0 h-full w-80 bg-white shadow-xl transform transition-transform duration-300 ease-out ${
+              isMenuOpen ? "translate-x-0" : "-translate-x-full"
+            }`}
+          >
             {/* Menu Header */}
             <div className="flex items-center justify-between p-4 border-b border-gray-200">
               <div className="flex items-center space-x-1">
-                <span className="text-xl text-gray-600 font-Saira font-bold">SIT</span>
-                <span className="text-xl text-orange-400 font-Saira font-bold">Coders</span>
+                <span className="text-xl text-gray-600 font-Saira font-bold">
+                  SIT
+                </span>
+                <span className="text-xl text-orange-400 font-Saira font-bold">
+                  Coders
+                </span>
               </div>
               <button
                 onClick={closeMenu}
@@ -96,23 +93,23 @@ const MobileMenu = ({ isMenuOpen, setIsMenuOpen }) => {
               {isAuthenticated ? (
                 <>
                   {/* User Info */}
-                <div className='flex items-center pl-4'>
-                  {user?.profilePicture.url? (
+                  <div className="flex items-center pl-4">
+                    {user?.profilePicture.url ? (
                       <img
                         src={user.profilePicture.url}
                         alt="Profile"
                         className="w-8 h-8 rounded-full"
                       />
                     ) : (
-                        <FaRegUserCircle size={32} 
-                        className="text-gray-600" 
-                      />
+                      <FaRegUserCircle size={32} className="text-gray-600" />
                     )}
-                  <div className="px-4 py-3 border-b border-gray-100 bg-gray-50">
-                    <p className="font-medium text-gray-900">{user?.fullName}</p>
-                    <p className="text-sm text-gray-500">@{user?.username}</p>
+                    <div className="px-4 py-3 border-b border-gray-100 bg-gray-50">
+                      <p className="font-medium text-gray-900">
+                        {user?.fullName}
+                      </p>
+                      <p className="text-sm text-gray-500">@{user?.username}</p>
+                    </div>
                   </div>
-                </div>
 
                   {/* Mobile User Search */}
                   <MobileUserSearch onUserClick={closeMenu} />
@@ -123,8 +120,8 @@ const MobileMenu = ({ isMenuOpen, setIsMenuOpen }) => {
                       to="/home"
                       className={({ isActive }) =>
                         `flex items-center px-4 py-3 text-lg ${
-                          isActive 
-                            ? "text-orange-400 bg-orange-50 border-r-2 border-orange-400" 
+                          isActive
+                            ? "text-orange-400 bg-orange-50 border-r-2 border-orange-400"
                             : "text-gray-700 hover:text-orange-400 hover:bg-gray-50"
                         } transition-all duration-200`
                       }
@@ -132,13 +129,13 @@ const MobileMenu = ({ isMenuOpen, setIsMenuOpen }) => {
                     >
                       Home
                     </NavLink>
-                    
+
                     <NavLink
                       to="/Resources"
                       className={({ isActive }) =>
                         `flex items-center px-4 py-3 text-lg ${
-                          isActive 
-                            ? "text-orange-400 bg-orange-50 border-r-2 border-orange-400" 
+                          isActive
+                            ? "text-orange-400 bg-orange-50 border-r-2 border-orange-400"
                             : "text-gray-700 hover:text-orange-400 hover:bg-gray-50"
                         } transition-all duration-200`
                       }
@@ -146,13 +143,13 @@ const MobileMenu = ({ isMenuOpen, setIsMenuOpen }) => {
                     >
                       Resources
                     </NavLink>
-                    
+
                     <NavLink
                       to="/Collaborate"
                       className={({ isActive }) =>
                         `flex items-center px-4 py-3 text-lg ${
-                          isActive 
-                            ? "text-orange-400 bg-orange-50 border-r-2 border-orange-400" 
+                          isActive
+                            ? "text-orange-400 bg-orange-50 border-r-2 border-orange-400"
                             : "text-gray-700 hover:text-orange-400 hover:bg-gray-50"
                         } transition-all duration-200`
                       }
@@ -160,13 +157,13 @@ const MobileMenu = ({ isMenuOpen, setIsMenuOpen }) => {
                     >
                       Collaborate
                     </NavLink>
-                    
+
                     <NavLink
                       to="/contact-admin"
                       className={({ isActive }) =>
                         `flex items-center px-4 py-3 text-lg ${
-                          isActive 
-                            ? "text-orange-400 bg-orange-50 border-r-2 border-orange-400" 
+                          isActive
+                            ? "text-orange-400 bg-orange-50 border-r-2 border-orange-400"
                             : "text-gray-700 hover:text-orange-400 hover:bg-gray-50"
                         } transition-all duration-200`
                       }
@@ -183,8 +180,8 @@ const MobileMenu = ({ isMenuOpen, setIsMenuOpen }) => {
                       to="/profile"
                       className={({ isActive }) =>
                         `flex items-center gap-3 px-4 py-3 text-lg ${
-                          isActive 
-                            ? "text-orange-400 bg-orange-50 border-r-2 border-orange-400" 
+                          isActive
+                            ? "text-orange-400 bg-orange-50 border-r-2 border-orange-400"
                             : "text-gray-700 hover:text-orange-400 hover:bg-gray-50"
                         } transition-all duration-200`
                       }
@@ -198,8 +195,8 @@ const MobileMenu = ({ isMenuOpen, setIsMenuOpen }) => {
                       to="/leaderboard"
                       className={({ isActive }) =>
                         `flex items-center gap-3 px-4 py-3 text-lg ${
-                          isActive 
-                            ? "text-orange-400 bg-orange-50 border-r-2 border-orange-400" 
+                          isActive
+                            ? "text-orange-400 bg-orange-50 border-r-2 border-orange-400"
                             : "text-gray-700 hover:text-orange-400 hover:bg-gray-50"
                         } transition-all duration-200`
                       }
@@ -208,13 +205,13 @@ const MobileMenu = ({ isMenuOpen, setIsMenuOpen }) => {
                       <MdOutlineLeaderboard size={20} />
                       Leaderboard
                     </NavLink>
-                    
+
                     <NavLink
                       to="/settings"
                       className={({ isActive }) =>
                         `flex items-center gap-3 px-4 py-3 text-lg ${
-                          isActive 
-                            ? "text-orange-400 bg-orange-50 border-r-2 border-orange-400" 
+                          isActive
+                            ? "text-orange-400 bg-orange-50 border-r-2 border-orange-400"
                             : "text-gray-700 hover:text-orange-400 hover:bg-gray-50"
                         } transition-all duration-200`
                       }
