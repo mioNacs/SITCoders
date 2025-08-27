@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { FaSpinner, FaUser, FaComments } from "react-icons/fa";
 import { toast } from "react-toastify";
@@ -25,7 +25,9 @@ const SinglePostView = () => {
   const [post, setPost] = useState(null);
   const [comments, setComments] = useState({});
   const [loading, setLoading] = useState(true);
-  const [commentLoading, _setCommentLoading] = useState(false);
+  const [commentLoading, setCommentLoading] = useState(false);
+  const [hasFetchedComments, setHasFetchedComments] = useState(false);
+  const commentsRef = useRef(null);
   // Modals are centralized; no local state
 
   // Local tag style with slight variants preserved
@@ -58,9 +60,7 @@ const SinglePostView = () => {
           initializePostPopularity(postData.post._id, postData.post.popularity, user._id);
         }
 
-        // Fetch comments for this post
-        const commentsData = await getComments(postId);
-        setComments({ [postId]: commentsData.parentComment || [] });
+        // Defer fetching comments until the comments section becomes visible
       } catch (error) {
         console.error("Error fetching post:", error);
         toast.error("Failed to load post");
@@ -116,6 +116,36 @@ const SinglePostView = () => {
     };
   }, [registerEditHandler, registerDeleteHandler, navigate]);
 
+  // Lazy load comments when the comments section becomes visible
+  useEffect(() => {
+    if (!post || hasFetchedComments) return;
+    const element = commentsRef.current;
+    if (!element) return;
+
+    const observer = new IntersectionObserver(
+      async (entries) => {
+        const [entry] = entries;
+        if (entry.isIntersecting) {
+          try {
+            setCommentLoading(true);
+            const commentsData = await getComments(post._id);
+            setComments({ [post._id]: commentsData.parentComment || [] });
+          } catch (e) {
+            // Error toast already handled in API layer; keep UI quiet here
+          } finally {
+            setCommentLoading(false);
+            setHasFetchedComments(true);
+            observer.disconnect();
+          }
+        }
+      },
+      { root: null, rootMargin: "0px", threshold: 0.15 }
+    );
+
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, [post, hasFetchedComments]);
+
   if (authLoading || loading) {
     return (
       <div className="pt-20 min-h-screen bg-orange-50 flex items-center justify-center">
@@ -167,6 +197,8 @@ const SinglePostView = () => {
                         src={post.author.profilePicture.url}
                         alt={post.author.fullName}
                         className="w-12 h-12 rounded-full object-cover"
+                        loading="lazy"
+                        decoding="async"
                       />
                     ) : (
                       <div className="w-12 h-12 bg-orange-500 rounded-full flex items-center justify-center text-white font-bold">
@@ -225,6 +257,8 @@ const SinglePostView = () => {
                   src={post.postImage.url}
                   alt="Post"
                   className="w-full object-cover rounded-lg border border-gray-200"
+                  loading="lazy"
+                  decoding="async"
                 />
               </div>
             )}
@@ -249,7 +283,7 @@ const SinglePostView = () => {
           </div>
 
           {/* Comments Section */}
-          <div className="border-t border-gray-500">
+          <div className="border-t border-gray-500" ref={commentsRef}>
             <CommentSection
               postId={post._id}
               comments={comments}

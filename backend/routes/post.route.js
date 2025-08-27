@@ -23,7 +23,8 @@ router.post(
 
 router.delete("/delete/:postId", isVarifiedByAdmin, deletePost);
 
-router.put("/edit/:postId", isVarifiedByAdmin, editPost);
+// Add multer middleware to the edit route to handle image uploads
+router.put("/edit/:postId", isVarifiedByAdmin, upload.single("postImage"), editPost);
 
 router.get("/get-posts", getALLPosts);
 router.get("/get-user-posts", getALLPostsOfUser);

@@ -10,6 +10,7 @@ import {
 } from 'react-icons/fa';
 import { MdPendingActions } from 'react-icons/md';
 import UserSearchFilter from './UserSearchFilter';
+import { searchUsersInAdmin } from '../../services/adminApi';
 
 const UnverifiedUsers = ({
   unverifiedUsers = [],
@@ -27,22 +28,31 @@ const UnverifiedUsers = ({
     setFilteredUsers(unverifiedUsers ?? []);
   }, [unverifiedUsers]);
 
+  const handleFilteredUsersChange = (filtered) => {
+    if (filtered === null) {
+      setFilteredUsers(unverifiedUsers ?? []);
+    } else {
+      // Only keep unverified subset
+      setFilteredUsers((Array.isArray(filtered) ? filtered : []).filter(u => !u.isAdminVerified));
+    }
+  };
+
+  const handleSearch = async (query) => {
+    const results = await searchUsersInAdmin(query);
+    return results.user.filter(u => !u.isAdminVerified);
+  };
+
   return (
     <div className="bg-white rounded-xl shadow-lg border border-orange-100">
-      <div className="p-4 md:p-6 border-b border-gray-200">
-        <div className="flex flex-col gap-2 sm:flex-row items-start sm:items-center justify-between">
+      <div className="p-4 md:p-6 border-gray-200">
+        <div className="flex gap-2 sm:flex-row items-start sm:items-center justify-between">
           <div className="flex items-center space-x-3">
             <div className="bg-orange-100 p-2 rounded-lg">
               <MdPendingActions className="text-orange-600" size={22} />
             </div>
-            <div>
               <h2 className="text-lg md:text-2xl font-bold text-gray-800">
-                Pending User Verifications
+                Pending User
               </h2>
-              <p className="text-sm md:text-base text-gray-600">
-                Review and approve new user registrations
-              </p>
-            </div>
           </div>
 
           <div className="bg-orange-50 px-3 py-1 rounded-lg">
@@ -57,7 +67,8 @@ const UnverifiedUsers = ({
       <div className="px-4 md:px-6 pb-4">
         <UserSearchFilter
           users={unverifiedUsers}
-          onFilteredUsersChange={setFilteredUsers}
+          onSearch={handleSearch}
+          onFilteredUsersChange={handleFilteredUsersChange}
           placeholder="Search unverified users by username, name, or email..."
           className="w-full max-w-md"
         />

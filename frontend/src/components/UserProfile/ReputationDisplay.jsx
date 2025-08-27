@@ -26,6 +26,14 @@ const ReputationDisplay = ({
     }
   }, [userId]);
 
+  // Handler for scroll
+  useEffect(() => {
+    if (!showBreakdown) return;
+    const handleScroll = () => setShowBreakdown(false);
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [showBreakdown]);
+
   const loadReputation = async () => {
     try {
       setIsLoading(true);
@@ -72,6 +80,15 @@ const ReputationDisplay = ({
   }
 
   // Full display with optional breakdown
+  // Handler for background click
+  const handleBackgroundClick = (e) => {
+    // Only close if clicking outside the breakdown box
+    if (showBreakdown && e.target.classList.contains('breakdown-bg')) {
+      setShowBreakdown(false);
+    }
+  };
+
+
   return (
     <div>
       <div className="flex items-center md:text-lg justify-center gap-3 mb-3">
@@ -94,12 +111,11 @@ const ReputationDisplay = ({
         </button>
       </div>
       {showBreakdown && breakdown && (
-        <div className="fixed left-[5%] mr-[5%] bg-white z-20 rounded-lg p-3 border">
+        <div className="absolute left-1/2 -translate-x-1/2 mt-2 bg-white rounded-lg p-3 border shadow-xl z-20" style={{minWidth:'300px', maxWidth:'90vw'}}>
           <div className="gap-y-2">
             <h4 className="font-medium text-gray-700 mb-2 underline">
               Reputation Breakdown
             </h4>
-
             <div className="sm:grid flex grid-cols-1 sm:grid-cols-3 text-center gap-3 text-sm">
               <div className="flex items-start gap-2">
                 <div>
@@ -109,7 +125,6 @@ const ReputationDisplay = ({
                   </div>
                 </div>
               </div>
-
               <div className="flex items-start gap-2">
                 <div>
                   <div className="font-medium">Post Popularity</div>
@@ -123,7 +138,6 @@ const ReputationDisplay = ({
                   </div>
                 </div>
               </div>
-
               <div className="flex items-start gap-2">
                 <div>
                   <div className="font-medium">Comment Popularity</div>
@@ -138,14 +152,13 @@ const ReputationDisplay = ({
                 </div>
               </div>
             </div>
-
             {/* <div className="pt-2 text-xs text-gray-500">
               Based on {breakdown.totalPosts} posts and{" "}
               {breakdown.totalComments} comments
             </div> */}
           </div>
         </div>
-      )}
+  )}
     </div>
   );
 };

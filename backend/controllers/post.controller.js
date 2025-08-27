@@ -4,6 +4,9 @@ import User from "../models/user.model.js"; // Import User model
 import Comment from "../models/comment.model.js";
 import { uploadPostImageOnCloudinary, deleteFromCloudinary } from "../middlewares/cloudinary.js";
 import fs from "fs";
+import { promisify } from "util";
+
+const unlinkAsync = promisify(fs.unlink);
 
 const createPost = async (req, res) => {
   try {
@@ -118,8 +121,8 @@ const deletePost = async (req, res) => {
     if (!isAuthor && !isAdmin) {
       await session.abortTransaction();
       session.endSession();
-      return res.status(403).json({ 
-        message: "Unauthorized. You can only delete your own posts or you must be an admin." 
+      return res.status(403).json({
+        message: "Unauthorized. You can only delete your own posts or you must be an admin."
       });
     }
 
@@ -144,7 +147,7 @@ const deletePost = async (req, res) => {
     await session.commitTransaction();
     session.endSession();
 
-    return res.status(200).json({ 
+    return res.status(200).json({
       message: "Post deleted successfully.",
       deletedBy: isAdmin && !isAuthor ? "admin" : "author"
     });
@@ -180,6 +183,7 @@ const getALLPosts = async (req, res) => {
     // Fetch posts with pagination
     const posts = await Post.find(findQuery)
       .populate("author", "fullName username rollNo profilePicture") // Fixed field name
+      .populate("commentCount") // populate virtual count
       .sort({ createdAt: -1 }) // Sort by creation date, newest first
       .skip(skip)
       .limit(limit);
@@ -202,7 +206,7 @@ const getALLPosts = async (req, res) => {
         hasMore: page < totalPages,
       },
     });
-    
+
   } catch (error) {
     console.error("Error fetching post:", error);
     res.status(500).json({ message: "Internal server error" });
@@ -234,7 +238,7 @@ const getALLPostsOfUser = async (req,res) => {
     // Count total posts for pagination
     const totalPosts = await Post.countDocuments(findQuery);
     const totalPages = Math.ceil(totalPosts / limit) || 1;
-    
+
     res.status(200).json({
       message: "User's posts fetched successfully",
       posts,
@@ -253,7 +257,7 @@ const getALLPostsOfUser = async (req,res) => {
   } catch (error) {
     console.error("Error fetching user's posts:", error);
     res.status(500).json({ message: "Internal server error" });
-    
+
   }
 }
 const editPost = async (req, res) => {
@@ -266,21 +270,31 @@ const editPost = async (req, res) => {
       return res.status(400).json({ message: "Post ID, content, and user ID are required." });
     }
 
-    // Check if the post exists
     const post = await Post.findById(postId);
     if (!post) {
       return res.status(404).json({ message: "Post not found." });
     }
 
-    // Check if the user is the author of the post
     if (post.author.toString() !== userId.toString()) {
       return res.status(403).json({ message: "You can only edit your own posts." });
     }
 
-    // Update the post
-    post.content = content.trim();;
-    post.tag = tag || post.tag; // Keep existing tag if not provided
+    post.content = content.trim();
+    post.tag = tag || post.tag;
     post.beenEdited = true;
+
+    const file = req.file;
+    if (file) {
+      if (post.postImage && post.postImage.public_id) {
+        await deleteFromCloudinary(post.postImage.public_id);
+      }
+      const uploadResult = await uploadPostImageOnCloudinary(file.path);
+      post.postImage = {
+        url: uploadResult.url,
+        public_id: uploadResult.public_id,
+      };
+      fs.unlinkSync(file.path);
+    }
 
     await post.save();
 
@@ -290,6 +304,7 @@ const editPost = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
 
 // Add this controller function
 const getPostsByUserId = async (req, res) => {
@@ -339,9 +354,10 @@ const getPostById = async (req, res) => {
       return res.status(400).json({ message: "Post ID is required" });
     }
 
-    // Find the post by ID and populate author
+    // Find the post by ID and populate author and virtual commentCount
     const post = await Post.findById(postId)
-      .populate("author", "fullName username profilePicture rollNo");
+      .populate("author", "fullName username profilePicture rollNo")
+      .populate("commentCount");
 
     if (!post) {
       return res.status(404).json({ message: "Post not found" });

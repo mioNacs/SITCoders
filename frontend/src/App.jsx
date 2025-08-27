@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react'
-import { Landing, Home, Footer, Header } from './components'
+import { Landing, Home, Footer, Header, Loading } from './components'
 import { Outlet, useNavigate, useLocation } from 'react-router-dom'
 import ScrollToTop from './components/ScrollToTop';
 import { useAuth } from './context/AuthContext'
-import React from 'react';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import CodeEnhancer from './components/UI/CodeEnhancer';
@@ -28,9 +27,7 @@ function App() {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center h-screen">
-        <div className="text-xl">Loading...</div>
-      </div>
+      <Loading/>
     );
   }
 

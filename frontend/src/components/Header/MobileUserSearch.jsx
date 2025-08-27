@@ -1,9 +1,10 @@
-import { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { searchUsersByUsername } from '../../services/api';
+import { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
+import { searchUsersByUsername } from "../../services/api";
+import { FaUser } from "react-icons/fa";
 
 const MobileUserSearch = ({ onUserClick }) => {
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
@@ -26,7 +27,7 @@ const MobileUserSearch = ({ onUserClick }) => {
       const response = await searchUsersByUsername(query);
       setSearchResults(response.user || []);
     } catch (error) {
-      console.error('Error searching users:', error);
+      console.error("Error searching users:", error);
       setSearchResults([]);
     } finally {
       setIsLoading(false);
@@ -36,7 +37,7 @@ const MobileUserSearch = ({ onUserClick }) => {
   const handleUserClick = (username) => {
     navigate(`/profile/${username}`);
     onUserClick(); // Close mobile menu
-    setSearchQuery('');
+    setSearchQuery("");
     setSearchResults([]);
   };
 
@@ -74,9 +75,24 @@ const MobileUserSearch = ({ onUserClick }) => {
           {isLoading ? (
             <div className="px-4 py-3 text-center text-gray-500">
               <div className="inline-flex items-center">
-                <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                <svg
+                  className="animate-spin -ml-1 mr-2 h-4 w-4 text-gray-400"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
                 </svg>
                 Searching...
               </div>
@@ -90,11 +106,15 @@ const MobileUserSearch = ({ onUserClick }) => {
                   className="w-full px-3 py-2 text-left hover:bg-gray-50 focus:bg-gray-50 focus:outline-none transition-colors rounded-md"
                 >
                   <div className="flex items-center space-x-3">
-                    <img
-                      src={user.profilePicture.url || '/default-avatar.png'}
-                      alt={user.fullName}
-                      className="w-6 h-6 rounded-full object-cover"
-                    />
+                    {user.profilePicture.url ? (
+                      <img
+                        src={user.profilePicture.url || "/default-avatar.png"}
+                        alt={user.fullName}
+                        className="w-8 h-8 rounded-full object-cover"
+                      />
+                    ) : (
+                      <FaUser />
+                    )}
                     <div className="flex-1 min-w-0">
                       <div className="text-sm font-medium text-gray-900 truncate">
                         {user.fullName}

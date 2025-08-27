@@ -25,6 +25,7 @@ import {
   LeaderBoard
 } from "./components";
 import { AuthProvider } from "./context/AuthContext.jsx";
+import { PostsProvider } from "./context/PostsContext.jsx";
 import { PostUIProvider } from "./context/PostUIContext.jsx";
 import { CommentsUIProvider } from "./context/CommentsUIContext.jsx";
 import { PopularityProvider } from "./context/PopularityContext.jsx";
@@ -54,11 +55,13 @@ createRoot(document.getElementById("root")).render(
   <StrictMode>
     <AuthProvider>
       <PopularityProvider>
-        <PostUIProvider>
-          <CommentsUIProvider>
-            <RouterProvider router={router} />
-          </CommentsUIProvider>
-        </PostUIProvider>
+        <PostsProvider>
+          <PostUIProvider>
+            <CommentsUIProvider>
+              <RouterProvider router={router} />
+            </CommentsUIProvider>
+          </PostUIProvider>
+        </PostsProvider>
       </PopularityProvider>
     </AuthProvider>
   </StrictMode>
