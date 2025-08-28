@@ -4,6 +4,7 @@ import { FaPlus, FaSpinner, FaSearch, FaTimes, FaUserShield } from 'react-icons/
 import ResourceCard from './ResourceCard';
 import ResourceFormModal from './ResourceFormModal';
 import Pagination from '../UI/Pagination';
+import ShareResourceModal from './ShareResourceModal'; // Import the new modal
 import { useUrlPagination } from '../../hooks/useUrlPagination';
 import { useAuth } from '../../context/AuthContext';
 import { useResources } from '../../context/ResourcesContext'; // Updated import
@@ -17,8 +18,9 @@ function Resources() {
   const [searchQuery, setSearchQuery] = useState('');
   const [submittedSearchQuery, setSubmittedSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState('All');
-  const [editingResource, setEditingResource] = useState(null); 
+  const [editingResource, setEditingResource] = useState(null);
   const [adminOnly, setAdminOnly] = useState(false);
+  const [sharingResource, setSharingResource] = useState(null); // State for the share modal
   
   const { currentPage, goToPage } = useUrlPagination();
 
@@ -78,6 +80,10 @@ function Resources() {
 
   const handleAdminOnlyToggle = (e) => {
     setAdminOnly(e.target.checked);
+  };
+
+  const handleShareResource = (resource) => {
+    setSharingResource(resource);
   };
 
 
@@ -185,6 +191,7 @@ function Resources() {
                 resource={resource}
                 onUpvote={() => handleUpvote(resource._id)}
                 onEdit={handleEditClick}
+                onShare={handleShareResource} // Pass the share handler
                 onDelete={() => fetchResourcesWithParams(currentPage)}
               />
             ))}
@@ -216,6 +223,12 @@ function Resources() {
         onClose={handleModalClose}
         onResourceCreated={handleResourceCreated}
         initialData={editingResource}
+      />
+
+      <ShareResourceModal
+        isOpen={!!sharingResource}
+        onClose={() => setSharingResource(null)}
+        resource={sharingResource}
       />
     </div>
   );

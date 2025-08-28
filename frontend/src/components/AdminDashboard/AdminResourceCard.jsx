@@ -113,7 +113,9 @@ const AdminResourceCard = ({
               </h3>
             </div>
 
-            <p className="text-sm sm:text-md text-gray-600 mt-2 mb-3">{resource.description}</p>
+            <p className="text-sm sm:text-md text-gray-600 mt-2 mb-3">
+              {resource.description}
+            </p>
 
             <div className="flex flex-wrap gap-2 text-xs text-gray-500 mb-3">
               {resource.tags.map((tag) => (
@@ -124,30 +126,38 @@ const AdminResourceCard = ({
             </div>
 
             <div className="flex flex-col gap-2 md:flex-row md:justify-between items-start md:items-center mt-auto pt-4 border-t border-gray-100">
-              <div className="flex items-start md:items-center gap-2 text-sm text-gray-500">
-                {resource.author?.profilePicture?.url ? (
-                  <img
-                    src={resource.author.profilePicture.url}
-                    alt="Author"
-                    className="w-6 h-6 rounded-full"
-                  />
-                ) : (
-                  <FaUserCircle className="w-6 h-6 text-gray-400" />
-                )}
-                <Link
-                  to={`/profile/${resource.author.username}`}
-                  className={`hover:underline ${resource.createdByAdmin && "text-orange-500 font-semibold"}`}
-                >
-                  {resource.author.fullName || resource.author.username}
+              <div className="flex items-center gap-2 text-sm text-gray-500">
+                <Link to={`/profile/${resource.author.username}`}>
+                  {resource.author?.profilePicture?.url ? (
+                    <img
+                      src={resource.author.profilePicture.url}
+                      alt="Author"
+                      className="w-6 h-6 rounded-full hover:opacity-80 transition-opacity"
+                    />
+                  ) : (
+                    <FaUserCircle className="w-6 h-6 text-gray-400" />
+                  )}
                 </Link>
+                <div className="flex flex-col">
+                  <Link to={`/profile/${resource.author.username}`}>
+                    <span
+                      className={`hover:underline ${
+                        resource.createdByAdmin &&
+                        "text-orange-500 font-semibold"
+                      }`}
+                    >
+                      {resource.author.fullName || resource.author.username}
+                    </span>
+                  </Link>
+                  {resource.approvedBy && (
+                    <span className="text-green-800 text-xs font-medium rounded-full">
+                      Approved by {resource.approvedBy.fullName}
+                    </span>
+                  )}
+                </div>
               </div>
 
               <div className="flex gap-2 items-center">
-                {resource.approvedBy && (
-                  <span className="ml-2 bg-green-100 text-green-800 text-xs font-medium px-2 py-1 rounded-full">
-                    Approved by {resource.approvedBy.fullName}
-                  </span>
-                )}
                 <span className="flex items-center gap-1">
                   <FaRegStar size={14} /> {(resource.upvotes || []).length}
                 </span>
