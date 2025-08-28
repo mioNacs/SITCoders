@@ -15,6 +15,7 @@ import {
   getSuspendedAccount,
   deleteCommentAndReplyByAdmin,
   searchUsers,
+  updateUserRollNo,
 } from "../controllers/admin.controller.js";
 import verifySuperAdmin from "../middlewares/verifySuperAdmin.js";
 
@@ -37,6 +38,7 @@ router.post(
   verifySuperAdmin,
   removeFromAdmin
 );
+router.put("/update-rollNo/:userId", updateUserRollNo);
 
 router.get("/suspended-users", getSuspendedAccount);
 
