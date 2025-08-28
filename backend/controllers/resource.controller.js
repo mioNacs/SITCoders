@@ -165,18 +165,28 @@ const deleteResource = async (req, res) => {
 const upvoteResource = async (req, res) => {
   try {
     const { resourceId } = req.params;
+    const userId = req.user._id;
 
-    const resource = await Resource.findByIdAndUpdate(
-      resourceId,
-      { $inc: { upvotes: 1 } },
-      { new: true }
-    );
-
+    const resource = await Resource.findById(resourceId);
     if (!resource) {
       return res.status(404).json({ message: "Resource not found." });
     }
 
-    res.status(200).json({ message: "Resource upvoted successfully.", upvotes: resource.upvotes });
+    const alreadyUpvoted = resource.upvotes.includes(userId);
+
+    if (alreadyUpvoted) {
+      resource.upvotes.pull(userId);
+    } else {
+      resource.upvotes.push(userId);
+    }
+
+    await resource.save();
+
+    res.status(200).json({
+      message: "Resource upvote status updated successfully.",
+      upvotes: resource.upvotes.length,
+      upvoters: resource.upvotes, // Send the full array to the frontend
+    });
   } catch (error) {
     console.error("Error upvoting resource:", error);
     res.status(500).json({ message: "Internal server error" });

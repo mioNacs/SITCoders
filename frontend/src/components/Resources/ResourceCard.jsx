@@ -1,31 +1,33 @@
+// frontend/src/components/Resources/ResourceCard.jsx
 import React, { useState } from 'react';
-import { FaUserCircle, FaStar, FaLink, FaEdit, FaTrash } from 'react-icons/fa';
+import { FaUserCircle, FaStar, FaLink, FaEdit, FaTrash, FaRegStar } from 'react-icons/fa';
 import { FiCheckCircle } from 'react-icons/fi';
 import { Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { useAuth } from '../../context/AuthContext';
-import { upvoteResource, deleteResource } from '../../services/resourceApi';
+import { useResources } from '../../context/ResourcesContext'; // New import
 import ResourceDeleteModal from './ResourceDeleteModal';
-import ThumbnailViewModal from './ThumbnailViewModal'; // New component import
+import ThumbnailViewModal from './ThumbnailViewModal';
 
-const ResourceCard = ({ resource, onUpvote, onEdit, onDelete }) => {
-  const { user, isAdmin } = useAuth();
-  const [upvoteCount, setUpvoteCount] = useState(resource.upvotes);
+const ResourceCard = ({ resource, onEdit, onDelete }) => {
+  const { user, isAdmin, isAuthenticated } = useAuth();
+  const { handleUpvote } = useResources();
+  const upvoters = resource.upvotes || [];
+  const isUpvoted = user && upvoters.includes(user._id);
+
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [showThumbnailModal, setShowThumbnailModal] = useState(false); // New state for thumbnail modal
+  const [showThumbnailModal, setShowThumbnailModal] = useState(false);
 
   const isAuthor = user && resource.author._id === user._id;
   const canModify = isAuthor || isAdmin;
 
-  const handleUpvote = async () => {
-    try {
-      await upvoteResource(resource._id);
-      setUpvoteCount(prev => prev + 1);
-      if (onUpvote) onUpvote();
-    } catch (error) {
-      toast.error('Failed to upvote resource');
+  const onUpvoteClick = async () => {
+    if (!isAuthenticated) {
+      toast.error("You must be logged in to upvote");
+      return;
     }
-  };
+    await handleUpvote(resource._id);
+  }
 
   const handleDelete = async () => {
     try {
@@ -119,11 +121,12 @@ const ResourceCard = ({ resource, onUpvote, onEdit, onDelete }) => {
                 <span className="ml-2 bg-green-100 text-green-800 text-xs font-medium px-2 py-1 rounded-full">Approved by {resource.approvedBy.fullName}</span>
               )}
               <button
-                  onClick={handleUpvote}
-                  className="flex items-center gap-1 px-3 py-1.5 bg-orange-100 text-orange-600 rounded-lg hover:bg-orange-200 transition-colors"
+                  onClick={onUpvoteClick}
+                  className={`flex items-center gap-1 px-3 py-1.5 rounded-lg transition-colors
+                  ${isUpvoted ? 'bg-orange-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
               >
-                  <FaStar size={14} />
-                  <span className="text-sm font-medium">{upvoteCount}</span>
+                  {isUpvoted ? <FaStar size={14} /> : <FaRegStar size={14} />}
+                  <span className="text-sm font-medium">{upvoters.length}</span>
               </button>
               <a
                   href={resource.link}

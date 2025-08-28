@@ -149,7 +149,7 @@ const AdminResourceCard = ({
                   </span>
                 )}
                 <span className="flex items-center gap-1">
-                  <FaRegStar size={14} /> {resource.upvotes}
+                  <FaRegStar size={14} /> {(resource.upvotes || []).length}
                 </span>
                 <a
                   href={resource.link}
