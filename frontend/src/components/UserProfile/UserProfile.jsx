@@ -13,10 +13,15 @@ import ProfileInfo from "./ProfileInfo";
 import PostsSection from "./PostsSection";
 import ActionButtons from "./ActionButtons";
 import ShareButton from "./ShareButton";
+import ResourcesSection from "./ResourcesSection";
+import ResourceFormModal from '../Resources/ResourceFormModal';
+import { useResources } from "../../context/ResourcesContext";
+
 
 function UserProfile() {
   const { user: currentUser, isAuthenticated, isLoading: authLoading, updateUser, logout, isSuspended } = useAuth();
   const { initializeProfilePopularity } = usePopularity();
+  const { fetchResources } = useResources();
   const navigate = useNavigate();
   const { username } = useParams();
 
@@ -28,6 +33,10 @@ function UserProfile() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [adminRole, setAdminRole] = useState("");
   const [error, setError] = useState(null);
+  const [activeTab, setActiveTab] = useState('posts');
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingResource, setEditingResource] = useState(null);
+
 
   // Dialog state
   const [dialog, setDialog] = useState({
@@ -73,6 +82,26 @@ function UserProfile() {
         "Failed to logout. Please try again.",
         "error"
       );
+    }
+  };
+
+  // This is the handler that opens the modal with the correct data
+  const handleEditResource = (resource) => {
+    setEditingResource(resource);
+    setShowEditModal(true);
+  };
+
+  const handleModalClose = () => {
+    setEditingResource(null);
+    setShowEditModal(false);
+  };
+
+  // Function to fetch resources, passed as a prop to the modal
+  const handleResourceEdit = () => {
+    if (profileUser) {
+        // Here we call the fetchResources function from the context.
+        // It's a placeholder for re-fetching the updated list.
+        fetchResources(1, 10, null, null, null, profileUser._id);
     }
   };
 
@@ -240,10 +269,40 @@ function UserProfile() {
 
               {/* Posts Section - Takes up 2 columns on large screens */}
               <div className="lg:col-span-2 order-2 lg:order-2">
-                <PostsSection 
-                  user={profileUser}
-                  isOwnProfile={isOwnProfile}
-                />
+                {/* Tab Navigation */}
+                <div className="bg-white rounded-t-2xl shadow-sm border border-gray-100 flex overflow-hidden mb-4">
+                  <button 
+                    onClick={() => setActiveTab('posts')}
+                    className={`flex-1 py-3 text-center font-medium transition-colors ${
+                      activeTab === 'posts' ? 'text-orange-600 border-b-2 border-orange-600' : 'text-gray-600 hover:text-orange-500'
+                    }`}
+                  >
+                    Posts
+                  </button>
+                  <button 
+                    onClick={() => setActiveTab('resources')}
+                    className={`flex-1 py-3 text-center font-medium transition-colors ${
+                      activeTab === 'resources' ? 'text-orange-600 border-b-2 border-orange-600' : 'text-gray-600 hover:text-orange-500'
+                    }`}
+                  >
+                    Resources
+                  </button>
+                </div>
+
+                {/* Tab Content */}
+                {activeTab === 'posts' && (
+                  <PostsSection 
+                    user={profileUser}
+                    isOwnProfile={isOwnProfile}
+                  />
+                )}
+                {activeTab === 'resources' && (
+                  <ResourcesSection
+                    user={profileUser}
+                    isOwnProfile={isOwnProfile}
+                    onEdit={handleEditResource}
+                  />
+                )}
               </div>
             </div>
           </div>
@@ -259,6 +318,15 @@ function UserProfile() {
           type={dialog.type}
           showConfirm={dialog.showConfirm}
           onConfirm={dialog.onConfirm}
+        />
+      )}
+      
+      {isOwnProfile && (
+        <ResourceFormModal
+          isOpen={showEditModal}
+          onClose={handleModalClose}
+          initialData={editingResource}
+          onResourceCreated={handleResourceEdit}
         />
       )}
     </>

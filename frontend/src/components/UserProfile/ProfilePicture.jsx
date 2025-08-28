@@ -271,7 +271,7 @@ const ProfilePicture = ({ user: profileUser, updateUser, showDialog, isOwnProfil
           className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4"
           onClick={closePictureModal}
         >
-          <div className="relative max-w-2xl max-h-[80vh] bg-white rounded-2xl shadow-2xl overflow-hidden">
+          <div className="relative max-w-2xl w-auto max-h-[80vh] bg-white rounded-2xl shadow-2xl overflow-hidden">
             <button
               onClick={closePictureModal}
               className="absolute top-4 right-4 z-10 w-10 h-10 bg-black/50 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-black/70 transition-colors"
