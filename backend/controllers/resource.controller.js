@@ -122,7 +122,9 @@ const updateResource = async (req, res) => {
     resource.description = description || resource.description;
     resource.link = link || resource.link;
     resource.category = category || resource.category;
-    resource.tags = tags ? tags.split(',').map(tag => tag.trim()) : resource.tags;
+    resource.tags = typeof tags === 'string'
+          ? tags.split(',').map(tag => tag.trim()).filter(t => t !== '')
+          : tags || [],
     resource.thumbnail = thumbnail || resource.thumbnail;
 
     await resource.save();
@@ -253,6 +255,49 @@ const rejectResource = async (req, res) => {
   }
 };
 
+const getResourcesByUserId = async (req, res) => {
+    try {
+        const { userId } = req.params;
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const { search } = req.query; // New: Get search query from URL
+
+        const skip = (page - 1) * limit;
+
+        // Only fetch approved resources for a public profile view
+        const query = { author: userId, status: "approved" };
+
+        // Add search filtering if a search query is present
+        if (search) {
+            query.$text = { $search: search };
+        }
+
+        const resources = await Resource.find(query)
+            .populate('author', 'fullName username profilePicture')
+            .populate('approvedBy', 'fullName username')
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit);
+
+        const totalResources = await Resource.countDocuments(query);
+        const totalPages = Math.ceil(totalResources / limit);
+
+        res.status(200).json({
+            message: "User resources fetched successfully.",
+            resources,
+            pagination: {
+                totalResources,
+                currentPage: page,
+                totalPages,
+                hasMore: page < totalPages,
+            },
+        });
+    } catch (error) {
+        console.error("Error fetching user resources:", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+};
+
 export {
   createResource,
   getAllResources,
@@ -262,4 +307,5 @@ export {
   getPendingResources,
   approveResource,
   rejectResource,
+  getResourcesByUserId,
 };

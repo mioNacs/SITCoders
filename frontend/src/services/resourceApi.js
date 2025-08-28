@@ -15,6 +15,19 @@ export const getAllResources = async (page = 1, limit = 10, category, search, ad
   }
 };
 
+export const getResourcesByUserId = async (userId, page = 1, limit = 10, search) => {
+  try {
+    const params = new URLSearchParams({ page, limit });
+    if (search) {
+        params.append('search', search);
+    }
+    const response = await api.get(`/api/resources/user/${userId}?${params.toString()}`);
+    return response.data;
+  } catch (error) {
+    throw error.response?.data?.message || 'Failed to fetch user resources';
+  }
+};
+
 // Function to submit a new resource (for regular and admin users)
 export const createResource = async (resourceData) => {
   try {

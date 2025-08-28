@@ -10,12 +10,14 @@ import {
   getPendingResources,
   approveResource,
   rejectResource,
+  getResourcesByUserId,
 } from "../controllers/resource.controller.js";
 
 const router = Router();
 
 // Public routes for fetching resources
 router.get("/get-all", getAllResources);
+router.get("/user/:userId", getResourcesByUserId);
 
 // Protected routes for authenticated users
 router.post("/create", isVarifiedByAdmin, createResource);
