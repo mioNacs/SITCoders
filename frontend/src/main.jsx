@@ -22,13 +22,14 @@ import {
   SinglePostView,
   ForgotPassword,
   Settings,
-  LeaderBoard
+  LeaderBoard,
 } from "./components";
 import { AuthProvider } from "./context/AuthContext.jsx";
 import { PostsProvider } from "./context/PostsContext.jsx";
 import { PostUIProvider } from "./context/PostUIContext.jsx";
 import { CommentsUIProvider } from "./context/CommentsUIContext.jsx";
 import { PopularityProvider } from "./context/PopularityContext.jsx";
+import { ResourcesProvider } from "./context/ResourcesContext.jsx";
 
 const router = createBrowserRouter(
   createRoutesFromElements(
@@ -58,7 +59,9 @@ createRoot(document.getElementById("root")).render(
         <PostsProvider>
           <PostUIProvider>
             <CommentsUIProvider>
-              <RouterProvider router={router} />
+              <ResourcesProvider>
+                <RouterProvider router={router} />
+              </ResourcesProvider>
             </CommentsUIProvider>
           </PostUIProvider>
         </PostsProvider>

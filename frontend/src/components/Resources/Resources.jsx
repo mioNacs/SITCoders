@@ -1,60 +1,44 @@
+// frontend/src/components/Resources/Resources.jsx
 import React, { useState, useEffect } from 'react';
 import { FaPlus, FaSpinner, FaSearch, FaTimes, FaUserShield } from 'react-icons/fa';
 import ResourceCard from './ResourceCard';
 import ResourceFormModal from './ResourceFormModal';
 import Pagination from '../UI/Pagination';
 import { useUrlPagination } from '../../hooks/useUrlPagination';
-import { getAllResources } from '../../services/resourceApi';
 import { useAuth } from '../../context/AuthContext';
+import { useResources } from '../../context/ResourcesContext'; // Updated import
 import { toast } from 'react-toastify';
+import { getAllResources } from '../../services/resourceApi'; // Re-added for local fetch within this file
 
 function Resources() {
   const { user, isAuthenticated, isSuspended } = useAuth();
-  const [resources, setResources] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { resources, loading, pagination, fetchResources, handleUpvote } = useResources();
   const [showSubmitModal, setShowSubmitModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [submittedSearchQuery, setSubmittedSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState('All');
   const [editingResource, setEditingResource] = useState(null); 
-  const [adminOnly, setAdminOnly] = useState(false); // Changed to a boolean for the checkbox
+  const [adminOnly, setAdminOnly] = useState(false);
   
-  const [pagination, setPagination] = useState({
-    totalResources: 0,
-    currentPage: 1,
-    totalPages: 1,
-    hasMore: false,
-  });
-
   const { currentPage, goToPage } = useUrlPagination();
 
   const categories = ["All", "Career Guides", "Roadmaps", "Playlists", "Notes & PYQs"];
 
-  const fetchResources = async (page = 1, limit = 10) => {
-    setLoading(true);
-    try {
-      const response = await getAllResources(
-        page,
-        limit,
-        activeCategory !== 'All' ? activeCategory : null,
-        submittedSearchQuery || null,
-        adminOnly // Pass the checkbox state
-      );
-      setResources(response.resources || []);
-      setPagination(response.pagination || { totalResources: 0, currentPage: 1, totalPages: 1, hasMore: false });
-    } catch (error) {
-      toast.error(error);
-      setResources([]);
-      setPagination({ totalResources: 0, currentPage: 1, totalPages: 1, hasMore: false });
-    } finally {
-      setLoading(false);
-    }
+  const fetchResourcesWithParams = async (page = 1, limit = 10) => {
+    // This is now an internal function to call the context's fetch method
+    await fetchResources(
+      page,
+      limit,
+      activeCategory !== 'All' ? activeCategory : null,
+      submittedSearchQuery || null,
+      adminOnly
+    );
   };
 
   useEffect(() => {
     if (!isAuthenticated) return;
-    fetchResources(currentPage); 
-  }, [isAuthenticated, currentPage, activeCategory, submittedSearchQuery, adminOnly]); // Updated dependency array
+    fetchResourcesWithParams(currentPage);
+  }, [isAuthenticated, currentPage, activeCategory, submittedSearchQuery, adminOnly]);
 
   const handlePageChange = (newPage) => {
     goToPage(newPage);
@@ -78,7 +62,7 @@ function Resources() {
   };
 
   const handleResourceCreated = () => {
-    fetchResources(currentPage);
+    fetchResourcesWithParams(currentPage);
     setEditingResource(null);
   };
   
@@ -199,9 +183,9 @@ function Resources() {
               <ResourceCard
                 key={resource._id}
                 resource={resource}
-                onUpvote={() => fetchResources(currentPage)}
+                onUpvote={() => handleUpvote(resource._id)}
                 onEdit={handleEditClick}
-                onDelete={() => fetchResources(currentPage)}
+                onDelete={() => fetchResourcesWithParams(currentPage)}
               />
             ))}
           </div>

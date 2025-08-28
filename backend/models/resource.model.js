@@ -21,7 +21,7 @@ const resourceSchema = new mongoose.Schema(
         createdByAdmin: { type: Boolean, default: false },
         approvedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
         status: { type: String, enum: ["pending", "approved", "rejected"], default: "pending" },
-        upvotes: { type: Number, default: 0 },
+        upvotes: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     },
     { timestamps: true }
 );
