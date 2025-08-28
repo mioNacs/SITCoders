@@ -63,3 +63,6 @@ app.use('/api/popularity', verifyUser, isSuspended, popularityRoute);
 
 import contactRoutes from './routes/contact.route.js';
 app.use('/api/contact', verifyUser, contactRoutes);
+
+import resourceRoutes from './routes/resource.route.js';
+app.use('/api/resources', verifyUser, isSuspended, resourceRoutes);
