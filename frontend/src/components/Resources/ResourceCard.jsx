@@ -1,15 +1,24 @@
 // frontend/src/components/Resources/ResourceCard.jsx
-import React, { useState } from 'react';
-import { FaUserCircle, FaStar, FaLink, FaEdit, FaTrash, FaRegStar } from 'react-icons/fa';
-import { FiCheckCircle } from 'react-icons/fi';
-import { Link } from 'react-router-dom';
-import { toast } from 'react-toastify';
-import { useAuth } from '../../context/AuthContext';
-import { useResources } from '../../context/ResourcesContext'; // New import
-import ResourceDeleteModal from './ResourceDeleteModal';
-import ThumbnailViewModal from './ThumbnailViewModal';
+import React, { useState } from "react";
+import {
+  FaUserCircle,
+  FaStar,
+  FaLink,
+  FaEdit,
+  FaTrash,
+  FaRegStar,
+  FaShare,
+} from "react-icons/fa";
+import { FiCheckCircle } from "react-icons/fi";
+import { Link } from "react-router-dom";
+import { toast } from "react-toastify";
+import { useAuth } from "../../context/AuthContext";
+import { useResources } from "../../context/ResourcesContext"; // New import
+import ResourceDeleteModal from "./ResourceDeleteModal";
+import ThumbnailViewModal from "./ThumbnailViewModal";
+import ShareResourceButton from "./ShareResourceButton";
 
-const ResourceCard = ({ resource, onEdit, onDelete }) => {
+const ResourceCard = ({ resource, onEdit, onDelete, onShare }) => {
   const { user, isAdmin, isAuthenticated } = useAuth();
   const { handleUpvote } = useResources();
   const upvoters = resource.upvotes || [];
@@ -27,12 +36,12 @@ const ResourceCard = ({ resource, onEdit, onDelete }) => {
       return;
     }
     await handleUpvote(resource._id);
-  }
+  };
 
   const handleDelete = async () => {
     try {
       await deleteResource(resource._id);
-      toast.success('Resource deleted successfully!');
+      toast.success("Resource deleted successfully!");
       if (onDelete) onDelete();
       setShowDeleteModal(false);
     } catch (error) {
@@ -41,16 +50,16 @@ const ResourceCard = ({ resource, onEdit, onDelete }) => {
   };
 
   const statusColor = {
-    pending: 'bg-yellow-100 text-yellow-800',
-    approved: 'bg-green-100 text-green-800',
-    rejected: 'bg-red-100 text-red-800',
+    pending: "bg-yellow-100 text-yellow-800",
+    approved: "bg-green-100 text-green-800",
+    rejected: "bg-red-100 text-red-800",
   };
 
   return (
     <>
-      <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 flex flex-col md:flex-row gap-4">
+      <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-4 md:p-6 flex flex-col md:flex-row gap-4">
         {/* Thumbnail Section */}
-        <div 
+        <div
           className="flex-shrink-0 w-full md:w-56 cursor-pointer"
           onClick={() => setShowThumbnailModal(true)}
         >
@@ -72,7 +81,9 @@ const ResourceCard = ({ resource, onEdit, onDelete }) => {
           <div>
             <div className="flex items-start justify-between mb-2">
               <div className="flex items-center gap-2">
-                <h3 className="text-lg sm:text-xl font-bold text-gray-800">{resource.title}</h3>
+                <h3 className="text-lg sm:text-xl font-bold text-gray-800">
+                  {resource.title}
+                </h3>
               </div>
               {canModify && (
                 <div className="flex gap-2">
@@ -94,9 +105,11 @@ const ResourceCard = ({ resource, onEdit, onDelete }) => {
               )}
             </div>
 
-            <p className="text-sm sm:text-md text-gray-600 mb-3">{resource.description}</p>
+            <p className="text-sm sm:text-md text-gray-600 mb-3">
+              {resource.description}
+            </p>
             <div className="flex flex-wrap gap-2 text-xs text-gray-500 mb-3">
-              {resource.tags.map(tag => (
+              {resource.tags.map((tag) => (
                 <span key={tag} className="bg-gray-100 px-2 py-1 rounded-full">
                   {tag}
                 </span>
@@ -104,43 +117,60 @@ const ResourceCard = ({ resource, onEdit, onDelete }) => {
             </div>
           </div>
 
-          <div className="flex flex-col gap-2 md:flex-row md:justify-between items-start md:items-center mt-auto pt-4 border-t border-gray-100">
-            <div className="flex items-start md:items-center gap-2 text-sm text-gray-500">
-              {resource.author?.profilePicture?.url ? (
-                <img src={resource.author.profilePicture.url} alt="Author" className="w-6 h-6 rounded-full" />
-              ) : (
-                <FaUserCircle className="w-6 h-6 text-gray-400" />
-              )}
-              <Link to={`/profile/${resource.author.username}`} className={`hover:underline ${resource.createdByAdmin && "text-orange-500 font-semibold"}`}>
-                {resource.author.fullName || resource.author.username}
-              </Link>
-            </div>
-            
+          <div className="flex flex-col gap-2  md:flex-row md:justify-between items-start md:items-center mt-auto pt-4 border-t border-gray-100">
+              <div className="flex items-center gap-2 text-sm text-gray-500">
+                <Link to={`/profile/${resource.author.username}`}>
+                {resource.author?.profilePicture?.url ? (
+                  <img
+                    src={resource.author.profilePicture.url}
+                    alt="Author"
+                    className="w-6 h-6 rounded-full hover:opacity-80 transition-opacity"
+                  />
+                ) : (
+                  <FaUserCircle className="w-6 h-6 text-gray-400" />
+                )}
+                </Link>
+                <div className="flex flex-col">
+                  <Link to={`/profile/${resource.author.username}`}>
+                  <span className={`hover:underline ${resource.createdByAdmin && "text-orange-500 font-semibold"}`}>
+                  {resource.author.fullName || resource.author.username}
+                  </span>
+                  </Link>
+                  {resource.approvedBy && (
+                    <span className="text-green-800 text-xs font-medium rounded-full">
+                      Approved by {resource.approvedBy.fullName}
+                    </span>
+                  )}
+                </div>
+              </div>
+
             <div className="flex gap-2 items-center">
-              {resource.approvedBy && (
-                <span className="ml-2 bg-green-100 text-green-800 text-xs font-medium px-2 py-1 rounded-full">Approved by {resource.approvedBy.fullName}</span>
-              )}
               <button
-                  onClick={onUpvoteClick}
-                  className={`flex items-center gap-1 px-3 py-1.5 rounded-lg transition-colors
-                  ${isUpvoted ? 'bg-orange-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+                onClick={onUpvoteClick}
+                className={`flex items-center gap-1 px-3 py-1.5 rounded-lg transition-colors
+                  ${
+                    isUpvoted
+                      ? "bg-orange-500 text-white"
+                      : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                  }`}
               >
-                  {isUpvoted ? <FaStar size={14} /> : <FaRegStar size={14} />}
-                  <span className="text-sm font-medium">{upvoters.length}</span>
+                {isUpvoted ? <FaStar size={14} /> : <FaRegStar size={14} />}
+                <span className="text-sm font-medium">{upvoters.length}</span>
               </button>
               <a
-                  href={resource.link}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-1 px-3 py-1.5 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition-colors"
+                href={resource.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1 px-3 py-1.5 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition-colors"
               >
-                  <FaLink size={14} /> View
+                <FaLink size={14} /> <span>View</span>
               </a>
+              <ShareResourceButton resource={resource} onShare={onShare} />
             </div>
           </div>
         </div>
       </div>
-      
+
       <ResourceDeleteModal
         isOpen={showDeleteModal}
         onClose={() => setShowDeleteModal(false)}
@@ -148,7 +178,7 @@ const ResourceCard = ({ resource, onEdit, onDelete }) => {
         resourceId={resource._id}
       />
       {resource.thumbnail && (
-        <ThumbnailViewModal 
+        <ThumbnailViewModal
           isOpen={showThumbnailModal}
           onClose={() => setShowThumbnailModal(false)}
           thumbnailUrl={resource.thumbnail}
