@@ -208,7 +208,7 @@ const getPendingResources = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
-
+// This will approve the resources
 const approveResource = async (req, res) => {
   try {
     const { resourceId } = req.params;
@@ -234,6 +234,7 @@ const approveResource = async (req, res) => {
   }
 };
 
+// this will reject the resources
 const rejectResource = async (req, res) => {
   try {
     const { resourceId } = req.params;
@@ -254,7 +255,7 @@ const rejectResource = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
-
+// this will get the resources by user id
 const getResourcesByUserId = async (req, res) => {
     try {
         const { userId } = req.params;
