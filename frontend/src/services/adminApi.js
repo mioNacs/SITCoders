@@ -246,3 +246,26 @@ export const searchUsersInAdmin = async (username) => {
     throw error;
   }
 };
+
+export const updateRollNo = async (userId, rollNo) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/admin/update-rollNo/${userId}`, {
+      method: 'PUT',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ userId, rollNo })
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || 'Failed to update roll number');
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error updating roll number:', error);
+    throw error;
+  }
+}
