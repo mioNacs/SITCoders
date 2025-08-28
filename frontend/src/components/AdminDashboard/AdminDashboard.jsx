@@ -9,7 +9,7 @@ import {
   rejectUser,
   getSuspendedUsers,
 } from "../../services/adminApi.js";
-import { FaUsers, FaEnvelope, FaCrown, FaSpinner } from "react-icons/fa";
+import { FaUsers, FaEnvelope, FaCrown, FaSpinner, FaBookOpen } from "react-icons/fa";
 import { MdAdminPanelSettings, MdVerifiedUser } from "react-icons/md";
 import Dialog from "../UI/Dialog";
 
@@ -17,6 +17,7 @@ import Dialog from "../UI/Dialog";
 import UnverifiedUsers from "./UnverifiedUsers";
 import VerifiedUsers from "./VerifiedUsers";
 import SuspendedUsers from "./SuspendedUsers";
+import ResourceManagement from './ResourceManagement';
 
 function AdminDashboard() {
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
@@ -34,6 +35,7 @@ function AdminDashboard() {
   const [currentAction, setCurrentAction] = useState(null);
   const [showUsers, setShowUsers] = useState("verified"); // Set verified as default
   const [suspendedCount, setSuspendedCount] = useState(0);
+  const [activeTab, setActiveTab] = useState('users');
 
   const handleShowUsers = (type) => {
     setShowUsers(type);
@@ -212,10 +214,10 @@ function AdminDashboard() {
       if (!res.isAdmin) {
         navigate("/");
       } else {
-  setAdminStatus(res);
-  fetchUnverifiedUsers();
-  fetchVerifiedUsers();
-  fetchSuspendedUsersCount();
+        setAdminStatus(res);
+        fetchUnverifiedUsers();
+        fetchVerifiedUsers();
+        fetchSuspendedUsersCount();
       }
       setLoading(false);
     });
@@ -233,10 +235,18 @@ function AdminDashboard() {
     );
   }
 
+  const activeTabClasses = (tabName) => 
+    `flex items-center gap-2 px-4 py-3 text-lg font-medium transition-colors ${
+      activeTab === tabName
+        ? 'text-orange-600 bg-orange-100 border-b-2 border-orange-500'
+        : 'text-gray-600 hover:text-orange-500 hover:bg-gray-50'
+    }`;
+
+
   return (
     <>
       <div className="pt-20 min-h-screen bg-gradient-to-br from-orange-50 to-orange-100">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 md:py-8">
+        <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 py-4 md:py-8">
           
           {/* Header Section */}
           <div className="mb-6 md:mb-8">
@@ -303,99 +313,122 @@ function AdminDashboard() {
             </div>
           </div>
           
-          {/* Stats Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4 mb-6 md:mb-8">
-            <div 
-              onClick={() => handleShowUsers("unverified")}
-              className={`bg-white rounded-lg shadow-md p-4 md:p-6 border-l-4 ${
-                showUsers === "unverified" ? "border-orange-500" : "border-white"
-              } cursor-pointer hover:border-orange-500 transition-colors duration-200`}
-            >
-              <div className="flex items-center space-x-2 md:space-x-3">
-                <FaUsers className="text-orange-500 flex-shrink-0" size={18} />
-                <span className="text-sm md:text-base font-medium text-gray-600">
-                  Pending Users
-                </span>
-              </div>
-              <div className="text-xl md:text-2xl lg:text-3xl font-bold text-gray-800 mt-2">
-                {unverifiedUsers.length}
-              </div>
-            </div>
-            
-            <div 
-              onClick={() => handleShowUsers("verified")}
-              className={`bg-white rounded-lg shadow-md p-4 md:p-6 border-l-4 ${
-                showUsers === "verified" ? "border-green-500" : "border-white"
-              } cursor-pointer hover:border-green-500 transition-colors duration-200`}
-            >
-              <div className="flex items-center space-x-2 md:space-x-3">
-                <FaUsers className="text-green-500 flex-shrink-0" size={18} />
-                <span className="text-sm md:text-base font-medium text-gray-600">
-                  Verified Users
-                </span>
-              </div>
-              <div className="text-xl md:text-2xl lg:text-3xl font-bold text-gray-800 mt-2">
-                {pagination.totalUsers || verifiedUsers.length}
-              </div>
-            </div>
-
-            <div 
-              onClick={() => handleShowUsers("suspended")}
-              className={`bg-white rounded-lg shadow-md p-4 md:p-6 border-l-4 ${
-                showUsers === "suspended" ? "border-red-500" : "border-white"
-              } cursor-pointer hover:border-red-500 transition-colors duration-200`}
-            >
-              <div className="flex items-center space-x-2 md:space-x-3">
-                <FaUsers className="text-red-500 flex-shrink-0" size={18} />
-                <span className="text-sm md:text-base font-medium text-gray-600">
-                  Suspended Users
-                </span>
-              </div>
-              <div className="text-xl md:text-2xl lg:text-3xl font-bold text-gray-800 mt-2">
-                {suspendedCount}
-              </div>
-            </div>
+          {/* Main Content Tabs */}
+          <div className="flex justify-start items-end mb-6 border-b border-gray-200">
+            <button className={activeTabClasses('users')} onClick={() => setActiveTab('users')}>
+              <FaUsers />
+              <span>Users</span>
+            </button>
+            <button className={activeTabClasses('resources')} onClick={() => setActiveTab('resources')}>
+              <FaBookOpen />
+              <span>Resources</span>
+            </button>
           </div>
 
-          {/* Unverified Users Component */}
-          {showUsers === "unverified" && (
-            <UnverifiedUsers
-              unverifiedUsers={unverifiedUsers}
-              handleVerifyUser={handleVerifyUser}
-              handleRejectUser={handleRejectUser}
-              actionLoading={actionLoading}
-              verifyLoading={verifyLoading}
-              rejectLoading={rejectLoading}
-              currentAction={currentAction}
-              formatJoinDate={formatJoinDate}
-            />
+          {/* Users Tab Content */}
+          {activeTab === 'users' && (
+            <>
+              {/* Stats Cards */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4 mb-6 md:mb-8">
+                <div 
+                  onClick={() => handleShowUsers("unverified")}
+                  className={`bg-white rounded-lg shadow-md p-4 md:p-6 border-l-4 ${
+                    showUsers === "unverified" ? "border-orange-500" : "border-white"
+                  } cursor-pointer hover:border-orange-500 transition-colors duration-200`}
+                >
+                  <div className="flex items-center space-x-2 md:space-x-3">
+                    <FaUsers className="text-orange-500 flex-shrink-0" size={18} />
+                    <span className="text-sm md:text-base font-medium text-gray-600">
+                      Pending Users
+                    </span>
+                  </div>
+                  <div className="text-xl md:text-2xl lg:text-3xl font-bold text-gray-800 mt-2">
+                    {unverifiedUsers.length}
+                  </div>
+                </div>
+                
+                <div 
+                  onClick={() => handleShowUsers("verified")}
+                  className={`bg-white rounded-lg shadow-md p-4 md:p-6 border-l-4 ${
+                    showUsers === "verified" ? "border-green-500" : "border-white"
+                  } cursor-pointer hover:border-green-500 transition-colors duration-200`}
+                >
+                  <div className="flex items-center space-x-2 md:space-x-3">
+                    <FaUsers className="text-green-500 flex-shrink-0" size={18} />
+                    <span className="text-sm md:text-base font-medium text-gray-600">
+                      Verified Users
+                    </span>
+                  </div>
+                  <div className="text-xl md:text-2xl lg:text-3xl font-bold text-gray-800 mt-2">
+                    {pagination.totalUsers || verifiedUsers.length}
+                  </div>
+                </div>
+
+                <div 
+                  onClick={() => handleShowUsers("suspended")}
+                  className={`bg-white rounded-lg shadow-md p-4 md:p-6 border-l-4 ${
+                    showUsers === "suspended" ? "border-red-500" : "border-white"
+                  } cursor-pointer hover:border-red-500 transition-colors duration-200`}
+                >
+                  <div className="flex items-center space-x-2 md:space-x-3">
+                    <FaUsers className="text-red-500 flex-shrink-0" size={18} />
+                    <span className="text-sm md:text-base font-medium text-gray-600">
+                      Suspended Users
+                    </span>
+                  </div>
+                  <div className="text-xl md:text-2xl lg:text-3xl font-bold text-gray-800 mt-2">
+                    {suspendedCount}
+                  </div>
+                </div>
+              </div>
+
+              {/* Unverified Users Component */}
+              {showUsers === "unverified" && (
+                <UnverifiedUsers
+                  unverifiedUsers={unverifiedUsers}
+                  handleVerifyUser={handleVerifyUser}
+                  handleRejectUser={handleRejectUser}
+                  actionLoading={actionLoading}
+                  verifyLoading={verifyLoading}
+                  rejectLoading={rejectLoading}
+                  currentAction={currentAction}
+                  formatJoinDate={formatJoinDate}
+                />
+              )}
+
+              {/* Verified Users Component */}
+              {showUsers === "verified" && (
+                <VerifiedUsers
+                  verifiedUsers={verifiedUsers}
+                  showDialog={showDialog}
+                  verifiedLoading={verifiedLoading}
+                  pagination={pagination}
+                  handlePageChange={handlePageChange}
+                  formatJoinDate={formatJoinDate}
+                  adminStatus={adminStatus}
+                  onRefresh={() => fetchVerifiedUsers(pagination.currentPage)}
+                  onSuspendedCountRefresh={fetchSuspendedUsersCount}
+                  onUpdateUserSuspension={onUpdateUserSuspension}
+                />
+              )}
+
+              {/* Suspended Users Component */}
+              {showUsers === "suspended" && (
+                <SuspendedUsers
+                  showDialog={showDialog}
+                  adminStatus={adminStatus}
+                  onCountChange={setSuspendedCount}
+                  onUpdateUserSuspension={onUpdateUserSuspension}
+                />
+              )}
+            </>
           )}
 
-          {/* Verified Users Component */}
-          {showUsers === "verified" && (
-            <VerifiedUsers
-              verifiedUsers={verifiedUsers}
-              showDialog={showDialog}
-              verifiedLoading={verifiedLoading}
-              pagination={pagination}
-              handlePageChange={handlePageChange}
-              formatJoinDate={formatJoinDate}
-              adminStatus={adminStatus}
-              onRefresh={() => fetchVerifiedUsers(pagination.currentPage)}
-              onSuspendedCountRefresh={fetchSuspendedUsersCount}
-              onUpdateUserSuspension={onUpdateUserSuspension}
-            />
+          {/* Resources Tab Content */}
+          {activeTab === 'resources' && (
+            <ResourceManagement />
           )}
 
-          {/* Suspended Users Component */}
-          {showUsers === "suspended" && (
-            <SuspendedUsers
-              showDialog={showDialog}
-              adminStatus={adminStatus}
-              onCountChange={setSuspendedCount}
-              onUpdateUserSuspension={onUpdateUserSuspension}
-            />
-          )}
         </div>
       </div>
 

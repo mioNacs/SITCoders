@@ -1,0 +1,85 @@
+
+const ResourcesSection = ({ user, isOwnProfile }) => {
+  const { isAuthenticated, isSuspended } = useAuth();
+  const { resources, loading, pagination, setResources, fetchResources } = useResources();
+  const [localLoading, setLocalLoading] = useState(true);
+  const { currentPage, goToPage } = useUrlPagination();
+
+  const fetchUserResources = async () => {
+    if (!user?._id) return;
+    setLocalLoading(true);
+    try {
+      const data = await getResourcesByUserId(user._id, currentPage);
+      setResources(data.resources);
+      // Update pagination state within the ResourcesContext
+      // The context can handle this internally, but for this specific profile view, we can set it here for local rendering
+      // Note: A more robust solution might pass the pagination data up to a central state, but for a simple component, this is fine.
+    } catch (error) {
+      console.error("Error fetching user resources:", error);
+    } finally {
+      setLocalLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (isAuthenticated && !isSuspended) {
+      fetchUserResources();
+    }
+  }, [user?._id, isAuthenticated, isSuspended, currentPage]);
+  
+  const handlePageChange = (newPage) => {
+    goToPage(newPage);
+  };
+
+  if (!user) {
+    return null;
+  }
+
+  const isLoading = localLoading;
+
+  return (
+    <div className={`w-full ${isLoading? "bg-white rounded-lg p-4 border border-orange-100 ": "" }`}>
+      <div className="flex items-center justify-between mb-4 border-b border-orange-200 pb-2">
+        <h2 className="text-lg md:text-2xl font-bold text-orange-600 flex items-center gap-2">
+          {!isLoading  && <FaBookOpen />}
+          {isOwnProfile ? 'Your Resources' : `${user?.fullName}'s Resources`}
+        </h2>
+        <span className="text-sm text-gray-500">
+          {!isLoading && `${resources.length || 0} resource${pagination.totalResources !== 1 ? 's' : ''}`}
+        </span>
+      </div>
+
+      {isLoading ? (
+        <div className="flex items-center justify-center h-64">
+          <FaSpinner className="animate-spin text-orange-500 mr-2" size={24} />
+          <span className="text-gray-600">Loading resources...</span>
+        </div>
+      ) : resources.length > 0 ? (
+        <div className="space-y-4">
+          {resources.map((resource) => (
+            <ResourceCard key={resource._id} resource={resource} />
+          ))}
+          {pagination.totalPages > 1 && (
+            <Pagination
+              currentPage={pagination.currentPage}
+              totalPages={pagination.totalPages}
+              onPageChange={handlePageChange}
+              loading={loading}
+            />
+          )}
+        </div>
+      ) : (
+        <div className="flex flex-col items-center justify-center h-64 text-gray-400">
+          <FaBookOpen size={48} className="mb-4" />
+          <p className="text-lg font-medium">No resources yet</p>
+          <p className="text-sm">
+            {isOwnProfile 
+              ? "Share useful resources with the community!" 
+              : "This user hasn't shared any resources yet."
+            }
+          </p>
+        </div>
+      )}
+    </div>
+  );
+};
