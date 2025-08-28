@@ -89,7 +89,7 @@ const ProfileInfo = ({ user, isAdmin, adminRole, showDialog, isOwnProfile = true
   };
 
   return (
-  <div className="text-center">
+  <div className="text-center min-h-65">
       {/* User Name with Admin Badge */}
       <div className="flex items-center justify-center gap-2 mb-2">
         <h1 className="text-2xl font-bold text-gray-900">
