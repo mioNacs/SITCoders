@@ -76,7 +76,20 @@ const createPost = async (req, res) => {
         },
         tag: tag || "general", // Default to 'general' if no tag is provided
       });
-    res.status(201).json({
+      //Notify the users 
+      const users = await User.find({});
+
+      for(let user of users){
+        const notification = new Notification({
+          user: user._id,
+          message: `New post created by ${req.user.username}: ${content}`
+        });
+        await notification.save();
+        const io = req.app.get('io');
+        io.to(user._id).emit('notification', notification);
+      }
+
+    return res.status(201).json({
       message: "Post created successfully",
       post: newPost,
     });
