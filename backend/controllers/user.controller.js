@@ -320,11 +320,20 @@ const loginUser = async (req, res) => {
       return res.status(401).json({ message: "Invalid password" });
     }
     const accessToken = await user.generateAccessToken();
+    const refreshToken = await user.generateRefreshToken();
+    
     if (!accessToken) {
       return res
         .status(500)
         .json({ message: "Failed to generate access token" });
     }
+    if(!refreshToken){
+      return res
+         .status(500)
+          .json({message : "failed to generate refreshtoken"})
+    }
+    user.refreshToken = refreshToken;
+    await user.save({validateBeforeSave:false});
     res.cookie("accessToken", accessToken, {
       httpOnly: true,
       secure: true, // since you’re on https in production
@@ -332,6 +341,13 @@ const loginUser = async (req, res) => {
       maxAge: 24 * 60 * 60 * 1000, // 1 day
       path: "/",
     });
+    res.cookie("refreshToken",refreshToken,{
+      httpOnly:true,
+      secure:true,
+      sameSite:"None",
+      maxAge:7 * 24 * 60 * 60 * 1000,
+      path:"/",
+    })
     res.status(200).json({
       message: "Login successful",
       user: {
@@ -356,6 +372,75 @@ const loginUser = async (req, res) => {
       .json({ message: "Internal server error in loginUser" });
   }
 };
+
+const generateNewToken = async (req, res) => {
+  try {
+    const token = req.cookies?.refreshToken;
+    if (!token) {
+      return res.status(401).json({ message: "Token expired, login required" });
+    }
+
+    // verify refresh token
+    const decodedToken = jwt.verify(token, process.env.REFRESH_TOKEN_SECRET);
+
+    const user = await User.findById(decodedToken._id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // compare with DB stored refreshToken
+    if (user.refreshToken !== token) {
+      return res.status(400).json({ message: "Token does not match with DB" });
+    }
+
+    // generate new tokens
+    const newAccessToken = user.generateAccessToken();
+    const newRefreshToken = user.generateRefreshToken();
+
+    // save new refresh token (sliding session)
+    user.refreshToken = newRefreshToken;
+    await user.save({ validateBeforeSave: false });
+
+    // set cookies
+    res.cookie("accessToken", newAccessToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "None",
+      maxAge: 15 * 60 * 1000, // 15 minutes
+      path: "/",
+    });
+
+    res.cookie("refreshToken", newRefreshToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "None",
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      path: "/",
+    });
+
+    return res.status(200).json({
+      message: "New tokens generated successfully",
+      user: {
+        _id: user._id,
+        isAdminVerified: user.isAdminVerified,
+        bio: user.bio,
+        email: user.email,
+        username: user.username,
+        fullName: user.fullName,
+        profilePicture: user.profilePicture,
+        rollNo: user.rollNo,
+        gender: user.gender,
+        popularity: user.popularity,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+      },
+    });
+  } catch (error) {
+    console.error("ERR: while generating new token", error.message);
+    return res.status(401).json({ message: "Refresh token expired or invalid, please login again" });
+  }
+};
+
 
 const logOutUser = async (req, res) => {
   try {
@@ -914,4 +999,5 @@ export {
   resetPassword,
   deleteAccount,
   searchUsersByUsername,
+  generateNewToken,
 };

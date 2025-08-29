@@ -7,6 +7,7 @@ import {
   FaCalendarAlt,
   FaCrown,
   FaTimes,
+  FaEdit,
   FaBan,
 } from "react-icons/fa";
 import { MdVerifiedUser, MdAdminPanelSettings } from "react-icons/md";
@@ -16,12 +17,14 @@ import {
   suspendUser,
   removeSuspension,
   removeFromAdmin,
+  updateRollNo,
 } from "../../services/adminApi";
 import SuspendUserModal from "./SuspendUserModal";
 import AdminRoleModal from "./AdminRoleModal";
 import UserSearchFilter from "./UserSearchFilter";
 import { useAuth } from "../../context/AuthContext";
 import { searchUsersInAdmin } from "../../services/adminApi";
+import EditRollNoModal from "./EditRollNoModal";
 
 const VerifiedUsers = ({
   verifiedUsers,
@@ -38,6 +41,7 @@ const VerifiedUsers = ({
   const { user: currentUser } = useAuth();
   const [createAdminModal, setCreateAdminModal] = useState(false);
   const [suspendModal, setSuspendModal] = useState(false);
+  const [editRollNoModalOpen, setEditRollNoModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [creatingAdmin, setCreatingAdmin] = useState(false);
   const [suspendingUser, setSuspendingUser] = useState(false);
@@ -139,6 +143,41 @@ const VerifiedUsers = ({
     setSelectedUser(null);
   };
 
+  const openEditRollNoModal = (user) => {
+    setSelectedUser(user);
+    setEditRollNoModalOpen(true);
+  };
+
+  const closeEditRollNoModal = () => {
+    setEditRollNoModalOpen(false);
+    setSelectedUser(null);
+  };
+
+  const handleUpdateRollNo = async (newRollNo) => {
+    console.log(newRollNo)
+    if (!selectedUser) return;
+
+    try {
+      await updateRollNo(selectedUser._id, newRollNo);
+      showDialog(
+        "Success",
+        `Roll number for ${selectedUser.fullName} updated successfully!`,
+        "success"
+      );
+      closeEditRollNoModal();
+      if (typeof onRefresh === "function") {
+        onRefresh();
+      }
+    } catch (error) {
+      console.error("Error updating roll number:", error);
+      showDialog(
+        "Error",
+        error.message || "Failed to update roll number.",
+        "error"
+      );
+    }
+  };
+
   const handleSuspendUser = async ({ durationIn, duration, reason }) => {
     if (!selectedUser || (!duration && durationIn !== "forever")) return;
 
@@ -156,10 +195,10 @@ const VerifiedUsers = ({
         ...prev,
         [selectedUser.email]: true,
       }));
-        // Update parent verified list for this single user
-        if (typeof onUpdateUserSuspension === 'function') {
-          onUpdateUserSuspension(selectedUser.email, true);
-        }
+      // Update parent verified list for this single user
+      if (typeof onUpdateUserSuspension === "function") {
+        onUpdateUserSuspension(selectedUser.email, true);
+      }
 
       closeSuspendModal();
       showDialog(
@@ -169,8 +208,10 @@ const VerifiedUsers = ({
       );
       // Ask parent to refresh the list from server if provided
       if (typeof onRefresh === "function") onRefresh();
-  if (typeof onSuspendedCountRefresh === "function") onSuspendedCountRefresh();
-  if (typeof onSuspendedCountRefresh === "function") onSuspendedCountRefresh();
+      if (typeof onSuspendedCountRefresh === "function")
+        onSuspendedCountRefresh();
+      if (typeof onSuspendedCountRefresh === "function")
+        onSuspendedCountRefresh();
     } catch (error) {
       console.error("Error suspending user:", error);
       showDialog(
@@ -193,10 +234,10 @@ const VerifiedUsers = ({
         ...prev,
         [userItem.email]: false,
       }));
-        // Update parent verified list for this single user
-        if (typeof onUpdateUserSuspension === 'function') {
-          onUpdateUserSuspension(userItem.email, false);
-        }
+      // Update parent verified list for this single user
+      if (typeof onUpdateUserSuspension === "function") {
+        onUpdateUserSuspension(userItem.email, false);
+      }
       showDialog(
         "Success",
         `${userItem.fullName}'s suspension has been removed.`,
@@ -336,13 +377,14 @@ const VerifiedUsers = ({
                 />
               </div>
               <h3 className="text-lg md:text-xl font-semibold text-gray-800 mb-2">
-                {verifiedUsers.length === 0 ? "No Verified Users Yet" : "No Users Found"}
+                {verifiedUsers.length === 0
+                  ? "No Verified Users Yet"
+                  : "No Users Found"}
               </h3>
               <p className="text-gray-600 text-sm md:text-base px-4">
-                {verifiedUsers.length === 0 
+                {verifiedUsers.length === 0
                   ? "Start verifying users to see them here."
-                  : "No users match your search criteria. Try adjusting your search terms."
-                }
+                  : "No users match your search criteria. Try adjusting your search terms."}
               </p>
             </div>
           ) : (
@@ -365,7 +407,7 @@ const VerifiedUsers = ({
                       <div className="flex flex-col space-y-4">
                         <div className="flex items-start space-x-3 md:space-x-4">
                           <div className="relative flex-shrink-0">
-                            <Link 
+                            <Link
                               to={`/profile/${userItem.username}`}
                               className="block hover:opacity-80 transition-opacity"
                             >
@@ -382,13 +424,13 @@ const VerifiedUsers = ({
                           </div>
                           <div className="flex-1 min-w-0">
                             <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
-                              <Link 
+                              <Link
                                 to={`/profile/${userItem.username}`}
                                 className="text-base md:text-lg font-semibold text-gray-800 hover:text-orange-600 transition-colors truncate"
                               >
                                 {userItem.fullName}
                               </Link>
-                              <Link 
+                              <Link
                                 to={`/profile/${userItem.username}`}
                                 className="text-sm md:text-md font-semibold text-orange-600 hover:text-orange-700 transition-colors truncate"
                               >
@@ -524,17 +566,34 @@ const VerifiedUsers = ({
                             )}
 
                             {/* Admin Role Button - toggles create/remove admin modal; superadmin can manage */}
-                            {(adminStatus?.role === "superadmin") && (!currentUserAdminStatus.isAdmin || currentUserAdminStatus.role !== "superadmin") && (
-                              <button
-                                onClick={() => openCreateAdminModal(userItem)}
-                                className="flex items-center justify-center space-x-2 bg-blue-500 text-white px-3 py-2 md:px-4 md:py-2 rounded-lg hover:bg-blue-600 transition-colors transform hover:scale-105 cursor-pointer text-xs md:text-sm"
-                              >
-                                <MdAdminPanelSettings size={14} md:size={16} />
-                                <span>
-                                  Manage Admin Role
-                                </span>
-                              </button>
-                            )}
+                            {adminStatus?.role === "superadmin" &&
+                              (!currentUserAdminStatus.isAdmin ||
+                                currentUserAdminStatus.role !==
+                                  "superadmin") && (
+                                <>
+                                  <button
+                                    onClick={() =>
+                                      openCreateAdminModal(userItem)
+                                    }
+                                    className="flex items-center justify-center space-x-2 bg-blue-500 text-white px-3 py-2 md:px-4 md:py-2 rounded-lg hover:bg-blue-600 transition-colors transform hover:scale-105 cursor-pointer text-xs md:text-sm"
+                                  >
+                                    <MdAdminPanelSettings
+                                      size={14}
+                                      md:size={16}
+                                    />
+                                    <span>Manage Admin Role</span>
+                                  </button>
+                                  <button
+                                    onClick={() =>
+                                      openEditRollNoModal(userItem)
+                                    }
+                                    className="flex items-center justify-center space-x-2 bg-yellow-500 text-white px-3 py-2 md:px-4 md:py-2 rounded-lg hover:bg-yellow-600 transition-colors transform hover:scale-105 cursor-pointer text-xs md:text-sm"
+                                  >
+                                    <FaEdit size={14} md:size={16} />
+                                    <span>Edit Roll No</span>
+                                  </button>
+                                </>
+                              )}
                           </div>
                         </div>
                       </div>
@@ -638,6 +697,16 @@ const VerifiedUsers = ({
         onSubmit={handleSuspendUser}
         submitting={suspendingUser}
       />
+
+      {/* Edit Roll No Modal */}
+      {selectedUser && (
+        <EditRollNoModal
+            isOpen={editRollNoModalOpen}
+            user={selectedUser}
+            onClose={closeEditRollNoModal}
+            onSave={handleUpdateRollNo}
+        />
+      )}
     </>
   );
 };

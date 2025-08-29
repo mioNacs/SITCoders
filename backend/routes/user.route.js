@@ -15,6 +15,7 @@ import {
   verifyOtpForResetPassword,
   sendOtpForResetPassword,
   deleteAccount,
+  generateNewToken,
   searchUsersByUsername,
 } from "../controllers/user.controller.js";
 import upload from "../middlewares/multer.middleware.js";
@@ -44,6 +45,8 @@ router.post(
   handleMulterError,
   sendOtpViaEmail
 );
+
+router.post("/refresh-token", generateNewToken);
 
 // Route for OTP verification
 router.post("/verify-otp", verifyOtp);
