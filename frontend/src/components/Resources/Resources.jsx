@@ -90,7 +90,7 @@ function Resources() {
   if (!isAuthenticated) {
     return (
       <div className='pt-20 h-screen bg-orange-50'>
-        <div className='md:max-w-[90%] h-full lg:max-w-[80%] mx-auto flex items-center justify-center'>
+        <div className='md:max-w-[90%] h-full xl:max-w-[80%] mx-auto flex items-center justify-center'>
           <div className="mx-auto max-w-3xl text-center">
             <h1 className="mt-4 text-4xl font-bold text-gray-900 sm:text-5xl">
               Please Login First
@@ -106,7 +106,7 @@ function Resources() {
 
   return (
     <div className='pt-16 min-h-screen bg-orange-50'>
-      <div className='md:max-w-[90%] lg:max-w-[80%] mx-auto px-4 py-8'>
+      <div className='md:max-w-[90%] xl:max-w-[80%] mx-auto px-4 md:px-0 py-8'>
         {/* Header and Submission button */}
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl md:text-4xl font-bold text-orange-600">Resources</h1>
@@ -184,7 +184,7 @@ function Resources() {
             <span className="ml-4 text-gray-600">Loading resources...</span>
           </div>
         ) : resources.length > 0 ? (
-          <div className="grid grid-cols-1 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {resources.map((resource) => (
               <ResourceCard
                 key={resource._id}
