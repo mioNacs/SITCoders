@@ -1,9 +1,6 @@
 import User from "../models/user.model.js";
 import jwt from "jsonwebtoken";
 
-import jwt from "jsonwebtoken";
-import User from "../models/User.js"; // adjust path to your User model
-
 export const verifyUser = async (req, res, next) => {
   try {
     const authHeader = req.headers["authorization"];
