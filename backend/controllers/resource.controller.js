@@ -111,7 +111,10 @@ const updateResource = async (req, res) => {
     }
 
     const isAuthor = resource.author.equals(userId);
-    const isAdmin = req.isAdmin;
+    
+    // Correctly check if the user is an admin
+    const adminRecord = await Admin.findOne({ admin: userId });
+    const isAdmin = !!adminRecord;
 
     if (!isAuthor && !isAdmin) {
       return res.status(403).json({ message: "Unauthorized. You can only edit your own resources." });
