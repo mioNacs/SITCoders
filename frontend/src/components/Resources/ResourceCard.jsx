@@ -57,20 +57,20 @@ const ResourceCard = ({ resource, onEdit, onDelete, onShare }) => {
 
   return (
     <>
-      <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-4 md:p-6 flex flex-col md:flex-row gap-4">
+      <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-4 md:p-6 flex flex-col gap-4">
         {/* Thumbnail Section */}
         <div
-          className="flex-shrink-0 w-full md:w-56 cursor-pointer"
+          className="flex-shrink-0 w-full cursor-pointer"
           onClick={() => setShowThumbnailModal(true)}
         >
           {resource.thumbnail ? (
             <img
               src={resource.thumbnail}
               alt={resource.title}
-              className="w-full h-32 md:h-full object-cover rounded-lg hover:scale-105 transition-transform"
+              className="w-full h-48 object-cover rounded-lg hover:scale-105 transition-transform"
             />
           ) : (
-            <div className="w-full h-32 md:h-full bg-gray-100 rounded-lg flex items-center justify-center text-gray-500">
+            <div className="w-full h-48  bg-gray-100 rounded-lg flex items-center justify-center text-gray-500">
               No Image
             </div>
           )}
@@ -117,7 +117,7 @@ const ResourceCard = ({ resource, onEdit, onDelete, onShare }) => {
             </div>
           </div>
 
-          <div className="flex flex-col gap-2  md:flex-row md:justify-between items-start md:items-center mt-auto pt-4 border-t border-gray-100">
+          <div className="flex flex-col gap-2  items-start mt-auto pt-4 border-t border-gray-100">
               <div className="flex items-center gap-2 text-sm text-gray-500">
                 <Link to={`/profile/${resource.author.username}`}>
                 {resource.author?.profilePicture?.url ? (
