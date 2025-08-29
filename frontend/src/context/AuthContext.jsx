@@ -33,6 +33,35 @@ export const AuthProvider = ({ children }) => {
     checkAuthStatus();
   }, []);
 
+  // Add an Axios interceptor to handle token refreshes
+  useEffect(() => {
+    const responseInterceptor = api.interceptors.response.use(
+      response => response,
+      async (error) => {
+        const originalRequest = error.config;
+        if (error.response.status === 401 && !originalRequest._retry) {
+          originalRequest._retry = true;
+          try {
+            const { data } = await api.post('/api/users/refresh-token');
+            setUser(data.user);
+            setIsAuthenticated(true);
+            return api(originalRequest);
+          } catch (refreshError) {
+            // If refresh fails, log the user out
+            logout();
+            return Promise.reject(refreshError);
+          }
+        }
+        return Promise.reject(error);
+      }
+    );
+
+    return () => {
+      api.interceptors.response.eject(responseInterceptor);
+    };
+  }, []);
+
+
   // Check admin status when user authentication changes
   useEffect(() => {
     if (isAuthenticated && user?.email) {
@@ -47,7 +76,7 @@ export const AuthProvider = ({ children }) => {
     try {
       setIsLoading(true);
       const response = await api.get('/api/users/current-user');
-      
+
       if (response.data && response.data.user) {
         setUser(response.data.user);
         setIsAuthenticated(true);
@@ -80,19 +109,19 @@ export const AuthProvider = ({ children }) => {
   const login = async (credentials) => {
     try {
       const response = await api.post('/api/users/login', credentials);
-      
+
       if (response.data && response.data.user) {
         setUser(response.data.user);
         setIsAuthenticated(true);
         return { success: true, user: response.data.user, message: response.data.message };
       }
-      
+
       return { success: false, message: response.data.message || 'Login failed' };
     } catch (error) {
       const message = error.response?.data?.message || 'Login failed';
       console.error('Login error:', error);
       return { success: false, message };
-    } 
+    }
   };
 
   const logout = async () => {
@@ -113,11 +142,11 @@ export const AuthProvider = ({ children }) => {
           'Content-Type': 'multipart/form-data',
         },
       });
-      
+
       if (response.data) {
         return { success: true, message: response.data.message, email: response.data.email };
       }
-      
+
       return { success: false, message: 'Registration failed' };
     } catch (error) {
       const message = error.response?.data?.message || 'Registration failed';
@@ -129,27 +158,27 @@ export const AuthProvider = ({ children }) => {
   const verifyOtp = async (email, otp) => {
     try {
       const response = await api.post('/api/users/verify-otp', { email, otp });
-      
+
       if (response.data) {
         return { success: true, message: response.data.message };
       }
-      
+
       return { success: false, message: 'OTP verification failed' };
     } catch (error) {
       const message = error.response?.data?.message || 'OTP verification failed';
       console.error('OTP verification error:', error);
       return { success: false, message };
-    } 
+    }
   };
 
   const resendOtp = async (email) => {
     try {
       const response = await api.post('/api/users/resend-otp', { email });
-      
+
       if (response.data) {
         return { success: true, message: response.data.message };
       }
-      
+
       return { success: false, message: 'Failed to resend OTP' };
     } catch (error) {
       const message = error.response?.data?.message || 'Failed to resend OTP';
@@ -161,7 +190,7 @@ export const AuthProvider = ({ children }) => {
   const updateUser = async (updatedUserData) => {
     try {
       let response;
-      
+
       // Check if it's FormData (for profile picture)
       if (updatedUserData instanceof FormData) {
         response = await api.post('/api/users/update-profile-picture', updatedUserData, {
@@ -190,7 +219,7 @@ export const AuthProvider = ({ children }) => {
         setUser(response.data.user);
         return { success: true, user: response.data.user, message: response.data.message };
       }
-      
+
       return { success: false, message: response?.data?.message || 'Update failed' };
     } catch (error) {
       const message = error.response?.data?.message || 'Update failed';
@@ -202,11 +231,11 @@ export const AuthProvider = ({ children }) => {
   const sendResetPasswordOtp = async (email) => {
     try {
       const response = await api.post('/api/users/send-otp-for-reset-password', { email });
-      
+
       if (response.data) {
         return { success: true, message: response.data.message };
       }
-      
+
       return { success: false, message: 'Failed to send OTP' };
     } catch (error) {
       const message = error.response?.data?.message || 'Failed to send OTP';
@@ -218,11 +247,11 @@ export const AuthProvider = ({ children }) => {
   const verifyResetPasswordOtp = async (email, otp) => {
     try {
       const response = await api.post('/api/users/verify-otp-for-reset-password', { email, otp });
-      
+
       if (response.data) {
         return { success: true, message: response.data.message };
       }
-      
+
       return { success: false, message: 'OTP verification failed' };
     } catch (error) {
       const message = error.response?.data?.message || 'OTP verification failed';
@@ -234,11 +263,11 @@ export const AuthProvider = ({ children }) => {
   const resetPassword = async (newPassword, confirmPassword) => {
     try {
       const response = await api.post('/api/users/reset-password', { newPassword, confirmPassword });
-      
+
       if (response.data) {
         return { success: true, message: response.data.message };
       }
-      
+
       return { success: false, message: 'Password reset failed' };
     } catch (error) {
       const message = error.response?.data?.message || 'Password reset failed';
@@ -252,14 +281,14 @@ export const AuthProvider = ({ children }) => {
       const response = await api.delete('/api/users/delete-account', {
         data: { password }
       });
-      
+
       if (response.data) {
         // Clear user data and redirect
         setUser(null);
         setIsAuthenticated(false);
         return { success: true, message: response.data.message };
       }
-      
+
       return { success: false, message: 'Account deletion failed' };
     } catch (error) {
       const message = error.response?.data?.message || 'Account deletion failed';

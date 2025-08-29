@@ -172,7 +172,7 @@ function LeaderBoard() {
                               : "text-gray-600"
                           }`}
                         >
-                          <div className="text-2xl">{userRank}</div>
+                          <div className="text-lg md:text-xl">{userRank}</div>
                           {isTopThree && (
                             <div
                               className="mt-1 w-3 h-3 rounded-full bg-yellow-300 animate-pulse shadow-lg"
@@ -186,13 +186,13 @@ function LeaderBoard() {
                           <img
                             src={user.profilePicture.url}
                             alt={user.fullName || user.username || "User avatar"}
-                            className={`w-14 h-14 object-cover rounded-full border ${
+                            className={`w-12 md:w-14 h-12 md:h-14 object-cover rounded-full border ${
                               isTopThree ? getGlowBorderClass(index) : "border-gray-200"
                             } shadow-sm`}
                           />
                         ) : (
                           <div
-                            className={`w-14 h-14 object-cover rounded-full border flex items-center justify-center overflow-hidden bg-white ${
+                            className={`w-12 md:w-14 h-12 md:h-14 object-cover rounded-full border flex items-center justify-center overflow-hidden bg-white ${
                               isTopThree ? getGlowBorderClass(index) : "border-gray-200"
                             }`}
                           >
@@ -203,7 +203,7 @@ function LeaderBoard() {
                         {/* User Info */}
                         <div className="flex-1 text-left">
                           <div
-                            className={`font-semibold text-lg truncate max-w-[18rem] ${
+                            className={`font-semibold text-md md:text-lg truncate max-w-[18rem] ${
                               isTopThree ? "text-orange-600" : "text-gray-800"
                             }`}
                             title={user.fullName || "Unknown"}
