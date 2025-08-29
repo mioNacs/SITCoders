@@ -52,7 +52,7 @@ router.post("/refresh-token", generateNewToken);
 router.post("/verify-otp", verifyOtp);
 router.post("/resend-otp", resendOtp);
 router.post("/login", loginUser);
-router.get("/logout", logOutUser);
+router.get("/logout", verifyUser, logOutUser);
 // Route for sending OTP for password reset
 router.post("/send-otp-for-reset-password", sendOtpForResetPassword);
 
