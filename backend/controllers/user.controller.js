@@ -444,7 +444,26 @@ const generateNewToken = async (req, res) => {
 
 const logOutUser = async (req, res) => {
   try {
+    const userId = req.user._id;
+    if (!userId) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    user.refreshToken = null;
+    await user.save({ validateBeforeSave: false }); 
+
+    // Clear cookies
     res.clearCookie("accessToken", {
+      httpOnly: true,
+      secure: true, // must match login
+      sameSite: "None", // must match login
+      path: "/", // must match login
+    });
+    res.clearCookie("refreshToken", {
       httpOnly: true,
       secure: true, // must match login
       sameSite: "None", // must match login
