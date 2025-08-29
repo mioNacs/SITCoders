@@ -93,6 +93,17 @@ const MobileMenu = ({ isMenuOpen, setIsMenuOpen }) => {
               {isAuthenticated ? (
                 <>
                   {/* User Info */}
+                  <NavLink
+                      to="/profile"
+                      className={({ isActive }) =>
+                        `${
+                          isActive
+                            ? "text-orange-400 bg-orange-50 border-r-2 border-orange-400"
+                            : "text-gray-700 hover:text-orange-400 hover:bg-gray-50"
+                        } transition-all duration-200`
+                      }
+                      onClick={closeMenu}
+                    >
                   <div className="flex items-center pl-4">
                     {user?.profilePicture.url ? (
                       <img
@@ -103,13 +114,14 @@ const MobileMenu = ({ isMenuOpen, setIsMenuOpen }) => {
                     ) : (
                       <FaRegUserCircle size={32} className="text-gray-600" />
                     )}
-                    <div className="px-4 py-3 border-b border-gray-100 bg-gray-50">
+                    <div className="px-4 py-3">
                       <p className="font-medium text-gray-900">
                         {user?.fullName}
                       </p>
                       <p className="text-sm text-gray-500">@{user?.username}</p>
                     </div>
                   </div>
+                  </NavLink>
 
                   {/* Mobile User Search */}
                   <MobileUserSearch onUserClick={closeMenu} />
@@ -174,22 +186,6 @@ const MobileMenu = ({ isMenuOpen, setIsMenuOpen }) => {
 
                     {/* Divider */}
                     <div className="border-t border-gray-200 my-2" />
-
-                    {/* Profile Actions */}
-                    <NavLink
-                      to="/profile"
-                      className={({ isActive }) =>
-                        `flex items-center gap-3 px-4 py-3 text-lg ${
-                          isActive
-                            ? "text-orange-400 bg-orange-50 border-r-2 border-orange-400"
-                            : "text-gray-700 hover:text-orange-400 hover:bg-gray-50"
-                        } transition-all duration-200`
-                      }
-                      onClick={closeMenu}
-                    >
-                      <FiUser size={20} />
-                      Profile
-                    </NavLink>
 
                     <NavLink
                       to="/leaderboard"
