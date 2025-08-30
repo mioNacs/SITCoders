@@ -126,7 +126,7 @@ function ViewPost({
             <img
               src={currentPost.postImage.url}
               alt="Post"
-              className="w-full max-w-md object-cover rounded-lg"
+              className="w-full object-cover rounded-lg"
               loading="lazy"
               decoding="async"
             />
