@@ -32,7 +32,28 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true, limit: '16kb' }));
 app.use(express.static('public'));
 
-app.listen(PORT, () => {
+
+import http from 'http';
+import { Server as SocketIOServer } from 'socket.io';
+
+const server = http.createServer(app);
+const io = new SocketIOServer(server, {
+  cors: {
+    origin: process.env.CLIENT_URL || 'http://localhost:5173',
+    credentials: true,
+  }
+});
+
+app.set('io', io);
+
+io.on('connection', (socket) => {
+  // Join room for user to receive notifications
+  socket.on('join', (userId) => {
+    socket.join(userId);
+  });
+});
+
+server.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
 
@@ -66,3 +87,6 @@ app.use('/api/contact', verifyUser, contactRoutes);
 
 import resourceRoutes from './routes/resource.route.js';
 app.use('/api/resources', verifyUser, isSuspended, resourceRoutes);
+
+import notificationRoutes from './routes/notification.route.js';
+app.use('/api/notifications', notificationRoutes);
