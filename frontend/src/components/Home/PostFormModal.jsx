@@ -14,6 +14,49 @@ import { renderSafeMarkdown } from "../../utils/sanitize";
 // No longer need useNavigate
 import { lockBodyScroll, unlockBodyScroll } from "../../utils/scrollLock";
 
+const resizeImage = (file, maxWidth = 1280, quality = 0.8) => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = (event) => {
+      const img = new Image();
+      img.src = event.target.result;
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+
+        let width = img.width;
+        let height = img.height;
+
+        if (width > maxWidth) {
+          height *= maxWidth / width;
+          width = maxWidth;
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        ctx.drawImage(img, 0, 0, width, height);
+
+        canvas.toBlob(
+          (blob) => {
+            if (blob) {
+              // Create a new File object to retain the name and type
+              resolve(new File([blob], file.name, {
+                type: 'image/jpeg',
+                lastModified: Date.now(),
+              }));
+            }
+          },
+          'image/jpeg',
+          quality
+        );
+      };
+      img.onerror = (error) => reject(error);
+    };
+    reader.onerror = (error) => reject(error);
+  });
+};
+
 const PostFormModal = ({ isOpen, onClose, onSubmit, post, isAdmin }) => {
   const [content, setContent] = useState("");
   const [tag, setTag] = useState("general");
@@ -68,17 +111,33 @@ const PostFormModal = ({ isOpen, onClose, onSubmit, post, isAdmin }) => {
     return () => unlockBodyScroll();
   }, [isOpen, post, isEditMode]);
 
-  const handleImageChange = (e) => {
+  const handleImageChange = async (e) => {
     const file = e.target.files[0];
     if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        toast.error("Image size should be less than 5MB");
+      if (file.size > 10 * 1024 * 1024) { // Check original size (e.g., 10MB limit)
+        toast.error("Image size should be less than 10MB");
         return;
       }
-      setImage(file);
-      const reader = new FileReader();
-      reader.onload = (e) => setImagePreview(e.target.result);
-      reader.readAsDataURL(file);
+      
+      setIsSubmitting(true); // Use isSubmitting to show a loading state
+
+      try {
+        // Resize and compress the selected image
+        const resizedFile = await resizeImage(file);
+        
+        // Set the resized file for upload
+        setImage(resizedFile);
+        
+        // Create a preview URL from the resized file
+        const previewUrl = URL.createObjectURL(resizedFile);
+        setImagePreview(previewUrl);
+        
+      } catch (error) {
+        toast.error("Failed to process image. Please try another one.");
+        console.error("Image processing error:", error);
+      } finally {
+        setIsSubmitting(false);
+      }
     }
   };
 
