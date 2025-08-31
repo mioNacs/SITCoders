@@ -1,34 +1,21 @@
 import React from "react";
+import { FaUsers, FaBell } from 'react-icons/fa'; // Removed unused icons
 
 function UpcomingUpdates() {
   const plannedUpdates = [
-    {
-      feature: "Resources Hub",
-      description:
-        "Access a comprehensive library of educational resources, tutorials, and study materials curated by the community.",
-      expectedRelease: "Q3 2025",
-      icon: "📚", // Books icon
-    },
-    {
-      feature: "Contact Admin System",
-      description:
-        "Direct communication channel with administrators for support, feedback, and platform-related inquiries.",
-      expectedRelease: "Q3 2025",
-      icon: "✉️", // Envelope icon
-    },
     {
       feature: "Collaboration Platform",
       description:
         "Connect and collaborate with peers on projects, find study partners, and create team-based learning experiences.",
       expectedRelease: "Q4 2025",
-      icon: "🤝", // Handshake icon
+      icon: <FaUsers />,
     },
     {
       feature: "Real-time Notifications",
       description:
         "Stay updated with instant notifications for comments, likes, collaboration requests, and admin announcements.",
-      expectedRelease: "Q1 2026",
-      icon: "🔔", // Bell icon
+      expectedRelease: "Q4 2025",
+      icon: <FaBell />,
     },
   ];
 
@@ -37,18 +24,18 @@ function UpcomingUpdates() {
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Background decorative elements */}
         <div
-          className="absolute top-[15%] right-[20%] w-64 h-64 bg-orange-800/20 rounded-tr-[50%] rounded-bl-[50%] animate-pulse blur-xl"
-          style={{ animationDuration: "4s" }}
+          className="absolute top-[15%] right-[20%] w-64 h-64 bg-orange-500/10 rounded-full animate-pulse blur-xl"
+          style={{ animationDuration: "8s" }}
         ></div>
 
         <div
-          className="absolute bottom-[10%] left-[15%] w-72 h-72 rounded-full bg-blue-400/20 animate-bounce blur-md"
+          className="absolute bottom-[10%] left-[15%] w-72 h-72 rounded-full bg-blue-400/10 animate-pulse blur-xl"
+          style={{ animationDuration: "12s" }}
+        ></div>
+
+        <div
+          className="absolute top-[40%] right-[8%] w-64 h-64 bg-purple-500/10 rounded-full animate-pulse blur-xl"
           style={{ animationDuration: "10s" }}
-        ></div>
-
-        <div
-          className="absolute top-[40%] right-[8%] w-64 h-64 bg-purple-500/20 rounded-tr-[50%] rounded-bl-[50%] animate-spin blur-xl"
-          style={{ animationDuration: "15s" }}
         ></div>
 
         {/* Section Header */}
@@ -72,18 +59,18 @@ function UpcomingUpdates() {
               grayscale-25 hover:filter-none"
             >
               <div className="p-6">
-                <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 mb-4 group-hover:scale-110 transition-transform duration-300">
-                  <span className="text-3xl">{update.icon}</span>
+                <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 mb-4 group-hover:scale-110 transition-transform duration-300 text-blue-600 text-3xl">
+                  {update.icon}
                 </div>
-                
+
                 <h3 className="text-xl font-Saira font-semibold text-gray-900 mb-3 group-hover:text-blue-600 transition-colors duration-300">
                   {update.feature}
                 </h3>
-                
+
                 <p className="text-gray-600 font-Jost leading-relaxed mb-4 text-sm">
                   {update.description}
                 </p>
-                
+
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-gray-500 bg-gray-100 px-3 py-1 rounded-full font-medium">
                     {update.expectedRelease}

@@ -28,38 +28,20 @@ function MeetTheDevs() {
       <div className="absolute inset-0 overflow-hidden">
         {/* Orange blob */}
         <div
-          className="absolute top-[20%] left-[8%] w-64 h-64 rounded-full bg-orange-400/30 animate-pulse blur-xl"
-          style={{ animationDuration: "5s" }}
+          className="absolute top-[20%] left-[8%] w-64 h-64 rounded-full bg-orange-400/20 animate-pulse blur-2xl"
+          style={{ animationDuration: "8s" }}
         ></div>
 
         {/* Teal shape */}
         <div
-          className="absolute top-[25%] left-[18%] w-64 h-64 bg-teal-800/20 rounded-tr-[50%] rounded-bl-[50%] animate-spin blur-xl"
-          style={{ animationDuration: "15s" }}
+          className="absolute top-[25%] left-[18%] w-64 h-64 bg-teal-800/10 rounded-full animate-pulse blur-2xl"
+          style={{ animationDuration: "12s" }}
         ></div>
 
         {/* Blue circle */}
         <div
-          className="absolute bottom-[15%] right-[10%] w-72 h-72 rounded-full bg-blue-400/20 animate-bounce blur-md"
+          className="absolute bottom-[15%] right-[10%] w-72 h-72 rounded-full bg-blue-400/10 animate-pulse blur-2xl"
           style={{ animationDuration: "10s" }}
-        ></div>
-
-        {/* Purple shape */}
-        <div
-          className="absolute top-[25%] right-[28%] w-64 h-64 bg-purple-500/20 rounded-tr-[50%] rounded-bl-[50%] animate-spin blur-xl"
-          style={{ animationDuration: "15s" }}
-        ></div>
-
-        {/* violet blob */}
-        <div
-          className="absolute bottom-[18%] left-[22%] w-52 h-52 bg-violet-400/20 rounded-tl-[60%] rounded-br-[60%] rounded-tr-[30%] rounded-bl-[30%] animate-pulse blur-md"
-          style={{ animationDuration: "12s" }}
-        ></div>
-
-        {/* Yellow shape */}
-        <div
-          className="absolute top-[15%] right-[35%] w-44 h-44 bg-yellow-300/20 rounded-full blur-xl animate-bounce"
-          style={{ animationDuration: "6s" }}
         ></div>
       </div>
 
@@ -71,7 +53,7 @@ function MeetTheDevs() {
           {developers.map((dev, index) => (
             <div
               key={index}
-              className="mx-auto px-[20%] hover:bg-white/70 bg-white/40 rounded-lg 
+              className="mx-auto px-[20%] hover:bg-white/70 bg-white/40 rounded-lg
               scroll-view backdrop-blur-sm shadow-lg p-6 flex flex-col items-center
               transition-all duration-300 ease-in-out transform hover:scale-105
               grayscale-25 hover:filter-none"
