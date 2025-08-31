@@ -1,64 +1,88 @@
-import {Link} from "react-router-dom";
+import { Link } from "react-router-dom";
+import { FaGithub, FaDiscord, FaRegHeart } from 'react-icons/fa';
 
 function Footer() {
   return (
-    <div>
-      <footer className="relative border-t font-Jost border-black/20 py-4 px-10">
-        <div className="flex flex-col md:flex-row justify-between items-center border-y border-black/20 p-4 md:p-8 md:mx-10 my-4 space-x-4">
-          <Link to={"/"} className="mb-4 md:mb-0">
-            <span className="text-3xl md:text-4xl text-gray-600 font-Saira font-bold">
-              SIT
-            </span>
-            <span className="text-3xl md:text-4xl text-orange-400 font-Saira font-bold">
-              Coders
-            </span>
-          </Link>
-          <div>
-            From{" "}
-            <a
-              className="hover:text-orange-400 transition-colors duration-150"
-              href="https://www.sityog.edu.in/"
-              target="_blank"
-            >
-              Sityog Institute of Technology (SIT)
-            </a>
-            , Aurangabad
+    <footer className="relative border-t font-Jost border-gray-200 py-8 px-4 sm:px-6 lg:px-8 bg-gray-50">
+      <div className="max-w-7xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
+          {/* Logo and College Info */}
+          <div className="md:col-span-4 flex flex-col items-center md:items-start text-center md:text-left">
+            <Link to={"/"} className="mb-4">
+              <span className="text-3xl text-gray-500 font-Saira font-bold">
+                SIT
+              </span>
+              <span className="text-3xl text-orange-400 font-Saira font-bold">
+                Coders
+              </span>
+            </Link>
+            <p className="text-gray-600">
+              From{" "}
+              <a
+                className="text-orange-400 hover:underline transition-colors duration-150"
+                href="https://www.sityog.edu.in/"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Sityog Institute of Technology
+              </a>
+            </p>
+            <p className="text-gray-500 text-sm">Aurangabad, Bihar</p>
           </div>
-          <div className="flex flex-col sm:flex-row justify-between w-full md:w-1/2 lg:w-1/3 py-4 gap-8 sm:gap-4">
-            <ul className="text-left space-y-2 md:space-y-4">
-              <li className="font-medium"> FOLLOW US </li>
-              <li className="text-sm"> Github </li>
-              <li className="text-sm"> Discord </li>
-            </ul>
-            <ul className="text-left space-y-2 md:space-y-4 mt-4 sm:mt-0">
-              <li className="font-medium"> LEGAL </li>
-              <li className="text-sm"> Privacy Policy </li>
-              <li className="text-sm"> Terms & Conditions </li>
-            </ul>
+
+          {/* Links Sections */}
+          <div className="md:col-span-8 grid grid-cols-2 sm:grid-cols-3 gap-8">
+            <div className="text-center sm:text-left">
+              <h3 className="font-semibold text-gray-800 uppercase tracking-wider mb-4">
+                Follow Us
+              </h3>
+              <ul className="space-y-3">
+                <li>
+                  <a href="#" className="flex items-center justify-center sm:justify-start gap-2 text-gray-600 hover:text-orange-600 transition-colors">
+                    <FaGithub /> Github
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="flex items-center justify-center sm:justify-start gap-2 text-gray-600 hover:text-orange-600 transition-colors">
+                    <FaDiscord /> Discord
+                  </a>
+                </li>
+              </ul>
+            </div>
+            <div className="text-center sm:text-left">
+              <h3 className="font-semibold text-gray-800 uppercase tracking-wider mb-4">
+                Legal
+              </h3>
+              <ul className="space-y-3">
+                <li>
+                  <a href="#" className="text-gray-600 hover:text-orange-600 transition-colors">
+                    Privacy Policy
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="text-gray-600 hover:text-orange-600 transition-colors">
+                    Terms & Conditions
+                  </a>
+                </li>
+              </ul>
+            </div>
+            {/* You can add another column of links here if needed */}
           </div>
         </div>
-        <div className="flex flex-col sm:flex-row items-center justify-between px-4 md:px-12 container text-center sm:text-left gap-2 sm:gap-0">
-          <p className="text-sm">
+
+        {/* Bottom Bar */}
+        <div className="mt-8 pt-8 border-t border-gray-200 flex flex-col sm:flex-row items-center justify-between text-center sm:text-left gap-4">
+          <p className="text-sm text-gray-500">
             &copy; {new Date().getFullYear()} SITCoders. All rights reserved.
           </p>
-          <p className="text-sm">
+          <p className="text-sm text-gray-500">
             Made with{" "}
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="red"
-              strokeWidth="2"
-              className="inline-block"
-            >
-              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
-            </svg>{" "}
-            by Team SITCoders
+            <FaRegHeart className="inline text-red-500" />
+            {" "}by Team SITCoders
           </p>
         </div>
-      </footer>
-    </div>
+      </div>
+    </footer>
   );
 }
 
