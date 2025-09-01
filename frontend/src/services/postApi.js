@@ -1,19 +1,13 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+import { api } from '../context/AuthContext';
 
 export const createPost = async (formData) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/posts/create`, {
-      method: 'POST',
-      credentials: 'include',
-      body: formData,
+    const response = await api.post('/api/posts/create', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
     });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || 'Failed to create post');
-    }
-
-    return await response.json();
+    return response.data;
   } catch (error) {
     console.error('Error creating post:', error);
     throw error;
@@ -22,20 +16,8 @@ export const createPost = async (formData) => {
 
 export const deletePost = async (postId) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/posts/delete/${postId}`, {
-      method: 'DELETE',
-      credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || 'Failed to delete post');
-    }
-
-    return await response.json();
+    const response = await api.delete(`/api/posts/delete/${postId}`);
+    return response.data;
   } catch (error) {
     console.error('Error deleting post:', error);
     throw error;
@@ -43,43 +25,25 @@ export const deletePost = async (postId) => {
 };
 
 export const editPost = async (postId, formData) => {
-  try{
-    const response = await fetch(`${API_BASE_URL}/api/posts/edit/${postId}`,{
-      method: 'PUT',
-      credentials: 'include',
-      body: formData, // Send formData directly
-    })
-
-    if(!response.ok){
-      const errorData = await response.json()
-      throw new Error(errorData.message || 'Failed to edit post')
-    }
-
-    return await response.json()
-  }catch(error){
-    console.error('Error editing post:', error)
-    throw error
+  try {
+    const response = await api.put(`/api/posts/edit/${postId}`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error editing post:', error);
+    throw error;
   }
-}
+};
 
 export const getAllPosts = async (page = 1, limit = 10, tag) => {
   try {
-  const params = new URLSearchParams({ page: String(page), limit: String(limit) });
-  if (tag) params.set('tag', tag);
-  const response = await fetch(`${API_BASE_URL}/api/posts/get-posts?${params.toString()}`, {
-      method: 'GET',
-      credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || 'Failed to fetch posts');
-    }
-
-    return await response.json();
+    const params = new URLSearchParams({ page: String(page), limit: String(limit) });
+    if (tag) params.set('tag', tag);
+    const response = await api.get(`/api/posts/get-posts?${params.toString()}`);
+    return response.data;
   } catch (error) {
     console.error('Error fetching posts:', error);
     throw error;
@@ -88,22 +52,10 @@ export const getAllPosts = async (page = 1, limit = 10, tag) => {
 
 export const getUserPosts = async (page = 1, limit = 10, tag) => {
   try {
-  const params = new URLSearchParams({ page: String(page), limit: String(limit) });
-  if (tag) params.set('tag', tag);
-  const response = await fetch(`${API_BASE_URL}/api/posts/get-user-posts?${params.toString()}`, {
-      method: 'GET',
-      credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || 'Failed to fetch user posts');
-    }
-
-    return await response.json();
+    const params = new URLSearchParams({ page: String(page), limit: String(limit) });
+    if (tag) params.set('tag', tag);
+    const response = await api.get(`/api/posts/get-user-posts?${params.toString()}`);
+    return response.data;
   } catch (error) {
     console.error('Error fetching user posts:', error);
     throw error;
@@ -112,22 +64,10 @@ export const getUserPosts = async (page = 1, limit = 10, tag) => {
 
 export const getPostsByUserId = async (userId, page = 1, limit = 10, tag) => {
   try {
-  const params = new URLSearchParams({ page: String(page), limit: String(limit) });
-  if (tag) params.set('tag', tag);
-  const response = await fetch(`${API_BASE_URL}/api/posts/user/${userId}?${params.toString()}`, {
-      method: 'GET',
-      credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || 'Failed to fetch user posts');
-    }
-
-    return await response.json();
+    const params = new URLSearchParams({ page: String(page), limit: String(limit) });
+    if (tag) params.set('tag', tag);
+    const response = await api.get(`/api/posts/user/${userId}?${params.toString()}`);
+    return response.data;
   } catch (error) {
     console.error('Error fetching user posts:', error);
     throw error;
@@ -136,19 +76,8 @@ export const getPostsByUserId = async (userId, page = 1, limit = 10, tag) => {
 
 export const getPostById = async (postId) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/posts/${postId}`, {
-      method: 'GET',
-      credentials: 'include',
-        headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || 'Failed to fetch post.');
-    }
-    return await response.json();
+    const response = await api.get(`/api/posts/${postId}`);
+    return response.data;
   } catch (error) {
     console.error('Error fetching post by ID:', error);
     throw error;
