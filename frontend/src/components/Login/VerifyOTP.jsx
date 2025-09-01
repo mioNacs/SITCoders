@@ -1,6 +1,8 @@
 import React from "react";
 import { useLocation, useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext.jsx";
+import { landingHero } from "../../assets/index.js";
+import { FaSpinner } from "react-icons/fa";
 
 function VerifyOTP() {
   const { verifyOtp, resendOtp, isAuthenticated, isLoading: authLoading } = useAuth();
@@ -85,11 +87,20 @@ function VerifyOTP() {
     }
   }, [cooldown]);
 
-  // Show loading while checking auth status
+  // Show loading skeleton while checking auth status
   if (authLoading) {
     return (
-      <div className="font-Jost flex h-screen justify-center items-center text-gray-600 bg-orange-100/30">
-        <div className="text-lg">Loading...</div>
+      <div className="font-Jost flex min-h-screen justify-center items-center text-gray-800 bg-gray-50">
+        <div className="w-full max-w-md p-6">
+          <div className="animate-pulse space-y-6">
+            <div className="h-8 bg-gray-200 rounded w-3/4 mx-auto"></div>
+            <div className="h-4 bg-gray-200 rounded w-1/2 mx-auto"></div>
+            <div className="space-y-4">
+              <div className="h-10 bg-gray-200 rounded"></div>
+              <div className="h-12 bg-gray-200 rounded"></div>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
@@ -102,46 +113,52 @@ function VerifyOTP() {
   };
 
   return (
-    <div className="font-Jost flex h-screen justify-center items-center text-gray-600 bg-orange-100/30">
-      <div className="bg-white p-6 px-8 rounded-lg border min-w-[90%] sm:min-w-[70%] md:min-w-[50%] lg:min-w-[35%] border-orange-400 shadow-lg">
-        <div className="font-Saira text-3xl text-orange-400 text-center font-medium">
-          <span className="text-3xl md:text-4xl text-gray-600 font-Saira font-bold">
-            SIT
-          </span>
-          <span className="text-3xl md:text-4xl text-orange-400 font-Saira font-bold">
-            Coders
-          </span>
-        </div>
-        <div className="text-center mt-4">
-          <h2 className="text-xl font-medium">Verify Your Email</h2>
-          <p className="text-sm text-gray-500 mt-2">
-            We've sent a 6-digit OTP to <strong>{email}</strong>
-          </p>
-        </div>
+    <div className="font-Jost flex min-h-screen text-gray-800 bg-gray-50">
+      {/* Left Section: Image */}
+      <div className="hidden lg:flex lg:w-1/2 items-center justify-center bg-orange-100/50 p-12">
+        <img
+          src={landingHero}
+          alt="Community illustration"
+          className="w-full h-auto object-contain max-w-md"
+        />
+      </div>
 
-        {error && (
-          <div className="mt-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
-            {error}
+      {/* Right Section: Form */}
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-8">
+        <div className="w-full max-w-md">
+          <div className="text-center mb-8">
+            <div className="font-Saira text-4xl text-orange-500 font-bold">
+              <span className="text-gray-700">SIT</span>Coders
+            </div>
+            <h2 className="text-2xl font-bold text-gray-800 mt-4">
+              Verify Your Email
+            </h2>
+            <p className="text-gray-500 mt-1">
+              We've sent a 6-digit code to <strong>{email}</strong>.
+            </p>
           </div>
-        )}
 
-        {success && (
-          <div className="mt-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded">
-            {success}
-          </div>
-        )}
+          {error && (
+            <div className="mb-4 p-3 bg-red-100 border border-red-300 text-red-800 rounded-lg text-sm">
+              {error}
+            </div>
+          )}
+          {success && (
+            <div className="mb-4 p-3 bg-green-100 border border-green-300 text-green-800 rounded-lg text-sm">
+              {success}
+            </div>
+          )}
 
-        <div className="mt-4 text-sm sm:text-lg">
-          <form className="flex flex-col gap-3" onSubmit={handleSubmit}>
-            <div className="flex flex-col justify-between">
-              <label className="font-medium" htmlFor="otp">
-                Enter OTP:
+          <form className="space-y-5" onSubmit={handleSubmit}>
+            <div>
+              <label className="font-medium text-gray-600" htmlFor="otp">
+                Verification Code
               </label>
               <input
                 id="otp"
                 value={otp}
                 onChange={(e) => setOtp(e.target.value)}
-                className="bg-gray-50 caret-orange-400 px-4 py-2 rounded-md outline-none border border-gray-300 focus:border-orange-400 focus:shadow-lg shadow-orange-400/10 text-center text-2xl tracking-widest"
+                className="mt-1 w-full bg-white caret-orange-500 px-4 py-3 rounded-lg outline-none border border-gray-300 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-all text-center text-2xl tracking-widest"
                 type="text"
                 placeholder="000000"
                 maxLength="6"
@@ -150,35 +167,39 @@ function VerifyOTP() {
               />
             </div>
             
-            <button type="submit" disabled={loading}>
-              <div className={`${loading ? 'bg-gray-400' : 'bg-orange-400 hover:bg-orange-500'} shadow-md hover:shadow-lg font-Saira text-lg sm:text-xl text-white px-4 py-2 rounded-md mt-2 transition-all duration-200 ease-in-out cursor-pointer`}>
-                {loading ? 'Verifying...' : 'Verify OTP'}
-              </div>
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full font-Saira text-lg font-semibold text-white bg-orange-500 rounded-lg py-3 px-4 hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 transition-all disabled:bg-gray-400 flex items-center justify-center gap-2"
+            >
+              {loading && <FaSpinner className="animate-spin" />}
+              {loading ? 'Verifying...' : 'Verify Account'}
             </button>
           </form>
 
-          <div className="mt-4 text-center">
-            <p className="text-sm">
-              Didn't receive the OTP?{" "}
+          <div className="mt-6 text-center text-gray-500">
+            <p>
+              Didn't receive the code?{" "}
               <button
                 onClick={handleResendOTP}
                 disabled={resending || cooldown > 0}
-                className="text-orange-400 hover:text-orange-500 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+                className="text-orange-500 font-semibold hover:text-orange-600 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {resending
                   ? 'Resending...'
                   : cooldown > 0
-                  ? `Resend OTP (${formatCooldown(cooldown)})`
-                  : 'Resend OTP'}
+                  ? `Resend in ${formatCooldown(cooldown)}`
+                  : 'Resend Code'}
               </button>
             </p>
           </div>
 
-          <div className="mt-6 text-center text-sm sm:text-lg">
-            <Link to="/login">
-              <span className="text-orange-400 hover:text-orange-500 cursor-pointer">
-                Back to Login
-              </span>
+          <div className="mt-4 text-center text-gray-500">
+            <Link
+              to="/login"
+              className="text-orange-500 font-semibold hover:text-orange-600"
+            >
+              Back to Login
             </Link>
           </div>
         </div>
