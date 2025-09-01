@@ -64,21 +64,19 @@ const FAQ = () => {
   };
 
   return (
-    <div className="">
-        <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">
-            Frequently Asked Questions
-          </h1>
-        </div>
+    <div className="bg-white rounded-2xl shadow-lg p-8 h-full">
+        <h2 className="text-2xl font-bold text-gray-800 mb-6">
+          Frequently Asked Questions
+        </h2>
 
-        <div className="relative mb-8">
+        <div className="relative mb-6">
           <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
           <input
             type="text"
             placeholder="Search questions..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-full shadow-sm focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
+            className="w-full pl-12 pr-4 py-3 bg-gray-100 border border-transparent rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition"
           />
         </div>
 
@@ -87,33 +85,35 @@ const FAQ = () => {
             filteredFaqs.map((faq, index) => (
               <div
                 key={index}
-                className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden"
+                className="border-b border-gray-200 last:border-b-0"
               >
                 <button
                   onClick={() => toggleFAQ(index)}
-                  className="w-full flex justify-between items-center p-6 text-left font-semibold text-gray-800 focus:outline-none"
+                  className="w-full flex justify-between items-center py-4 text-left font-semibold text-gray-700 hover:text-orange-500 focus:outline-none transition-colors"
                 >
                   <span>{faq.question}</span>
                   <FiChevronDown
                     className={`transform transition-transform duration-300 ${
-                      openIndex === index ? 'rotate-180' : ''
+                      openIndex === index ? 'rotate-180 text-orange-500' : ''
                     }`}
                   />
                 </button>
                 <div
-                  className={`transition-all duration-300 ease-in-out overflow-hidden ${
-                    openIndex === index ? 'max-h-screen' : 'max-h-0'
+                  className={`grid transition-all duration-300 ease-in-out ${
+                    openIndex === index ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'
                   }`}
                 >
-                  <div className="p-6 pt-0 text-gray-600">
-                    <p>{faq.answer}</p>
+                  <div className="overflow-hidden">
+                    <div className="pb-4 text-gray-600">
+                      <p>{faq.answer}</p>
+                    </div>
                   </div>
                 </div>
               </div>
             ))
           ) : (
             <div className="text-center py-12 text-gray-500">
-              <h3 className="text-xl font-semibold mb-2">No results found</h3>
+              <h3 className="text-xl font-semibold mb-2">No Results Found</h3>
               <p>Try searching for a different keyword.</p>
             </div>
           )}
