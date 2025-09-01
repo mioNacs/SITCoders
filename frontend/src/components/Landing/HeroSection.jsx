@@ -1,45 +1,42 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { landingHero } from '../../assets';
-import HeroText from './HeroText';
+import React from 'react'
+import landingHero from '../../assets/index'
+import HeroText from './HeroText'
+import {Link, NavLink} from 'react-router-dom'
 
 function HeroSection() {
   return (
-    <div className="relative min-h-screen flex items-center justify-center bg-white overflow-hidden pt-20 lg:pt-0">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid lg:grid-cols-2 gap-12 items-center">
-          {/* Left side: Text content */}
-          <div className="text-center lg:text-left">
-            <HeroText />
-            <div className="mt-8 flex justify-center lg:justify-start space-x-4">
-              <Link
-                to="/login"
-                className="px-8 py-3 text-lg font-semibold text-gray-800 bg-white border-2 border-gray-300 rounded-full hover:bg-gray-100 hover:border-gray-400 transition-all transform hover:scale-105"
-              >
-                Log In
-              </Link>
-              <Link
-                to="/signup"
-                className="px-8 py-3 text-lg font-semibold text-white bg-orange-500 rounded-full hover:bg-orange-600 transition-all transform hover:scale-105 shadow-lg hover:shadow-xl"
-              >
-                Sign Up
-              </Link>
+    <div className='flex flex-col select-none md:flex-row bg-white text-black min-h-screen'>
+      <div className='my-auto sticky px-4 sm:px-6 md:px-8 lg:mx-20 flex flex-col md:flex-row items-center justify-center w-full'>
+        
+        <div className='w-full md:w-1/2 lg:w-1/2 object-cover mt-8 md:mt-0'>
+          <img 
+            className='transition-all duration-1000 ease-in-out hover:hue-rotate-60 select-none max-w-full h-auto'
+            draggable="false"
+            src={landingHero} 
+            alt="heroImg" 
+          />
+        </div>
+        <div className='w-full md:w-1/2 block justify-start mt-6 md:mt-0 px-4'>
+          <HeroText />
+          <div className='flex justify-center space-y-4 
+          sm:space-y-0 text-center space-x-4 md:space-x-6 mt-6'>
+            <Link to={"/login"}>
+            <div className='bg-white w-30 p-2 md:p-3 hover:drop-shadow-2xl duration-400 text-orange-400 hover:text-white outline hover:outline-none outline-orange-400 font-medium 
+            px-4 md:px-6 rounded-full text-lg md:text-xl hover:bg-gray-600 cursor-pointer'>
+              Log In
             </div>
-          </div>
-
-          {/* Right side: Image */}
-          <div className="flex justify-center items-center">
-            <img
-              className="w-full max-w-lg h-auto object-contain transition-transform duration-500 ease-in-out hover:scale-105"
-              draggable="false"
-              src={landingHero}
-              alt="Community Platform Illustration"
-            />
+            </Link>
+            <Link to={"/signup"}>
+            <div className='bg-orange-400 w-30 p-2 md:p-3 hover:drop-shadow-2xl duration-400 text-white font-medium 
+            px-4 md:px-6 rounded-full text-lg md:text-xl hover:bg-gray-600 cursor-pointer'>
+              Sign Up
+            </div>
+            </Link>
           </div>
         </div>
       </div>
     </div>
-  );
+  )
 }
 
-export default HeroSection;
+export default HeroSection
