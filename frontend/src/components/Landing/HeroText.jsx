@@ -1,83 +1,66 @@
-import React from 'react'
-import { useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-//link removed as it is not best practice to import fonts here. It should be in the main index.html or css file
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { FaChevronDown } from 'react-icons/fa';
 
 function HeroText() {
-    const [isExpanded, setIsExpanded] = useState(false)
+  const [isExpanded, setIsExpanded] = useState(false);
 
-    return (
+  return (
+    <div className="text-center lg:text-left">
+      <h1 className="font-Saira font-extrabold text-5xl sm:text-6xl lg:text-7xl tracking-tight">
+        <span className="text-gray-800">SIT</span>
+        <span className="text-orange-500">Coders</span>
+      </h1>
+      <p className="mt-4 text-xl sm:text-2xl text-gray-600 max-w-xl mx-auto lg:mx-0">
+        Empowering <span className="font-semibold text-orange-500">Innovation</span>, One Line of <span className="font-semibold text-orange-500">Code</span> at a Time.
+      </p>
+
       <div
-        className='text-center no-scrollbar cursor-pointer'
+        className="mt-6 inline-block cursor-pointer"
         onClick={() => setIsExpanded(!isExpanded)}
       >
-        <h1
-          className='font-Saira font-bold text-shadow-lg
-          select-none text-center text-4xl sm:text-5xl md:text-6xl lg:text-8xl'
-        >
-          <span className='text-gray-600'>SIT</span>
-          <span className='text-orange-400'>Coders</span>
-        </h1>
-        <p
-          className='text-lg sm:text-xl md:text-2xl lg:text-3xl text-gray-600'
-        >
-          Empowering
-          <span className='text-orange-400'> Innovation</span>,
-          <span className='text-orange-400'> Code </span>by
-          <span className='text-orange-400'> Code</span>.
-        </p>
-
-        <AnimatePresence>
-          {isExpanded && (
-            <motion.div
-              className='mx-auto mt-4 md:mt-6 border-b'
-              initial={{ opacity: 0, height: 0, overflow: 'hidden' }}
-              animate={{ opacity: 1, height: 'auto', overflow: 'hidden' }}
-              exit={{ opacity: 0, height: 0, overflow: 'hidden' }}
-              transition={{ duration: 0.5 }}
-            >
-              <p className='font-Jost text-start text-gray-600 text-sm sm:text-base md:text-md lg:text-lg'>
-                Dear Students, <br />
-                With warm regards, we at SITCoders are thrilled to welcome you to our community. <br />
-                Here, at SITCoders we are determined to provide you with the best possible colalborative
-                platform Where you can share your <span className='text-orange-400'>Queries</span>, <span className='text-orange-400'>Projects</span>, and
-                <span className='text-orange-400'> Ideas</span> to other students and faculty members. <br />
-                We are committed to fostering a culture of innovation and collaboration,
-                and we believe that SITCoders will play a vital role in achieving this goal. <br />
-                We look forward to working with you and supporting you in your academic journey. <br />
-                <br />
-                Best regards, <br />
-                Team SITCoders
-              </p>
-            </motion.div>
-          )}
-        </AnimatePresence>
-        <div
-            className={`flex justify-center mt-2 mb-[-10px]
-              ${isExpanded? 'rotate-180' : ''}`}
-          >
-            <svg
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-              className="text-orange-400 animate-bounce"
-            >
-              <path
-                d="M7.41 8.59L12 13.17L16.59 8.59L18 10L12 16L6 10L7.41 8.59Z"
-                fill="currentColor"
-              />
-              <path
-                d="M7.41 12.59L12 17.17L16.59 12.59L18 14L12 20L6 14L7.41 12.59Z"
-                fill="currentColor"
-              />
-            </svg>
-          <span className='font-Jost text-orange-400 transition-all duration-300'>{!isExpanded && "expand"}</span>
-          </div>
+        <div className="flex items-center text-gray-600 hover:text-orange-500 transition-colors">
+          <span className="font-semibold">
+            {isExpanded ? 'Read Less' : 'Read More'}
+          </span>
+          <FaChevronDown
+            className={`ml-2 transition-transform duration-300 ${
+              isExpanded ? 'rotate-180' : ''
+            }`}
+          />
+        </div>
       </div>
-    )
-  }
 
+      <AnimatePresence>
+        {isExpanded && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.4, ease: 'easeInOut' }}
+            className="overflow-hidden"
+          >
+            <div className="mt-4 text-left text-gray-700 space-y-4 max-w-2xl mx-auto lg:mx-0 pr-4">
+              <p>
+                Dear Students,
+              </p>
+              <p>
+                With warm regards, we at SITCoders are thrilled to welcome you to our community. Here, we are determined to provide you with the best possible collaborative platform where you can share your <span className="font-semibold text-orange-500">queries</span>, <span className="font-semibold text-orange-500">projects</span>, and <span className="font-semibold text-orange-500">ideas</span> with other students and faculty members.
+              </p>
+              <p>
+                We are committed to fostering a culture of innovation and collaboration, and we believe that SITCoders will play a vital role in achieving this goal. We look forward to working with you and supporting you in your academic journey.
+              </p>
+              <p>
+                Best regards,
+                <br />
+                <span className="font-semibold">Team SITCoders</span>
+              </p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
 
-export default HeroText
+export default HeroText;
