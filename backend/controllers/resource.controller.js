@@ -41,17 +41,17 @@ const createResource = async (req, res) => {
     await newResource.save();
 
     // Notify the users about the resources
-    const users = await User.find({});
+    // const users = await User.find({});
 
-      for(let user of users){
-        const notification = new Notification({
-          user: user._id,
-          message: `New resource created by ${req.user.username}: ${title}`
-        });
-        await notification.save();
-        const io = req.app.get('io');
-        io.to(user._id).emit('notification', notification);
-      }
+    //   for(let user of users){
+    //     const notification = new Notification({
+    //       user: user._id,
+    //       message: `New resource created by ${req.user.username}: ${title}`
+    //     });
+    //     await notification.save();
+    //     const io = req.app.get('io');
+    //     io.to(user._id).emit('notification', notification);
+    //   }
 
     res.status(201).json({ message: "Resource created successfully.", resource: newResource });
   } catch (error) {
