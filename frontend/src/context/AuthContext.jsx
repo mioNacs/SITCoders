@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { verifyIsAdmin } from '../services/adminApi';
 
@@ -28,6 +28,17 @@ export const AuthProvider = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
+  const logout = useCallback(async () => {
+    try {
+      await api.get('/api/users/logout');
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
+      setUser(null);
+      setIsAuthenticated(false);
+    }
+  }, []);
+
   // Check authentication status on app start
   useEffect(() => {
     checkAuthStatus();
@@ -36,10 +47,10 @@ export const AuthProvider = ({ children }) => {
   // Add an Axios interceptor to handle token refreshes
   useEffect(() => {
     const responseInterceptor = api.interceptors.response.use(
-      response => response,
+      (response) => response,
       async (error) => {
         const originalRequest = error.config;
-        if (error.response.status === 401 && !originalRequest._retry) {
+        if (error.response && error.response.status === 401 && !originalRequest._retry) {
           originalRequest._retry = true;
           try {
             const { data } = await api.post('/api/users/refresh-token');
@@ -53,13 +64,13 @@ export const AuthProvider = ({ children }) => {
           }
         }
         return Promise.reject(error);
-      }
+      },
     );
 
     return () => {
       api.interceptors.response.eject(responseInterceptor);
     };
-  }, []);
+  }, [logout]);
 
 
   // Check admin status when user authentication changes
@@ -121,17 +132,6 @@ export const AuthProvider = ({ children }) => {
       const message = error.response?.data?.message || 'Login failed';
       console.error('Login error:', error);
       return { success: false, message };
-    }
-  };
-
-  const logout = async () => {
-    try {
-      await api.get('/api/users/logout');
-    } catch (error) {
-      console.error('Logout error:', error);
-    } finally {
-      setUser(null);
-      setIsAuthenticated(false);
     }
   };
 

@@ -1,4 +1,4 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+import { api } from '../context/AuthContext';
 
 /**
  * Toggle popularity (like/unlike) on a post
@@ -10,21 +10,8 @@ export const togglePostPopularity = async (postId) => {
     if (!postId) {
       throw new Error('Post ID is required');
     }
-
-    const response = await fetch(`${API_BASE_URL}/api/popularity/add-popularity/${postId}`, {
-      method: 'POST',
-      credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || 'Failed to update post popularity');
-    }
-
-    return await response.json();
+    const response = await api.post(`/api/popularity/add-popularity/${postId}`);
+    return response.data;
   } catch (error) {
     console.error('Error toggling post popularity:', error);
     throw error;
@@ -41,21 +28,8 @@ export const toggleProfilePopularity = async (profileId) => {
     if (!profileId) {
       throw new Error('Profile ID is required');
     }
-
-    const response = await fetch(`${API_BASE_URL}/api/popularity/add-popularity/profile/${profileId}`, {
-      method: 'POST',
-      credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || 'Failed to update profile popularity');
-    }
-
-    return await response.json();
+    const response = await api.post(`/api/popularity/add-popularity/profile/${profileId}`);
+    return response.data;
   } catch (error) {
     console.error('Error toggling profile popularity:', error);
     throw error;
@@ -72,21 +46,8 @@ export const toggleCommentPopularity = async (commentId) => {
     if (!commentId) {
       throw new Error('Comment ID is required');
     }
-
-    const response = await fetch(`${API_BASE_URL}/api/popularity/add-popularity/comment/${commentId}`, {
-      method: 'POST',
-      credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || 'Failed to update comment popularity');
-    }
-
-    return await response.json();
+    const response = await api.post(`/api/popularity/add-popularity/comment/${commentId}`);
+    return response.data;
   } catch (error) {
     console.error('Error toggling comment popularity:', error);
     throw error;
@@ -105,21 +66,8 @@ export const getUserReputation = async (userId) => {
     if (!userId) {
       throw new Error('User ID is required');
     }
-
-    const response = await fetch(`${API_BASE_URL}/api/popularity/reputation/${userId}`, {
-      method: 'GET',
-      credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || 'Failed to get user reputation');
-    }
-
-    return await response.json();
+    const response = await api.get(`/api/popularity/reputation/${userId}`);
+    return response.data;
   } catch (error) {
     console.error('Error getting user reputation:', error);
     throw error;
@@ -131,20 +79,8 @@ export const getUserReputation = async (userId) => {
  */
 export const getLeaderboard = async () => {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/popularity/leaderboard`, {
-      method: 'GET',
-      credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || 'Failed to fetch leaderboard');
-    }
-
-    return await response.json();
+    const response = await api.get(`/api/popularity/leaderboard`);
+    return response.data;
   } catch (error) {
     console.error('Error fetching leaderboard:', error);
     throw error;

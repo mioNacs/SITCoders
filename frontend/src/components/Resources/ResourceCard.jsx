@@ -10,6 +10,7 @@ import {
   FaShare,
 } from "react-icons/fa";
 import { FiCheckCircle } from "react-icons/fi";
+import {deleteResource} from "../../services/resourceApi";
 import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useAuth } from "../../context/AuthContext";
